@@ -16,7 +16,7 @@ import shutil
 URL = "https://www.marketcapwatch.com/all-countries/"
 REPO_NAME = "ayeeff/marketcap"
 FILE_PATH = "data/countries_marketcap.csv"  # Name the CSV file
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # Set your GitHub Personal Access Token as environment variable
+GITHUB_TOKEN = os.getenv("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")  # Set your GitHub Personal Access Token as environment variable
 
 # Set up Selenium with webdriver-manager
 chrome_options = Options()
