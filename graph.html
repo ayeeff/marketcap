@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Market Cap Treemap</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            overflow: hidden;
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        .country-cell {
+            position: absolute;
+            border: 2px solid #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+        
+        .country-cell:hover {
+            border-color: #fff;
+            z-index: 1000;
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+        
+        .country-name {
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 2px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        .country-ticker {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        .country-value {
+            font-size: 13px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        .country-change {
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        .country-percent {
+            font-size: 11px;
+            opacity: 0.9;
+            margin-top: 2px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        .flag {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        #file-input {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 2000;
+            padding: 10px 20px;
+            background: #333;
+            border: 2px solid #555;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        #title {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        #stats {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 2000;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="title">Global Stock Market Cap by Country</div>
+    <input type="file" id="file-input" accept=".csv" />
+    <div id="container"></div>
+    <div id="stats"></div>
+
+    <script>
+        // Country code to flag emoji mapping
+        const countryFlags = {
+            'US': '🇺🇸', 'United States': '🇺🇸',
+            'CN': '🇨🇳', 'China': '🇨🇳',
+            'JP': '🇯🇵', 'Japan': '🇯🇵',
+            'UK': '🇬🇧', 'United Kingdom': '🇬🇧',
+            'IN': '🇮🇳', 'India': '🇮🇳',
+            'FR': '🇫🇷', 'France': '🇫🇷',
+            'CA': '🇨🇦', 'Canada': '🇨🇦',
+            'DE': '🇩🇪', 'Germany': '🇩🇪',
+            'HK': '🇭🇰', 'Hong Kong': '🇭🇰',
+            'AU': '🇦🇺', 'Australia': '🇦🇺',
+            'KR': '🇰🇷', 'South Korea': '🇰🇷',
+            'CH': '🇨🇭', 'Switzerland': '🇨🇭',
+            'TW': '🇹🇼', 'Taiwan': '🇹🇼',
+            'NL': '🇳🇱', 'Netherlands': '🇳🇱',
+            'SE': '🇸🇪', 'Sweden': '🇸🇪',
+            'ES': '🇪🇸', 'Spain': '🇪🇸',
+            'IT': '🇮🇹', 'Italy': '🇮🇹',
+            'SG': '🇸🇬', 'Singapore': '🇸🇬',
+            'BR': '🇧🇷', 'Brazil': '🇧🇷',
+            'DK': '🇩🇰', 'Denmark': '🇩🇰',
+        };
+
+        function getFlag(country) {
+            return countryFlags[country] || '🌐';
+        }
+
+        function getColor(change) {
+            if (!change || change === '-' || change === '') return '#666';
+            
+            const percent = parseFloat(change.replace('%', ''));
+            if (isNaN(percent)) return '#666';
+            
+            if (percent > 5) return '#006400';
+            if (percent > 2) return '#228B22';
+            if (percent > 0) return '#32CD32';
+            if (percent > -2) return '#DC143C';
+            if (percent > -5) return '#8B0000';
+            return '#4d0000';
+        }
+
+        function parseMarketCap(value) {
+            if (!value || value === '-') return 0;
+            
+            value = value.replace('$', '').replace(',', '').trim();
+            let multiplier = 1;
+            
+            if (value.includes('T')) {
+                multiplier = 1000000000000;
+                value = value.replace('T', '').trim();
+            } else if (value.includes('B')) {
+                multiplier = 1000000000;
+                value = value.replace('B', '').trim();
+            } else if (value.includes('M')) {
+                multiplier = 1000000;
+                value = value.replace('M', '').trim();
+            }
+            
+            return parseFloat(value) * multiplier;
+        }
+
+        function formatMarketCap(value) {
+            if (value >= 1000000000000) {
+                return '$' + (value / 1000000000000).toFixed(2) + 'T';
+            } else if (value >= 1000000000) {
+                return '$' + (value / 1000000000).toFixed(2) + 'B';
+            } else if (value >= 1000000) {
+                return '$' + (value / 1000000).toFixed(2) + 'M';
+            }
+            return '$' + value.toFixed(0);
+        }
+
+        function createTreemap(data) {
+            const container = document.getElementById('container');
+            container.innerHTML = '';
+            
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            // Prepare data
+            const processedData = data.map(d => ({
+                country: d.Country || d.country || 'Unknown',
+                marketCap: parseMarketCap(d['Market Cap'] || d['market cap'] || '0'),
+                change: d['Change'] || d['change'] || d['1D Change'] || '0%',
+                percent: parseFloat(d['% of Global Market Cap'] || d['percent'] || 0)
+            })).filter(d => d.marketCap > 0);
+            
+            // Sort by market cap
+            processedData.sort((a, b) => b.marketCap - a.marketCap);
+            
+            // Create treemap layout
+            const root = {
+                children: processedData
+            };
+            
+            const treemap = d3.treemap()
+                .size([width, height])
+                .padding(2)
+                .round(true);
+            
+            const hierarchy = d3.hierarchy(root)
+                .sum(d => d.marketCap);
+            
+            treemap(hierarchy);
+            
+            // Create cells
+            hierarchy.leaves().forEach(node => {
+                const d = node.data;
+                const cell = document.createElement('div');
+                cell.className = 'country-cell';
+                
+                const x = node.x0;
+                const y = node.y0;
+                const cellWidth = node.x1 - node.x0;
+                const cellHeight = node.y1 - node.y0;
+                
+                cell.style.left = x + 'px';
+                cell.style.top = y + 'px';
+                cell.style.width = cellWidth + 'px';
+                cell.style.height = cellHeight + 'px';
+                cell.style.backgroundColor = getColor(d.change);
+                
+                // Adjust font sizes based on cell size
+                const minDim = Math.min(cellWidth, cellHeight);
+                const showDetails = minDim > 60;
+                const showTicker = minDim > 40;
+                
+                let content = '';
+                
+                if (showDetails) {
+                    content = `
+                        <div class="flag">${getFlag(d.country)}</div>
+                        <div class="country-ticker">${d.country.substring(0, 4).toUpperCase()}</div>
+                        <div class="country-change">${d.change}</div>
+                        <div class="country-value">${formatMarketCap(d.marketCap)}</div>
+                        <div class="country-percent">${d.percent.toFixed(2)}% of global</div>
+                    `;
+                } else if (showTicker) {
+                    content = `
+                        <div class="country-ticker" style="font-size: ${minDim * 0.25}px">${d.country.substring(0, 3)}</div>
+                        <div class="country-change" style="font-size: ${minDim * 0.2}px">${d.change}</div>
+                    `;
+                } else {
+                    content = `<div style="font-size: ${minDim * 0.3}px">${d.country.substring(0, 2)}</div>`;
+                }
+                
+                cell.innerHTML = content;
+                
+                cell.addEventListener('click', () => {
+                    alert(`${d.country}\nMarket Cap: ${formatMarketCap(d.marketCap)}\nChange: ${d.change}\nGlobal Share: ${d.percent.toFixed(2)}%`);
+                });
+                
+                container.appendChild(cell);
+            });
+            
+            // Update stats
+            const total = processedData.reduce((sum, d) => sum + d.marketCap, 0);
+            const avgChange = processedData.reduce((sum, d) => {
+                const change = parseFloat(d.change.replace('%', ''));
+                return sum + (isNaN(change) ? 0 : change);
+            }, 0) / processedData.length;
+            
+            document.getElementById('stats').innerHTML = `
+                <strong>Global Market Cap:</strong> ${formatMarketCap(total)}<br>
+                <strong>Countries:</strong> ${processedData.length}<br>
+                <strong>Avg Change:</strong> ${avgChange.toFixed(2)}%
+            `;
+        }
+
+        // File upload handler
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            Papa.parse(file, {
+                header: true,
+                complete: (results) => {
+                    createTreemap(results.data);
+                },
+                error: (error) => {
+                    alert('Error parsing CSV: ' + error.message);
+                }
+            });
+        });
+
+        // Try to load from GitHub
+        fetch('https://github.com/ayeeff/marketcap/blob/main/data/countries_marketcap.csv')
+            .then(response => response.text())
+            .then(csvText => {
+                Papa.parse(csvText, {
+                    header: true,
+                    complete: (results) => {
+                        createTreemap(results.data);
+                    }
+                });
+            })
+            .catch(() => {
+                document.getElementById('stats').innerHTML = 
+                    '<strong>No data loaded.</strong><br>Please upload a CSV file above.';
+            });
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            // Reload would be needed here if data is stored
+        });
+    </script>
+</body>
+</html>
