@@ -73,22 +73,6 @@
             margin-bottom: 4px;
         }
         
-        #file-input-container {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 2000;
-        }
-        
-        #file-input {
-            padding: 10px 20px;
-            background: #333;
-            border: 2px solid #555;
-            border-radius: 5px;
-            color: white;
-            cursor: pointer;
-        }
-        
         #title {
             position: fixed;
             top: 20px;
@@ -123,9 +107,6 @@
 </head>
 <body>
     <div id="title">Global Stock Market Cap by Country</div>
-    <div id="file-input-container">
-        <input type="file" id="file-input" accept=".csv" />
-    </div>
     <div id="loading">Loading data...</div>
     <div id="container"></div>
     <div id="stats"></div>
@@ -436,9 +417,8 @@
                             .catch(error3 => {
                                 console.error('All methods failed');
                                 document.getElementById('loading').innerHTML = 
-                                    '<strong>Could not auto-load data from GitHub.</strong><br><br>' +
-                                    'Please upload CSV file using button above.<br><br>' +
-                                    '<small>Make sure this HTML is hosted on GitHub Pages</small>';
+                                    'Could not auto-load data from GitHub.<br><br>' +
+                                    'Please make sure this HTML is hosted on GitHub Pages.';
                             });
                     });
             });
