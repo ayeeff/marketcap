@@ -37,7 +37,7 @@ jobs:
         
     - name: Run scraper
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Auto-provided by GitHub
+        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}  # Use Personal Access Token instead
       run: |
         python main.py
         
