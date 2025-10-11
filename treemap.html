@@ -369,19 +369,9 @@
             });
         }
 
-        document.getElementById('file-input').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const csvData = parseCSV(event.target.result);
-                createTreemap(csvData);
-            };
-            reader.readAsText(file);
-        });
-
-        fetch('./data/countries_marketcap.csv')
+        // Auto-load from GitHub Pages with cache busting
+        const cacheBuster = '?t=' + new Date().getTime();
+        fetch('./data/countries_marketcap.csv' + cacheBuster)
             .then(response => {
                 if (!response.ok) throw new Error('Relative path failed');
                 console.log('Loaded via relative path');
@@ -394,38 +384,4 @@
             .catch(error1 => {
                 console.log('Relative path failed, trying CDN...');
                 
-                fetch('https://cdn.jsdelivr.net/gh/ayeeff/marketcap@main/data/countries_marketcap.csv')
-                    .then(response => {
-                        if (!response.ok) throw new Error('CDN failed');
-                        console.log('Loaded via jsdelivr CDN');
-                        return response.text();
-                    })
-                    .then(csvText => {
-                        const csvData = parseCSV(csvText);
-                        createTreemap(csvData);
-                    })
-                    .catch(error2 => {
-                        console.log('CDN failed, trying CORS proxy...');
-                        
-                        fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://raw.githubusercontent.com/ayeeff/marketcap/main/data/countries_marketcap.csv'))
-                            .then(response => response.text())
-                            .then(csvText => {
-                                console.log('Loaded via CORS proxy');
-                                const csvData = parseCSV(csvText);
-                                createTreemap(csvData);
-                            })
-                            .catch(error3 => {
-                                console.error('All methods failed');
-                                document.getElementById('loading').innerHTML = 
-                                    'Could not auto-load data from GitHub.<br><br>' +
-                                    'Please make sure this HTML is hosted on GitHub Pages.';
-                            });
-                    });
-            });
-
-        window.addEventListener('resize', () => {
-            location.reload();
-        });
-    </script>
-</body>
-</html>
+                fetch('https://cdn.jsdelivr.net/gh/ayeeff/marketcap@main/data/countries_marketcap.csv' + cacheBuster)
