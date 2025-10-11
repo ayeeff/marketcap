@@ -41,13 +41,6 @@ jobs:
       run: |
         python main.py
         
-    - name: Commit and push if changes
-      run: |
-        git config user.name "GitHub Actions Bot"
-        git config user.email "actions@github.com"
-        git add data/countries_marketcap.csv
-        git diff --quiet && git diff --staged --quiet || (git commit -m "Update market cap data [skip ci]" && git push)
-        
     - name: Upload debug files
       if: always()  # Run even if scraper fails
       uses: actions/upload-artifact@v4
