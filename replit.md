@@ -50,7 +50,7 @@ To enable automatic GitHub uploads:
 Without the token, the script will save the CSV locally only.
 
 ## Output
-The script generates `countries_marketcap.csv` with columns:
+The script generates `data/countries_marketcap.csv` with columns:
 - Rank
 - Country or region
 - Total MarketCap

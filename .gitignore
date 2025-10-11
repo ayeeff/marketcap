@@ -27,7 +27,7 @@ env/
 Thumbs.db
 
 # Project specific
-*.csv
+data/*.csv
 debug_page.html
 .wdm/
 

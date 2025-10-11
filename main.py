@@ -112,8 +112,8 @@ try:
     columns = data[0]
     df = pd.DataFrame(data[1:], columns=columns)
     
-    # Save to local CSV
-    local_csv = "countries_marketcap.csv"
+    # Save to local CSV in data directory
+    local_csv = "data/countries_marketcap.csv"
     df.to_csv(local_csv, index=False)
     print(f"Data saved to {local_csv}")
     
