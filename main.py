@@ -15,16 +15,18 @@ URL = "https://www.marketcapwatch.com/all-countries/"
 REPO_NAME = "ayeeff/marketcap"
 FILE_PATH = "data/countries_marketcap.csv"
 
-# Load token from environment variable (NEVER hardcode tokens!)
+# Load token from environment variable (provided by GitHub Actions)
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
-if not GITHUB_TOKEN:
+# Only validate if running locally (not in CI)
+if not GITHUB_TOKEN and not os.getenv("CI"):
     raise ValueError(
         "GITHUB_TOKEN environment variable not set.\n"
         "Run: export GITHUB_TOKEN=your_token_here"
     )
 
-print("✓ GitHub token loaded successfully.")
+if GITHUB_TOKEN:
+    print("✓ GitHub token loaded successfully.")
 
 # Selenium setup
 chrome_options = Options()
@@ -86,6 +88,111 @@ try:
     df = pd.DataFrame(data[1:], columns=columns)
     print(f"✓ Extracted {len(df)} rows of data.")
     print(f"\nPreview:\n{df.head()}")
+    
+    # Add percentage of global market cap column
+    def parse_market_cap(value):
+        """Convert market cap string (e.g., '$68.89 T', '$1.5 B') to numeric value"""
+        if pd.isna(value) or value == '' or value == '-':
+            return 0
+        
+        # Remove $ and spaces
+        value = str(value).replace('
+    
+    # Save locally
+    local_csv = "countries_marketcap.csv"
+    df.to_csv(local_csv, index=False)
+    print(f"\n✓ Data saved to {local_csv}")
+    
+    # Push to GitHub with proper authentication
+    print("\nConnecting to GitHub...")
+    auth = Auth.Token(GITHUB_TOKEN)
+    g = Github(auth=auth)
+    repo = g.get_repo(REPO_NAME)
+    
+    with open(local_csv, "r", encoding="utf-8") as f:
+        content = f.read()
+    
+    timestamp = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M UTC')
+    commit_message = f"Update countries market cap data - {timestamp}"
+    
+    try:
+        # Update existing file
+        file = repo.get_contents(FILE_PATH)
+        repo.update_file(FILE_PATH, commit_message, content, file.sha)
+        print(f"✓ Updated {FILE_PATH} in GitHub repo.")
+    except Exception as e:
+        if "not found" in str(e).lower() or "404" in str(e):
+            # Create new file
+            repo.create_file(FILE_PATH, commit_message, content)
+            print(f"✓ Created {FILE_PATH} in GitHub repo.")
+        else:
+            raise e
+    
+    # Cleanup
+    os.remove(local_csv)
+    print("\n✅ Script completed successfully!")
+
+except Exception as e:
+    print(f"\n❌ Error occurred: {e}")
+    import traceback
+    traceback.print_exc()
+    raise e
+
+finally:
+    driver.quit()
+    print("✓ Driver closed.")
+, '').replace(',', '').strip()
+        
+        # Extract multiplier (T, B, M)
+        multiplier = 1
+        if 'T' in value.upper():
+            multiplier = 1_000_000_000_000  # Trillion
+            value = value.upper().replace('T', '').strip()
+        elif 'B' in value.upper():
+            multiplier = 1_000_000_000  # Billion
+            value = value.upper().replace('B', '').strip()
+        elif 'M' in value.upper():
+            multiplier = 1_000_000  # Million
+            value = value.upper().replace('M', '').strip()
+        
+        try:
+            return float(value) * multiplier
+        except (ValueError, AttributeError):
+            return 0
+    
+    # Find the market cap column (might be named differently)
+    market_cap_col = None
+    for col in df.columns:
+        if 'market' in col.lower() and 'cap' in col.lower():
+            market_cap_col = col
+            break
+    
+    if market_cap_col:
+        print(f"\nFound market cap column: '{market_cap_col}'")
+        
+        # Convert to numeric values for ALL countries
+        df['Market Cap Numeric'] = df[market_cap_col].apply(parse_market_cap)
+        
+        # Calculate global total
+        global_total = df['Market Cap Numeric'].sum()
+        print(f"Global total market cap: ${global_total / 1_000_000_000_000:.2f}T")
+        
+        # Calculate percentage for EVERY country
+        df['% of Global Market Cap'] = (df['Market Cap Numeric'] / global_total * 100).round(2)
+        
+        # Remove the temporary numeric column
+        df = df.drop(columns=['Market Cap Numeric'])
+        
+        print(f"\n✓ Added '% of Global Market Cap' column for all {len(df)} countries")
+        print(f"\nTop 5 countries by market cap % (preview only):")
+        if 'Country' in df.columns:
+            preview_cols = [col for col in ['Country', market_cap_col, '% of Global Market Cap'] if col in df.columns]
+            print(df.nlargest(5, '% of Global Market Cap')[preview_cols])
+        else:
+            print(df.nlargest(5, '% of Global Market Cap').head())
+    else:
+        print("\n⚠️ Warning: Could not find market cap column. Skipping percentage calculation.")
+        print(f"Available columns: {list(df.columns)}")
     
     # Save locally
     local_csv = "countries_marketcap.csv"
