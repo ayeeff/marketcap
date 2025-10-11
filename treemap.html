@@ -279,7 +279,7 @@
             const cols = Object.keys(firstRow);
             
             const countryCol = cols.find(c => c.toLowerCase().includes('country')) || cols[0];
-            const marketCapCol = cols.find(c => c.toLowerCase().includes('market') && c.toLowerCase().includes('cap'));
+            const marketCapCol = cols.find(c => c.toLowerCase().includes('marketcap') || (c.toLowerCase().includes('market') && c.toLowerCase().includes('cap')));
             const changeCol = cols.find(c => c.toLowerCase().includes('change') || c.toLowerCase().includes('1d'));
             const percentCol = cols.find(c => c.includes('%') || c.toLowerCase().includes('percent') || c.toLowerCase().includes('global'));
             
@@ -288,7 +288,13 @@
             // Process data
             const processedData = csvData.map(d => {
                 const marketCapValue = parseMarketCap(d[marketCapCol] || '0');
-                const percentValue = parseFloat(d[percentCol] || '0');
+                
+                // Fix malformed percentage (e.g., '784' should be '7.84')
+                let percentValue = parseFloat(d[percentCol] || '0');
+                if (percentValue > 100) {
+                    // Likely missing decimal point - assume it's in format like '784' = 7.84%
+                    percentValue = percentValue / 100;
+                }
                 
                 return {
                     country: d[countryCol] || 'Unknown',
