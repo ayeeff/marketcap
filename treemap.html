@@ -369,7 +369,18 @@
             });
         }
 
-        // Auto-load from GitHub Pages
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const csvData = parseCSV(event.target.result);
+                createTreemap(csvData);
+            };
+            reader.readAsText(file);
+        });
+
         fetch('./data/countries_marketcap.csv')
             .then(response => {
                 if (!response.ok) throw new Error('Relative path failed');
