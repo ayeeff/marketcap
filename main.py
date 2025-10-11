@@ -15,8 +15,8 @@ URL = "https://www.marketcapwatch.com/all-countries/"
 REPO_NAME = "ayeeff/marketcap"
 FILE_PATH = "data/countries_marketcap.csv"
 
-# Load token from environment variable
-GITHUB_TOKEN = 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
+# Load token from environment variable (NEVER hardcode tokens!)
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 if not GITHUB_TOKEN:
     raise ValueError(
