@@ -270,23 +270,37 @@
             const width = window.innerWidth;
             const height = window.innerHeight;
             
-            console.log('CSV Data:', csvData);
+            console.log('CSV Data received:', csvData);
+            console.log('First row:', csvData[0]);
+            console.log('Available columns:', Object.keys(csvData[0] || {}));
+            
+            // Find column names (case insensitive)
+            const firstRow = csvData[0] || {};
+            const cols = Object.keys(firstRow);
+            
+            const countryCol = cols.find(c => c.toLowerCase().includes('country')) || cols[0];
+            const marketCapCol = cols.find(c => c.toLowerCase().includes('market') && c.toLowerCase().includes('cap'));
+            const changeCol = cols.find(c => c.toLowerCase().includes('change') || c.toLowerCase().includes('1d'));
+            const percentCol = cols.find(c => c.includes('%') || c.toLowerCase().includes('percent') || c.toLowerCase().includes('global'));
+            
+            console.log('Detected columns:', { countryCol, marketCapCol, changeCol, percentCol });
             
             // Process data
             const processedData = csvData.map(d => {
-                const marketCapValue = parseMarketCap(d['Market Cap'] || d['market cap'] || '0');
-                const percentValue = parseFloat(d['% of Global Market Cap'] || d['percent'] || 0);
+                const marketCapValue = parseMarketCap(d[marketCapCol] || '0');
+                const percentValue = parseFloat(d[percentCol] || '0');
                 
                 return {
-                    country: d['Country'] || d['country'] || 'Unknown',
+                    country: d[countryCol] || 'Unknown',
                     marketCap: marketCapValue,
-                    change: d['Change'] || d['change'] || d['1D Change'] || '0%',
+                    change: d[changeCol] || '0%',
                     percent: percentValue,
                     value: marketCapValue
                 };
             }).filter(d => d.marketCap > 0);
             
             console.log('Processed Data:', processedData);
+            console.log('Valid countries:', processedData.length);
             
             if (processedData.length === 0) {
                 container.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:20px;">No valid data found in CSV</div>';
