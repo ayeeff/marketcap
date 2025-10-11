@@ -139,6 +139,9 @@ try:
         # Calculate percentage for EVERY country
         df['% of Global Market Cap'] = (df['Market Cap Numeric'] / global_total * 100).round(2)
         
+        # Format as string with proper decimal (e.g., "57.84" not "5784")
+        df['% of Global Market Cap'] = df['% of Global Market Cap'].apply(lambda x: f"{x:.2f}")
+        
         # Remove the temporary numeric column
         df = df.drop(columns=['Market Cap Numeric'])
         
