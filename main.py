@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from github import Github
+from webdriver_manager.core.os_manager import ChromeType
 import time
 
 # Configuration
@@ -24,7 +25,7 @@ chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--disable-gpu")  # Extra for Replit/cloud environments
 chrome_options.add_argument("--window-size=1920,1080")  # Set window size to avoid issues
 
-service = Service(ChromeDriverManager().install())
+service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
 try:
