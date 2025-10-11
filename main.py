@@ -87,10 +87,10 @@ try:
     columns = data[0]
     df = pd.DataFrame(data[1:], columns=columns)
     
-    # Clean up any columns with commas in numbers (like Total Companies: 6,784)
+    # Clean up commas from numeric columns (like Total Companies: 6,784 -> 6784)
     for col in df.columns:
-        if df[col].dtype == 'object':  # Only process text columns
-            # Remove commas from numeric-looking values
+        if df[col].dtype == 'object':
+            # Remove commas from values that contain digits
             df[col] = df[col].apply(lambda x: str(x).replace(',', '') if isinstance(x, str) and any(c.isdigit() for c in str(x)) else x)
     
     print(f"✓ Extracted {len(df)} rows of data.")
@@ -102,12 +102,15 @@ try:
         if 'market' in col.lower() and 'cap' in col.lower():
             market_cap_col = col
             break
+    
+    # Add percentage of global market cap column
+    def parse_market_cap(value):
         """Convert market cap string (e.g., '$68.89 T', '$1.5 B') to numeric value"""
         if pd.isna(value) or value == '' or value == '-':
             return 0
         
-        # Remove dollar sign, commas, and spaces
-        value = str(value).replace('$', '').replace(',', '').strip()
+        # Remove dollar sign and spaces (commas already removed above)
+        value = str(value).replace('$', '').replace(' ', '').strip()
         
         # Extract multiplier (T, B, M)
         multiplier = 1
@@ -126,13 +129,6 @@ try:
         except (ValueError, AttributeError):
             return 0
     
-    # Find the market cap column (might be named differently)
-    market_cap_col = None
-    for col in df.columns:
-        if 'market' in col.lower() and 'cap' in col.lower():
-            market_cap_col = col
-            break
-    
     if market_cap_col:
         print(f"\nFound market cap column: '{market_cap_col}'")
         
@@ -148,18 +144,15 @@ try:
         
         # Debug: Print first few percentages to verify
         print(f"\nSample percentages:")
-        print(df[['Country or region', 'Total MarketCap', '% of Global Market Cap']].head(10) if 'Country or region' in df.columns else df[[market_cap_col, '% of Global Market Cap']].head(10))
+        if 'Country or region' in df.columns:
+            print(df[['Country or region', market_cap_col, '% of Global Market Cap']].head(10))
+        else:
+            print(df[[market_cap_col, '% of Global Market Cap']].head(10))
         
         # Remove the temporary numeric column
         df = df.drop(columns=['Market Cap Numeric'])
         
         print(f"\n✓ Added '% of Global Market Cap' column for all {len(df)} countries")
-        print(f"\nTop 5 countries by market cap % (preview only):")
-        if 'Country' in df.columns:
-            preview_cols = [col for col in ['Country', market_cap_col, '% of Global Market Cap'] if col in df.columns]
-            print(df.nlargest(5, '% of Global Market Cap')[preview_cols])
-        else:
-            print(df.nlargest(5, '% of Global Market Cap').head())
     else:
         print("\n⚠️ Warning: Could not find market cap column. Skipping percentage calculation.")
         print(f"Available columns: {list(df.columns)}")
