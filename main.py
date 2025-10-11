@@ -86,6 +86,13 @@ try:
     # Create DataFrame
     columns = data[0]
     df = pd.DataFrame(data[1:], columns=columns)
+    
+    # Clean up any columns with commas in numbers (like Total Companies: 6,784)
+    for col in df.columns:
+        if df[col].dtype == 'object':  # Only process text columns
+            # Remove commas from numeric-looking values
+            df[col] = df[col].apply(lambda x: str(x).replace(',', '') if isinstance(x, str) and any(c.isdigit() for c in str(x)) else x)
+    
     print(f"✓ Extracted {len(df)} rows of data.")
     print(f"\nPreview:\n{df.head()}")
     
@@ -139,8 +146,9 @@ try:
         # Calculate percentage for EVERY country
         df['% of Global Market Cap'] = (df['Market Cap Numeric'] / global_total * 100).round(2)
         
-        # Format as string with proper decimal (e.g., "57.84" not "5784")
-        df['% of Global Market Cap'] = df['% of Global Market Cap'].apply(lambda x: f"{x:.2f}")
+        # Debug: Print first few percentages to verify
+        print(f"\nSample percentages:")
+        print(df[['Country or region', 'Total MarketCap', '% of Global Market Cap']].head(10) if 'Country or region' in df.columns else df[[market_cap_col, '% of Global Market Cap']].head(10))
         
         # Remove the temporary numeric column
         df = df.drop(columns=['Market Cap Numeric'])
