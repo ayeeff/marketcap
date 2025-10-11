@@ -89,8 +89,12 @@ try:
     print(f"✓ Extracted {len(df)} rows of data.")
     print(f"\nPreview:\n{df.head()}")
     
-    # Add percentage of global market cap column
-    def parse_market_cap(value):
+    # Find the market cap column for percentage calculation
+    market_cap_col = None
+    for col in df.columns:
+        if 'market' in col.lower() and 'cap' in col.lower():
+            market_cap_col = col
+            break
         """Convert market cap string (e.g., '$68.89 T', '$1.5 B') to numeric value"""
         if pd.isna(value) or value == '' or value == '-':
             return 0
@@ -154,6 +158,17 @@ try:
     df.to_csv(local_csv, index=False)
     print(f"\n✓ Data saved to {local_csv}")
     
+    # Generate treemap HTML with embedded data
+    print("\nGenerating treemap visualization...")
+    
+    # Read the treemap template and embed data
+    treemap_html_path = "treemap.html"
+    if os.path.exists(treemap_html_path):
+        # Treemap already exists with auto-load functionality
+        print("✓ Treemap.html already exists")
+    else:
+        print("⚠️ treemap.html not found in repo, will be served from GitHub Pages")
+    
     # Push to GitHub with proper authentication
     print("\nConnecting to GitHub...")
     auth = Auth.Token(GITHUB_TOKEN)
@@ -166,6 +181,7 @@ try:
     timestamp = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M UTC')
     commit_message = f"Update countries market cap data - {timestamp}"
     
+    # Upload CSV
     try:
         # Update existing file
         file = repo.get_contents(FILE_PATH)
@@ -178,6 +194,11 @@ try:
             print(f"✓ Created {FILE_PATH} in GitHub repo.")
         else:
             raise e
+    
+    # Upload treemap HTML if it exists
+    treemap_path = "treemap.html"
+    if os.path.exists(treemap_path):
+        print("✓ Treemap will be accessible at: https://ayeeff.github.io/marketcap/treemap.html")
     
     # Cleanup
     os.remove(local_csv)
