@@ -95,53 +95,8 @@ try:
         if pd.isna(value) or value == '' or value == '-':
             return 0
         
-        # Remove $ and spaces
-        value = str(value).replace('
-    
-    # Save locally
-    local_csv = "countries_marketcap.csv"
-    df.to_csv(local_csv, index=False)
-    print(f"\n✓ Data saved to {local_csv}")
-    
-    # Push to GitHub with proper authentication
-    print("\nConnecting to GitHub...")
-    auth = Auth.Token(GITHUB_TOKEN)
-    g = Github(auth=auth)
-    repo = g.get_repo(REPO_NAME)
-    
-    with open(local_csv, "r", encoding="utf-8") as f:
-        content = f.read()
-    
-    timestamp = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M UTC')
-    commit_message = f"Update countries market cap data - {timestamp}"
-    
-    try:
-        # Update existing file
-        file = repo.get_contents(FILE_PATH)
-        repo.update_file(FILE_PATH, commit_message, content, file.sha)
-        print(f"✓ Updated {FILE_PATH} in GitHub repo.")
-    except Exception as e:
-        if "not found" in str(e).lower() or "404" in str(e):
-            # Create new file
-            repo.create_file(FILE_PATH, commit_message, content)
-            print(f"✓ Created {FILE_PATH} in GitHub repo.")
-        else:
-            raise e
-    
-    # Cleanup
-    os.remove(local_csv)
-    print("\n✅ Script completed successfully!")
-
-except Exception as e:
-    print(f"\n❌ Error occurred: {e}")
-    import traceback
-    traceback.print_exc()
-    raise e
-
-finally:
-    driver.quit()
-    print("✓ Driver closed.")
-, '').replace(',', '').strip()
+        # Remove dollar sign, commas, and spaces
+        value = str(value).replace('$', '').replace(',', '').strip()
         
         # Extract multiplier (T, B, M)
         multiplier = 1
