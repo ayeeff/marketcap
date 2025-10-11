@@ -1,211 +1,435 @@
-import os
-import pandas as pd
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from github import Github, Auth
-import time
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Market Cap Treemap</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            overflow: hidden;
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        .country-cell {
+            position: absolute;
+            border: 2px solid #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+        
+        .country-cell:hover {
+            border-color: #fff;
+            z-index: 1000;
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+        
+        .country-ticker {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        .country-value {
+            font-size: 13px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        .country-change {
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        .country-percent {
+            font-size: 11px;
+            opacity: 0.9;
+            margin-top: 2px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        .flag {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        #file-input-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 2000;
+        }
+        
+        #file-input {
+            padding: 10px 20px;
+            background: #333;
+            border: 2px solid #555;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        #title {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        #stats {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 2000;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            z-index: 3000;
+        }
+    </style>
+</head>
+<body>
+    <div id="title">Global Stock Market Cap by Country</div>
+    <div id="file-input-container">
+        <input type="file" id="file-input" accept=".csv" />
+    </div>
+    <div id="loading">Loading data...</div>
+    <div id="container"></div>
+    <div id="stats"></div>
 
-# Configuration
-URL = "https://www.marketcapwatch.com/all-countries/"
-REPO_NAME = "ayeeff/marketcap"
-FILE_PATH = "data/countries_marketcap.csv"
+    <script>
+        // Country flags mapping
+        const countryFlags = {
+            'United States': '🇺🇸', 'US': '🇺🇸', 'USA': '🇺🇸',
+            'China': '🇨🇳', 'CN': '🇨🇳',
+            'Japan': '🇯🇵', 'JP': '🇯🇵',
+            'United Kingdom': '🇬🇧', 'UK': '🇬🇧', 'GB': '🇬🇧',
+            'India': '🇮🇳', 'IN': '🇮🇳',
+            'France': '🇫🇷', 'FR': '🇫🇷',
+            'Canada': '🇨🇦', 'CA': '🇨🇦',
+            'Germany': '🇩🇪', 'DE': '🇩🇪',
+            'Hong Kong': '🇭🇰', 'HK': '🇭🇰',
+            'Australia': '🇦🇺', 'AU': '🇦🇺',
+            'South Korea': '🇰🇷', 'KR': '🇰🇷', 'Korea': '🇰🇷',
+            'Switzerland': '🇨🇭', 'CH': '🇨🇭',
+            'Taiwan': '🇹🇼', 'TW': '🇹🇼',
+            'Netherlands': '🇳🇱', 'NL': '🇳🇱',
+            'Sweden': '🇸🇪', 'SE': '🇸🇪',
+            'Spain': '🇪🇸', 'ES': '🇪🇸',
+            'Italy': '🇮🇹', 'IT': '🇮🇹',
+            'Singapore': '🇸🇬', 'SG': '🇸🇬',
+            'Brazil': '🇧🇷', 'BR': '🇧🇷',
+            'Denmark': '🇩🇰', 'DK': '🇩🇰',
+            'Belgium': '🇧🇪', 'BE': '🇧🇪',
+            'Saudi Arabia': '🇸🇦', 'SA': '🇸🇦',
+            'South Africa': '🇿🇦', 'ZA': '🇿🇦',
+            'Mexico': '🇲🇽', 'MX': '🇲🇽',
+            'Thailand': '🇹🇭', 'TH': '🇹🇭',
+            'Norway': '🇳🇴', 'NO': '🇳🇴',
+            'Finland': '🇫🇮', 'FI': '🇫🇮',
+            'Poland': '🇵🇱', 'PL': '🇵🇱',
+            'Israel': '🇮🇱', 'IL': '🇮🇱',
+            'UAE': '🇦🇪', 'United Arab Emirates': '🇦🇪',
+            'Ireland': '🇮🇪', 'IE': '🇮🇪',
+        };
 
-# Load token from environment variable (provided by GitHub Actions)
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+        function getFlag(country) {
+            return countryFlags[country] || '🌐';
+        }
 
-# Only validate if running locally (not in CI)
-if not GITHUB_TOKEN and not os.getenv("CI"):
-    raise ValueError(
-        "GITHUB_TOKEN environment variable not set.\n"
-        "Run: export GITHUB_TOKEN=your_token_here"
-    )
+        function getColor(change) {
+            if (!change || change === '-' || change === '') return '#666';
+            
+            const changeStr = String(change).replace('%', '').trim();
+            const percent = parseFloat(changeStr);
+            if (isNaN(percent)) return '#666';
+            
+            if (percent > 5) return '#006400';
+            if (percent > 2) return '#228B22';
+            if (percent > 0) return '#32CD32';
+            if (percent > -2) return '#DC143C';
+            if (percent > -5) return '#8B0000';
+            return '#4d0000';
+        }
 
-if GITHUB_TOKEN:
-    print("✓ GitHub token loaded successfully.")
+        function parseMarketCap(value) {
+            if (!value || value === '-') return 0;
+            
+            value = String(value).replace('$', '').replace(/,/g, '').trim();
+            let multiplier = 1;
+            
+            if (value.toUpperCase().includes('T')) {
+                multiplier = 1000000000000;
+                value = value.toUpperCase().replace('T', '').trim();
+            } else if (value.toUpperCase().includes('B')) {
+                multiplier = 1000000000;
+                value = value.toUpperCase().replace('B', '').trim();
+            } else if (value.toUpperCase().includes('M')) {
+                multiplier = 1000000;
+                value = value.toUpperCase().replace('M', '').trim();
+            }
+            
+            return parseFloat(value) * multiplier;
+        }
 
-# Selenium setup
-chrome_options = Options()
-chrome_options.add_argument('--headless=new')
-chrome_options.add_argument('--no-sandbox')
-chrome_options.add_argument('--disable-dev-shm-usage')
-chrome_options.add_argument('--disable-gpu')
-chrome_options.add_argument('--disable-software-rasterizer')
-chrome_options.add_argument('--remote-debugging-port=9222')
-chrome_options.add_argument('--window-size=1920,1080')
-chrome_options.add_argument('--disable-blink-features=AutomationControlled')
-chrome_options.add_argument('--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-chrome_options.add_experimental_option('useAutomationExtension', False)
+        function formatMarketCap(value) {
+            if (value >= 1000000000000) {
+                return '$' + (value / 1000000000000).toFixed(2) + 'T';
+            } else if (value >= 1000000000) {
+                return '$' + (value / 1000000000).toFixed(2) + 'B';
+            } else if (value >= 1000000) {
+                return '$' + (value / 1000000).toFixed(2) + 'M';
+            }
+            return '$' + value.toFixed(0);
+        }
 
-print("Setting up ChromeDriver...")
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service, options=chrome_options)
+        // Simple treemap algorithm (squarified)
+        function squarify(data, x, y, width, height) {
+            const total = data.reduce((sum, d) => sum + d.value, 0);
+            
+            function layoutRow(row, x, y, width, height) {
+                const rowTotal = row.reduce((sum, d) => sum + d.value, 0);
+                const rowRatio = rowTotal / total;
+                
+                if (width >= height) {
+                    // Horizontal layout
+                    const rowWidth = width * rowRatio;
+                    let currentY = y;
+                    row.forEach(item => {
+                        const itemHeight = height * (item.value / rowTotal);
+                        item.bounds = { x, y: currentY, width: rowWidth, height: itemHeight };
+                        currentY += itemHeight;
+                    });
+                    return { x: x + rowWidth, y, width: width - rowWidth, height };
+                } else {
+                    // Vertical layout
+                    const rowHeight = height * rowRatio;
+                    let currentX = x;
+                    row.forEach(item => {
+                        const itemWidth = width * (item.value / rowTotal);
+                        item.bounds = { x: currentX, y, width: itemWidth, height: rowHeight };
+                        currentX += itemWidth;
+                    });
+                    return { x, y: y + rowHeight, width, height: height - rowHeight };
+                }
+            }
 
-try:
-    print(f"Loading page: {URL}")
-    driver.get(URL)
-    
-    # Wait for JavaScript to load
-    time.sleep(5)
-    
-    # Find table
-    wait = WebDriverWait(driver, 20)
-    tables = driver.find_elements(By.TAG_NAME, "table")
-    
-    if not tables:
-        raise ValueError("No tables found on page")
-    
-    table = tables[0]
-    print("✓ Table found!")
-    
-    # Extract table data
-    rows = table.find_elements(By.TAG_NAME, "tr")
-    data = []
-    
-    for row in rows:
-        # Get both th and td elements
-        cells_th = row.find_elements(By.TAG_NAME, "th")
-        cells_td = row.find_elements(By.TAG_NAME, "td")
-        all_cells = cells_th + cells_td
-        
-        # Extract text from cells
-        cells = [cell.text.strip() for cell in all_cells]
-        
-        # Only add rows that have content
-        if cells and any(cell for cell in cells):
-            data.append(cells)
-    
-    if not data:
-        raise ValueError("No data extracted from table")
-    
-    # Create DataFrame
-    columns = data[0]
-    df = pd.DataFrame(data[1:], columns=columns)
-    print(f"✓ Extracted {len(df)} rows of data.")
-    print(f"\nPreview:\n{df.head()}")
-    
-    # Add percentage of global market cap column
-    def parse_market_cap(value):
-        """Convert market cap string (e.g., '$68.89 T', '$1.5 B') to numeric value"""
-        if pd.isna(value) or value == '' or value == '-':
-            return 0
-        
-        # Remove dollar sign, commas, and spaces
-        value = str(value).replace('$', '').replace(',', '').strip()
-        
-        # Extract multiplier (T, B, M)
-        multiplier = 1
-        if 'T' in value.upper():
-            multiplier = 1_000_000_000_000  # Trillion
-            value = value.upper().replace('T', '').strip()
-        elif 'B' in value.upper():
-            multiplier = 1_000_000_000  # Billion
-            value = value.upper().replace('B', '').strip()
-        elif 'M' in value.upper():
-            multiplier = 1_000_000  # Million
-            value = value.upper().replace('M', '').strip()
-        
-        try:
-            return float(value) * multiplier
-        except (ValueError, AttributeError):
-            return 0
-    
-    # Find the market cap column (might be named differently)
-    market_cap_col = None
-    for col in df.columns:
-        if 'market' in col.lower() and 'cap' in col.lower():
-            market_cap_col = col
-            break
-    
-    if market_cap_col:
-        print(f"\nFound market cap column: '{market_cap_col}'")
-        
-        # Convert to numeric values for ALL countries
-        df['Market Cap Numeric'] = df[market_cap_col].apply(parse_market_cap)
-        
-        # Calculate global total
-        global_total = df['Market Cap Numeric'].sum()
-        print(f"Global total market cap: ${global_total / 1_000_000_000_000:.2f}T")
-        
-        # Calculate percentage for EVERY country
-        df['% of Global Market Cap'] = (df['Market Cap Numeric'] / global_total * 100).round(2)
-        
-        # Remove the temporary numeric column
-        df = df.drop(columns=['Market Cap Numeric'])
-        
-        print(f"\n✓ Added '% of Global Market Cap' column for all {len(df)} countries")
-        print(f"\nTop 5 countries by market cap % (preview only):")
-        if 'Country' in df.columns:
-            preview_cols = [col for col in ['Country', market_cap_col, '% of Global Market Cap'] if col in df.columns]
-            print(df.nlargest(5, '% of Global Market Cap')[preview_cols])
-        else:
-            print(df.nlargest(5, '% of Global Market Cap').head())
-    else:
-        print("\n⚠️ Warning: Could not find market cap column. Skipping percentage calculation.")
-        print(f"Available columns: {list(df.columns)}")
-    
-    # Save locally
-    local_csv = "countries_marketcap.csv"
-    df.to_csv(local_csv, index=False)
-    print(f"\n✓ Data saved to {local_csv}")
-    
-    # Generate treemap HTML with embedded data
-    print("\nGenerating treemap visualization...")
-    
-    # Read the treemap template and embed data
-    treemap_html_path = "treemap.html"
-    if os.path.exists(treemap_html_path):
-        # Treemap already exists with auto-load functionality
-        print("✓ Treemap.html already exists")
-    else:
-        print("⚠️ treemap.html not found in repo, will be served from GitHub Pages")
-    
-    # Push to GitHub with proper authentication
-    print("\nConnecting to GitHub...")
-    auth = Auth.Token(GITHUB_TOKEN)
-    g = Github(auth=auth)
-    repo = g.get_repo(REPO_NAME)
-    
-    with open(local_csv, "r", encoding="utf-8") as f:
-        content = f.read()
-    
-    timestamp = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M UTC')
-    commit_message = f"Update countries market cap data - {timestamp}"
-    
-    # Upload CSV
-    try:
-        # Update existing file
-        file = repo.get_contents(FILE_PATH)
-        repo.update_file(FILE_PATH, commit_message, content, file.sha)
-        print(f"✓ Updated {FILE_PATH} in GitHub repo.")
-    except Exception as e:
-        if "not found" in str(e).lower() or "404" in str(e):
-            # Create new file
-            repo.create_file(FILE_PATH, commit_message, content)
-            print(f"✓ Created {FILE_PATH} in GitHub repo.")
-        else:
-            raise e
-    
-    # Upload treemap HTML if it exists
-    treemap_path = "treemap.html"
-    if os.path.exists(treemap_path):
-        print("✓ Treemap will be accessible at: https://ayeeff.github.io/marketcap/treemap.html")
-    
-    # Cleanup
-    os.remove(local_csv)
-    print("\n✅ Script completed successfully!")
+            const sorted = [...data].sort((a, b) => b.value - a.value);
+            let remaining = { x, y, width, height };
+            
+            for (let i = 0; i < sorted.length; i++) {
+                const item = sorted[i];
+                item.bounds = { x: remaining.x, y: remaining.y, width: remaining.width, height: remaining.height };
+                
+                if (i < sorted.length - 1) {
+                    remaining = layoutRow([item], remaining.x, remaining.y, remaining.width, remaining.height);
+                }
+            }
+            
+            return sorted;
+        }
 
-except Exception as e:
-    print(f"\n❌ Error occurred: {e}")
-    import traceback
-    traceback.print_exc()
-    raise e
+        function createTreemap(csvData) {
+            document.getElementById('loading').style.display = 'none';
+            const container = document.getElementById('container');
+            container.innerHTML = '';
+            
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            console.log('CSV Data:', csvData);
+            
+            // Process data
+            const processedData = csvData.map(d => {
+                const marketCapValue = parseMarketCap(d['Market Cap'] || d['market cap'] || '0');
+                const percentValue = parseFloat(d['% of Global Market Cap'] || d['percent'] || 0);
+                
+                return {
+                    country: d['Country'] || d['country'] || 'Unknown',
+                    marketCap: marketCapValue,
+                    change: d['Change'] || d['change'] || d['1D Change'] || '0%',
+                    percent: percentValue,
+                    value: marketCapValue
+                };
+            }).filter(d => d.marketCap > 0);
+            
+            console.log('Processed Data:', processedData);
+            
+            if (processedData.length === 0) {
+                container.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:20px;">No valid data found in CSV</div>';
+                return;
+            }
+            
+            // Create treemap
+            const laid = squarify(processedData, 0, 0, width, height);
+            
+            // Create cells
+            laid.forEach(d => {
+                const cell = document.createElement('div');
+                cell.className = 'country-cell';
+                
+                const bounds = d.bounds;
+                cell.style.left = bounds.x + 'px';
+                cell.style.top = bounds.y + 'px';
+                cell.style.width = bounds.width + 'px';
+                cell.style.height = bounds.height + 'px';
+                cell.style.backgroundColor = getColor(d.change);
+                
+                const minDim = Math.min(bounds.width, bounds.height);
+                const showDetails = minDim > 60;
+                const showTicker = minDim > 40;
+                
+                let content = '';
+                
+                if (showDetails) {
+                    content = `
+                        <div class="flag">${getFlag(d.country)}</div>
+                        <div class="country-ticker">${d.country.substring(0, 4).toUpperCase()}</div>
+                        <div class="country-change">${d.change}</div>
+                        <div class="country-value">${formatMarketCap(d.marketCap)}</div>
+                        <div class="country-percent">${d.percent.toFixed(2)}%</div>
+                    `;
+                } else if (showTicker) {
+                    content = `
+                        <div class="country-ticker" style="font-size: ${Math.max(minDim * 0.25, 10)}px">${d.country.substring(0, 3)}</div>
+                        <div class="country-change" style="font-size: ${Math.max(minDim * 0.2, 8)}px">${d.change}</div>
+                    `;
+                } else {
+                    content = `<div style="font-size: ${Math.max(minDim * 0.3, 8)}px">${d.country.substring(0, 2)}</div>`;
+                }
+                
+                cell.innerHTML = content;
+                
+                cell.addEventListener('click', () => {
+                    alert(`${d.country}\nMarket Cap: ${formatMarketCap(d.marketCap)}\nChange: ${d.change}\nGlobal Share: ${d.percent.toFixed(2)}%`);
+                });
+                
+                container.appendChild(cell);
+            });
+            
+            // Update stats
+            const total = processedData.reduce((sum, d) => sum + d.marketCap, 0);
+            const avgChange = processedData.reduce((sum, d) => {
+                const change = parseFloat(String(d.change).replace('%', ''));
+                return sum + (isNaN(change) ? 0 : change);
+            }, 0) / processedData.length;
+            
+            document.getElementById('stats').innerHTML = `
+                <strong>Global Market Cap:</strong> ${formatMarketCap(total)}<br>
+                <strong>Countries:</strong> ${processedData.length}<br>
+                <strong>Avg Change:</strong> ${avgChange.toFixed(2)}%
+            `;
+        }
 
-finally:
-    driver.quit()
-    print("✓ Driver closed.")
+        // Simple CSV parser
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            
+            return lines.slice(1).map(line => {
+                const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                const obj = {};
+                headers.forEach((header, i) => {
+                    obj[header] = values[i] || '';
+                });
+                return obj;
+            });
+        }
+
+        // File upload handler
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const csvData = parseCSV(event.target.result);
+                createTreemap(csvData);
+            };
+            reader.readAsText(file);
+        });
+
+        // Auto-load CSV - try multiple methods
+        
+        // Method 1: Try relative path (works if hosted on GitHub Pages)
+        fetch('./data/countries_marketcap.csv')
+            .then(response => {
+                if (!response.ok) throw new Error('Relative path failed');
+                console.log('Loaded via relative path');
+                return response.text();
+            })
+            .then(csvText => {
+                const csvData = parseCSV(csvText);
+                createTreemap(csvData);
+            })
+            .catch(error1 => {
+                console.log('Relative path failed, trying CDN...');
+                
+                // Method 2: Try jsdelivr CDN
+                fetch('https://cdn.jsdelivr.net/gh/ayeeff/marketcap@main/data/countries_marketcap.csv')
+                    .then(response => {
+                        if (!response.ok) throw new Error('CDN failed');
+                        console.log('Loaded via jsdelivr CDN');
+                        return response.text();
+                    })
+                    .then(csvText => {
+                        const csvData = parseCSV(csvText);
+                        createTreemap(csvData);
+                    })
+                    .catch(error2 => {
+                        console.log('CDN failed, trying CORS proxy...');
+                        
+                        // Method 3: Try with CORS proxy
+                        fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://raw.githubusercontent.com/ayeeff/marketcap/main/data/countries_marketcap.csv'))
+                            .then(response => response.text())
+                            .then(csvText => {
+                                console.log('Loaded via CORS proxy');
+                                const csvData = parseCSV(csvText);
+                                createTreemap(csvData);
+                            })
+                            .catch(error3 => {
+                                console.error('All methods failed');
+                                document.getElementById('loading').innerHTML = 
+                                    '<strong>Could not auto-load data from GitHub.</strong><br><br>' +
+                                    'Please upload CSV file using button above.<br><br>' +
+                                    '<small>Make sure this HTML is hosted on GitHub Pages,<br>' +
+                                    'or use the file upload button.</small>';
+                            });
+                    });
+            });
+    </script>
+</body>
+</html>
