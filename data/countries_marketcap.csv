@@ -1,13 +1,13 @@
 Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
-1,United States,$68.89 T,6784,46.5
-2,China,$20.05 T,6673,13.53
+1,United States,$68.86 T,6770,46.49
+2,China,$20.05 T,6671,13.54
 3,Japan,$7.1 T,4044,4.79
 4,India,$5.25 T,5191,3.54
-5,United Kingdom,$4.22 T,1296,2.85
-6,Canada,$3.77 T,2962,2.54
+5,United Kingdom,$4.21 T,1295,2.84
+6,Canada,$3.77 T,2960,2.55
 7,France,$3.23 T,657,2.18
 8,Taiwan,$3.14 T,2241,2.12
-9,Germany,$2.97 T,657,2.0
+9,Germany,$2.97 T,657,2.01
 10,Switzerland,$2.65 T,246,1.79
 11,Saudi Arabia,$2.51 T,360,1.69
 12,South Korea,$2.32 T,2724,1.57
@@ -24,7 +24,7 @@ Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
 23,Singapore,$865.47 B,616,0.58
 24,Denmark,$667.9 B,165,0.45
 25,Thailand,$616.3 B,933,0.42
-26,Israel,$588.01 B,585,0.4
+26,Israel,$588.01 B,584,0.4
 27,Russia,$557.22 B,203,0.38
 28,Mexico,$510.88 B,79,0.34
 29,South Africa,$486.74 B,214,0.33
@@ -33,15 +33,15 @@ Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
 32,Belgium,$403.73 B,131,0.27
 33,Norway,$377.99 B,271,0.26
 34,Finland,$353.15 B,182,0.24
-35,Vietnam,$333.32 B,693,0.22
+35,Vietnam,$333.32 B,693,0.23
 36,Poland,$263.57 B,664,0.18
 37,Philippines,$239.51 B,271,0.16
 38,Chile,$207.15 B,157,0.14
 39,Austria,$198.3 B,69,0.13
 40,Qatar,$179.78 B,54,0.12
 41,Luxembourg,$171.92 B,64,0.12
-42,Kuwait,$166.33 B,137,0.11
-43,Greece,$155.54 B,167,0.1
+42,Kuwait,$166.34 B,137,0.11
+43,Greece,$155.54 B,167,0.11
 44,Zimbabwe,$153.18 B,5,0.1
 45,New Zealand,$124.02 B,117,0.08
 46,Peru,$120.86 B,103,0.08
@@ -57,14 +57,14 @@ Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
 56,Argentina,$52.17 B,72,0.04
 57,Hungary,$52.17 B,48,0.04
 58,Oman,$36.28 B,103,0.02
-59,Jordan,$32.28 B,119,0.02
+59,Jordan,$32.31 B,119,0.02
 60,Bangladesh,$28.93 B,358,0.02
 61,Sri Lanka,$26.35 B,275,0.02
 62,Kenya,$21.04 B,56,0.01
 63,Ivory Coast,$20.91 B,44,0.01
 64,Slovenia,$18.94 B,14,0.01
 65,Lebanon,$18.48 B,5,0.01
-66,Bahrain,$18.31 B,28,0.01
+66,Bahrain,$18.3 B,28,0.01
 67,Mauritius,$18.3 B,97,0.01
 68,Iceland,$16.96 B,28,0.01
 69,Cyprus,$16.57 B,62,0.01
