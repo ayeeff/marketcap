@@ -123,4 +123,4 @@ def generate_treemap(df, title, filename, is_empire=False):
 generate_treemap(global_df, 'Global Market Cap Treemap (% of Global)', 'map1.png', False)
 generate_treemap(empire_df, 'Empire Market Cap Treemap (% of Empire Total)', 'map2.png', True)
 
-print("Maps with flag overlays
+print("Maps with flag overlays generated and saved to img/!")
