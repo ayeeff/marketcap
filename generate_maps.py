@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import requests
 import os
-from io import StringIO
+from io import StringIO, BytesIO
 from PIL import Image
 import numpy as np
 import warnings
@@ -41,7 +41,7 @@ empire_images = {
 response = requests.get(GLOBAL_CSV_URL)
 global_df = pd.read_csv(StringIO(response.text))
 global_df['perc'] = pd.to_numeric(global_df['% of Global Market Cap'], errors='coerce')
-global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(30)  # Reduced to 30 for memory
+global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(20)  # Reduced to 20 for memory and clarity
 
 # Fetch and load empire data
 response = requests.get(EMPIRE_CSV_URL)
@@ -54,21 +54,22 @@ def fetch_image(url):
     try:
         resp = requests.get(url, timeout=5)
         resp.raise_for_status()
-        return Image.open(StringIO(resp.content)).convert('RGBA')
+        return Image.open(BytesIO(resp.content)).convert('RGBA')
     except:
-        # Fallback: create a gray square
-        return Image.new('RGBA', (100, 100), color='gray')
+        # Fallback: create a colored square based on index
+        colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange']
+        return Image.new('RGBA', (100, 100), color=colors[hash(url) % len(colors)])
 
 # Function to generate treemap PNG with overlays
 def generate_treemap(df, title, filename, is_empire=False):
     values = df['perc'].tolist()
-    labels = df['Country or region'].tolist() if not is_empire else [f"Emp {r}" for r in df['Rank']]
+    labels = df['Country or region'].tolist() if not is_empire else df['Empire'].tolist()
     
     # Use squarify.squarify to get positions directly
     rects = squarify.squarify(values, 0, 0, 1, 1)
     
     # Create final figure
-    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+    fig, ax = plt.subplots(1, 1, figsize=(10, 7))  # Smaller size for memory
     ax.set_xlim(0, 1)
     ax.set_ylim(1, 0)  # Invert y for top-left origin in imshow
     ax.axis('off')
@@ -98,17 +99,20 @@ def generate_treemap(df, title, filename, is_empire=False):
             else:
                 pil_img = Image.new('RGBA', (100, 100), color='gray')
         
-        # Convert PIL to numpy and add to axes (y inverted)
-        img_array = np.array(pil_img)
+        # Resize PIL image to fit rect (approximate)
+        pil_resized = pil_img.resize((int(rw * 1000), int(rh * 1000)), Image.Resampling.LANCZOS)
+        img_array = np.array(pil_resized)
+        
+        # Add to axes (y inverted)
         ax.imshow(img_array, extent=[rx, rx + rw, 1 - (ry + rh), 1 - ry], aspect='auto', zorder=1)
         
         # Add label if space
-        if rw > 0.1 or rh > 0.1:  # Threshold for label
-            ax.text(rx + 0.01, 1 - (ry + 0.01), str(labels[i])[:8], fontsize=8, color='white', va='top', ha='left', zorder=2)
+        if rw > 0.05 or rh > 0.05:  # Adjusted threshold
+            label_text = str(labels[i])[:6]  # Shorter labels
+            ax.text(rx + 0.005, 1 - (ry + rh + 0.005), label_text, fontsize=6, color='white', va='bottom', ha='left', zorder=2, weight='bold')
     
-    ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
-    plt.tight_layout()
-    plt.savefig(f'img/{filename}', dpi=150, bbox_inches='tight', facecolor='white')  # Reduced DPI for memory
+    ax.set_title(title, fontsize=14, fontweight='bold', pad=10)
+    plt.savefig(f'img/{filename}', dpi=100, bbox_inches='tight', facecolor='white')  # Low DPI for memory
     plt.close()
     print(f"Generated img/{filename} with overlays")
 
