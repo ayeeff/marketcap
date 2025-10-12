@@ -41,7 +41,7 @@ empire_images = {
 response = requests.get(GLOBAL_CSV_URL)
 global_df = pd.read_csv(StringIO(response.text))
 global_df['perc'] = pd.to_numeric(global_df['% of Global Market Cap'], errors='coerce')
-global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(15)  # Top 15 for layout
+global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(10)  # Top 10 for clean layout
 
 # Fetch and load empire data
 response = requests.get(EMPIRE_CSV_URL)
@@ -66,8 +66,17 @@ def generate_treemap(df, title, filename, is_empire=False):
     values = df['perc'].tolist()
     labels = df['Country or region'].tolist() if not is_empire else df['Empire'].tolist()
     
-    # Use squarify to get positions (normalized 0-1)
-    rects = squarify.squarify(values, 0, 0, 1, 1)
+    # Plot to get positions
+    fig_temp, ax_temp = plt.subplots(1, 1, figsize=(12, 8))
+    squarify.plot(sizes=values, label=[''] * len(values), color=['white'] * len(values), ax=ax_temp)
+    ax_temp.axis('off')
+    plt.close(fig_temp)
+    
+    # Extract positions from patches
+    rect_positions = []
+    for patch in ax_temp.patches:
+        bbox = patch.get_bbox().bounds
+        rect_positions.append((bbox[0], bbox[1], bbox[2], bbox[3]))
     
     # Create final figure
     fig, ax = plt.subplots(1, 1, figsize=(12, 8))
@@ -76,9 +85,7 @@ def generate_treemap(df, title, filename, is_empire=False):
     ax.axis('off')
     
     # Draw rectangles and overlay images
-    for i, rect in enumerate(rects):
-        rx, ry, rw, rh = rect['x'], rect['y'], rect['dx'], rect['dy']
-        
+    for i, (rx, ry, rw, rh) in enumerate(rect_positions):
         # Draw border rect
         rect_patch = patches.Rectangle((rx, ry), rw, rh, linewidth=1, edgecolor='black', facecolor='none')
         ax.add_patch(rect_patch)
@@ -97,7 +104,7 @@ def generate_treemap(df, title, filename, is_empire=False):
             else:
                 pil_img = Image.new('RGBA', (100, 100), color='gray')
         
-        # Use imshow to scale and stretch image to rect
+        # Use imshow to scale and stretch
         img_array = np.array(pil_img)
         ax.imshow(img_array, extent=[rx, rx + rw, ry, ry + rh], aspect='auto', zorder=1)
         
@@ -108,12 +115,4 @@ def generate_treemap(df, title, filename, is_empire=False):
     
     ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
     plt.tight_layout()
-    plt.savefig(f'img/{filename}', dpi=150, bbox_inches='tight', facecolor='white')
-    plt.close()
-    print(f"Generated img/{filename} with overlays")
-
-# Generate maps
-generate_treemap(global_df, 'Global Market Cap Treemap (% of Global)', 'map1.png', False)
-generate_treemap(empire_df, 'Empire Market Cap Treemap (% of Empire Total)', 'map2.png', True)
-
-print("Maps with flag overlays generated and saved to img/!")
+    plt.savefig(f'
