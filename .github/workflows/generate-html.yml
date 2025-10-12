@@ -1,0 +1,59 @@
+name: Generate WordPress HTML Snippets
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+  # Run every day at 9 AM UTC (adjust timezone as needed)
+    - cron: '35 9 * * *'
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests pandas numpy
+
+    - name: Run generate_wordpress_html.py
+      run: python generate_wordpress_html.py
+
+    - name: Output HTML snippets
+      run: |
+        echo "## Generated HTML Snippets" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        cat << 'EOF' >> $GITHUB_STEP_SUMMARY
+        $(cat global_html.txt)  # Assuming script outputs to files; adjust as needed
+        EOF
+        echo "" >> $GITHUB_STEP_SUMMARY
+        cat << 'EOF' >> $GITHUB_STEP_SUMMARY
+        $(cat empire_html.txt)
+        EOF
+
+    - name: Upload HTML snippets as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: wordpress-html-snippets
+        path: |
+          *.html  # Or specific files if script saves to files
+        retention-days: 7
+
+# Optional: Commit changes if script modifies files
+# - name: Commit changes
+#   run: |
+#     git config --local user.email "action@github.com"
+#     git config --local user.name "GitHub Action"
+#     git add .
+#     git diff --staged --quiet || git commit -m "Update generated HTML snippets"
+#     git push
