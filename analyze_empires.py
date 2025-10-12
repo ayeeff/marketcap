@@ -192,13 +192,21 @@ empire_data = {
         len(df) - empire_1_count - empire_2_count - empire_3_count,
         len(df)
     ],
-    '% of Global Market Cap': [
+    '% of Global': [
         round(empire_1_percent, 2),
         round(empire_2_percent, 2),
         round(empire_3_percent, 2),
         round((grand_total / global_total * 100), 2),
         round(((global_total - grand_total) / global_total * 100), 2),
         100.0
+    ],
+    '% of Empire Total': [
+        round(empire_1_empire_percent, 2),
+        round(empire_2_empire_percent, 2),
+        round(empire_3_empire_percent, 2),
+        100.0,
+        '-',
+        '-'
     ]
 }
 
