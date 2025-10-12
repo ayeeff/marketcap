@@ -303,8 +303,14 @@
             data.forEach(d => {
                 const country = d["Country or region"];
                 let iso = countryToISO[country];
-                if (!iso && countryToISO[country] === undefined) {
-                    iso = "xx"; // default
+                if (!iso) {
+                    // Fallback for aliases
+                    if (country === "South Korea") iso = "kr";
+                    else if (country === "Russia") iso = "ru";
+                    else if (country === "Vietnam") iso = "vn";
+                    else if (country === "Ivory Coast") iso = "ci";
+                    else if (country === "Palestine") iso = "ps";
+                    else iso = "xx"; // default
                 }
                 if (iso !== "xx") {
                     const pattern = defs.append("pattern")
@@ -314,7 +320,7 @@
                         .attr("patternUnits", "objectBoundingBox");
 
                     pattern.append("image")
-                        .attr("xlink:href", `https://flagcdn.com/256x192/${iso}.svg`)
+                        .attr("xlink:href", `https://flagcdn.com/${iso}.svg`)
                         .attr("width", 1)
                         .attr("height", 1)
                         .attr("x", 0)
@@ -352,15 +358,17 @@
                     return iso === "xx" ? "#ccc" : `url(#flag-${iso})`;
                 });
 
-            leaf.append("text")
-                .selectAll("tspan")
+            // Fixed label rendering: set font-size on text element
+            const text = leaf.append("text")
+                .attr("font-size", d => Math.min((d.x1 - d.x0) / 10, 12))
+                .classed("label", true);
+
+            text.selectAll("tspan")
                 .data(d => d.data["Country or region"].split(/(?=[A-Z])/))
                 .join("tspan")
                 .attr("x", 3)
-                .attr("y", (d, i) => 1 + i * 10)
-                .attr("font-size", d => Math.min((d.x1 - d.x0) / 10, 12))
-                .text(d => d)
-                .classed("label", true);
+                .attr("y", (_, i) => 1 + i * 13)
+                .text(t => t);
 
             // Tooltip
             const tooltip = d3.select("body").append("div")
