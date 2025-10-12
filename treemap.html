@@ -2,14 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Global Market Cap Treemap</title>
+    <title>Global Market Cap Treemaps</title>
     <style>
         body {
             margin: 0;
             font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+        .map-container {
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f0f0f0;
+        }
+        #first-map {
+            height: 40vh;
+        }
+        #second-map {
+            height: 60vh;
+        }
+        .container {
+            width: 80vw;
+            height: 100%;
+            max-width: 80vw;
         }
         svg {
             display: block;
+            width: 100%;
+            height: 100%;
             background: white;
         }
         .label {
@@ -21,6 +43,16 @@
     </style>
 </head>
 <body>
+    <div class="map-container" id="first-map">
+        <div class="container">
+            <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+    </div>
+    <div class="map-container" id="second-map">
+        <div class="container">
+            <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+    </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
         const countryToISO = {
@@ -277,62 +309,21 @@
         countryToISO["Vietnam"] = "vn";
         countryToISO["Ivory Coast"] = "ci";
         countryToISO["Palestine"] = "ps";
+        countryToISO["Eswatini"] = "sz"; // Formerly Swaziland
 
-        d3.csv("https://raw.githubusercontent.com/ayeeff/marketcap/main/data/countries_marketcap.csv").then(data => {
-            console.log("Data loaded:", data.length, "rows");
-            data.forEach(d => {
-                d.perc = +d["% of Global Market Cap"];
-            });
-
-            // Filter to only countries with positive %, and sort
-            data = data.filter(d => d.perc > 0).sort((a, b) => b.perc - a.perc);
-            console.log("Filtered data:", data.length, "rows");
-
+        // Function to create treemap
+        function createTreemap(svgSelector, data, isEmpire = false) {
             const root = d3.hierarchy({children: data})
                 .sum(d => d.perc)
                 .sort((a, b) => b.value - a.value);
 
-            const width = 1200;
-            const height = 800;
+            const viewWidth = 1200;
+            const viewHeight = 800;
 
-            const svg = d3.select("body").append("svg")
-                .attr("viewBox", `0 0 ${width} ${height}`)
-                .style("max-width", "100%")
-                .style("height", "auto");
-
-            const defs = svg.append("defs");
-
-            // Create patterns for flags using PNG for better compatibility
-            data.forEach(d => {
-                const country = d["Country or region"];
-                let iso = countryToISO[country];
-                if (!iso) {
-                    if (country === "South Korea") iso = "kr";
-                    else if (country === "Russia") iso = "ru";
-                    else if (country === "Vietnam") iso = "vn";
-                    else if (country === "Ivory Coast") iso = "ci";
-                    else if (country === "Palestine") iso = "ps";
-                    else iso = "xx";
-                }
-                if (iso !== "xx") {
-                    const pattern = defs.append("pattern")
-                        .attr("id", `flag-${iso}`)
-                        .attr("width", "40")
-                        .attr("height", "30")
-                        .attr("patternUnits", "userSpaceOnUse");
-
-                    pattern.append("image")
-                        .attr("xlink:href", `https://flagcdn.com/w40/${iso}.png`)
-                        .attr("width", "40")
-                        .attr("height", "30")
-                        .attr("x", 0)
-                        .attr("y", 0)
-                        .attr("preserveAspectRatio", "none");
-                }
-            });
+            const svg = d3.select(svgSelector);
 
             const treemap = d3.treemap()
-                .size([width, height])
+                .size([viewWidth, viewHeight])
                 .padding(1)
                 .round(true);
 
@@ -346,23 +337,36 @@
             leaf.append("rect")
                 .attr("width", d => Math.max(1, Math.round(d.x1 - d.x0)))
                 .attr("height", d => Math.max(1, Math.round(d.y1 - d.y0)))
-                .attr("fill", d => {
-                    const country = d.data["Country or region"];
-                    let iso = countryToISO[country];
-                    if (!iso) {
-                        if (country === "South Korea") iso = "kr";
-                        else if (country === "Russia") iso = "ru";
-                        else if (country === "Vietnam") iso = "vn";
-                        else if (country === "Ivory Coast") iso = "ci";
-                        else if (country === "Palestine") iso = "ps";
-                        else iso = "xx";
-                    }
-                    return iso === "xx" ? "#ccc" : `url(#flag-${iso})`;
-                })
+                .attr("fill", "none")
                 .style("stroke", "#000")
                 .style("stroke-width", 0.5);
 
-            // Labels with better visibility
+            leaf.append("image")
+                .attr("xlink:href", d => {
+                    if (isEmpire) {
+                        const rank = +d.data.Rank;
+                        return `https://raw.githubusercontent.com/ayeeff/marketcap/main/img/emp${rank}.png`;
+                    } else {
+                        const country = d.data["Country or region"];
+                        let iso = countryToISO[country];
+                        if (!iso) {
+                            if (country === "South Korea") iso = "kr";
+                            else if (country === "Russia") iso = "ru";
+                            else if (country === "Vietnam") iso = "vn";
+                            else if (country === "Ivory Coast") iso = "ci";
+                            else if (country === "Palestine") iso = "ps";
+                            else return null; // or default color
+                        }
+                        return `https://flagcdn.com/w320/${iso}.png`; // Larger for better quality
+                    }
+                })
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("width", d => Math.max(1, Math.round(d.x1 - d.x0)))
+                .attr("height", d => Math.max(1, Math.round(d.y1 - d.y0)))
+                .attr("preserveAspectRatio", "none");
+
+            // Labels
             const text = leaf.append("text")
                 .attr("font-size", d => Math.min((d.x1 - d.x0) / 8, (d.y1 - d.y0) / 8, 12))
                 .attr("fill", "black")
@@ -370,40 +374,82 @@
 
             text.append("tspan")
                 .attr("x", 2)
-                .attr("y", (_, i) => 12 + i * 12)
+                .attr("y", 12)
                 .text(d => {
-                    const name = d.data["Country or region"];
+                    const name = isEmpire ? d.data.Empire : d.data["Country or region"];
                     const shortName = name.length > 10 ? name.substring(0, 10) + '...' : name;
                     return shortName;
                 });
 
-            // Tooltip
-            const tooltip = d3.select("body").append("div")
-                .style("position", "absolute")
-                .style("background", "rgba(0, 0, 0, 0.8)")
-                .style("color", "white")
-                .style("padding", "8px")
-                .style("border-radius", "4px")
-                .style("pointer-events", "none")
-                .style("opacity", 0)
-                .style("font-size", "12px")
-                .style("z-index", 1000);
+            // Tooltip (shared, but per map)
+            const tooltipId = isEmpire ? 'tooltip2' : 'tooltip1';
+            let tooltip = d3.select(`#${tooltipId}`);
+            if (tooltip.empty()) {
+                tooltip = d3.select("body").append("div")
+                    .attr("id", tooltipId)
+                    .style("position", "absolute")
+                    .style("background", "rgba(0, 0, 0, 0.8)")
+                    .style("color", "white")
+                    .style("padding", "8px")
+                    .style("border-radius", "4px")
+                    .style("pointer-events", "none")
+                    .style("opacity", 0)
+                    .style("font-size", "12px")
+                    .style("z-index", 1000);
+            }
 
             leaf.on("mouseover", (event, d) => {
                 const rect = event.currentTarget.querySelector("rect");
                 d3.select(rect).style("stroke-width", 2);
+                const name = isEmpire ? d.data.Empire : d.data["Country or region"];
+                const cap = isEmpire ? d.data["Total MarketCap"] : d.data["Total MarketCap"];
                 tooltip.style("opacity", 1)
-                    .html(`${d.data["Country or region"]}<br/>${d.data["Total MarketCap"]}<br/>${d.data.perc.toFixed(2)}% of Global`)
+                    .html(`${name}<br/>${cap}<br/>${d.data.perc.toFixed(2)}%`)
                     .style("left", (event.pageX + 10) + "px")
                     .style("top", (event.pageY - 28) + "px");
-            }).on("mouseout", (event, d) => {
+            }).on("mouseout", (event) => {
                 const rect = event.currentTarget.querySelector("rect");
                 d3.select(rect).style("stroke-width", 0.5);
                 tooltip.style("opacity", 0);
             });
+        }
+
+        // Load global data for first map
+        d3.csv("https://raw.githubusercontent.com/ayeeff/marketcap/main/data/countries_marketcap.csv").then(globalData => {
+            console.log("Global data loaded:", globalData.length, "rows");
+            globalData.forEach(d => {
+                d.perc = +d["% of Global Market Cap"];
+            });
+
+            // Filter to only countries with positive %, and sort
+            const filteredGlobal = globalData.filter(d => d.perc > 0).sort((a, b) => b.perc - a.perc);
+            console.log("Filtered global data:", filteredGlobal.length, "rows");
+
+            // Create first map
+            createTreemap("#first-map .container svg", filteredGlobal, false);
+
+            // Load empire data for second map
+            d3.csv("https://raw.githubusercontent.com/ayeeff/marketcap/main/data/empire_marketcap.csv").then(empData => {
+                console.log("Empire data loaded:", empData.length, "rows");
+                empData.forEach(d => {
+                    // Parse percentage, removing % if present
+                    let percStr = d["% of Empire Total"].toString().replace('%', '').trim();
+                    d.perc = +percStr;
+                    console.log(`Empire ${d.Rank}: ${d["% of Empire Total"]} -> ${d.perc}`);
+                });
+
+                // Filter to ranks 1-3
+                const filteredEmp = empData.filter(d => +d.Rank <= 3 && !isNaN(d.perc)).sort((a, b) => +a.Rank - +b.Rank);
+
+                // Create second map
+                createTreemap("#second-map .container svg", filteredEmp, true);
+            }).catch(error => {
+                console.error("Error loading empire CSV:", error);
+                d3.select("body").append("p").text("Error loading empire data. Check console.");
+            });
         }).catch(error => {
-            console.error("Error loading CSV:", error);
-            d3.select("body").append("p").text("Error loading data. Check console.");
+            console.error("Error loading global CSV:", error);
+            d3.select("body").append("p").text("Error loading global data. Check console.");
         });
     </script>
 </body>
