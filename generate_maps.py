@@ -7,7 +7,11 @@ import os
 from io import StringIO
 from PIL import Image
 import numpy as np
+import warnings
 from urllib.parse import quote
+
+# Suppress tight layout warning
+warnings.filterwarnings("ignore", message="Tight layout")
 
 # URLs for latest CSVs
 GLOBAL_CSV_URL = "https://raw.githubusercontent.com/ayeeff/marketcap/main/data/countries_marketcap.csv"
@@ -37,7 +41,7 @@ empire_images = {
 response = requests.get(GLOBAL_CSV_URL)
 global_df = pd.read_csv(StringIO(response.text))
 global_df['perc'] = pd.to_numeric(global_df['% of Global Market Cap'], errors='coerce')
-global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(50)  # Top 50 for readability
+global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(30)  # Reduced to 30 for memory
 
 # Fetch and load empire data
 response = requests.get(EMPIRE_CSV_URL)
@@ -60,17 +64,8 @@ def generate_treemap(df, title, filename, is_empire=False):
     values = df['perc'].tolist()
     labels = df['Country or region'].tolist() if not is_empire else [f"Emp {r}" for r in df['Rank']]
     
-    # Temporary plot to get positions
-    fig_temp, ax_temp = plt.subplots(1, 1, figsize=(12, 8))
-    squarify.plot(sizes=values, label=labels, color=['white'] * len(values), alpha=0, ax=ax_temp)
-    ax_temp.axis('off')
-    plt.close(fig_temp)
-    
-    # Extract positions from patches (normalized 0-1)
-    rect_positions = []
-    for patch in ax_temp.patches:
-        bbox = patch.get_bbox().bounds
-        rect_positions.append((bbox[0], bbox[1], bbox[2], bbox[3]))
+    # Use squarify.squarify to get positions directly
+    rects = squarify.squarify(values, 0, 0, 1, 1)
     
     # Create final figure
     fig, ax = plt.subplots(1, 1, figsize=(12, 8))
@@ -79,8 +74,10 @@ def generate_treemap(df, title, filename, is_empire=False):
     ax.axis('off')
     
     # Draw rectangles and overlay images
-    for i, (rx, ry, rw, rh) in enumerate(rect_positions):
-        # Draw border rect (note y inverted)
+    for i, rect in enumerate(rects):
+        rx, ry, rw, rh = rect['x'], rect['y'], rect['dx'], rect['dy']
+        
+        # Draw border rect (y inverted for plot)
         rect_patch = patches.Rectangle((rx, 1 - (ry + rh)), rw, rh, linewidth=1, edgecolor='black', facecolor='none')
         ax.add_patch(rect_patch)
         
@@ -111,7 +108,7 @@ def generate_treemap(df, title, filename, is_empire=False):
     
     ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
     plt.tight_layout()
-    plt.savefig(f'img/{filename}', dpi=300, bbox_inches='tight', facecolor='white')
+    plt.savefig(f'img/{filename}', dpi=150, bbox_inches='tight', facecolor='white')  # Reduced DPI for memory
     plt.close()
     print(f"Generated img/{filename} with overlays")
 
