@@ -90,6 +90,11 @@ def format_market_cap(value):
 print("Loading country market cap data...")
 df = pd.read_csv(CSV_INPUT)
 
+print(f"\nFirst 5 rows of raw data:")
+print(df.head())
+print(f"\nColumn dtypes:")
+print(df.dtypes)
+
 # Find the market cap column
 market_cap_col = None
 country_col = None
@@ -102,10 +107,20 @@ for col in df.columns:
 if not market_cap_col or not country_col:
     raise ValueError(f"Could not find required columns. Available: {list(df.columns)}")
 
-print(f"Using columns: {country_col}, {market_cap_col}")
+print(f"\nUsing columns: {country_col}, {market_cap_col}")
+
+# Show some sample values before parsing
+print(f"\nSample market cap values (raw):")
+for idx, row in df.head(5).iterrows():
+    print(f"  {row[country_col]}: '{row[market_cap_col]}'")
 
 # Convert market cap to numeric
 df['MarketCapNumeric'] = df[market_cap_col].apply(parse_market_cap)
+
+# Show parsed values
+print(f"\nSample market cap values (parsed to numeric):")
+for idx, row in df.head(5).iterrows():
+    print(f"  {row[country_col]}: {row['MarketCapNumeric']:,.0f} -> {format_market_cap(row['MarketCapNumeric'])}")
 
 # Calculate Empire totals
 print(f"\nSearching for Commonwealth countries in dataset...")
