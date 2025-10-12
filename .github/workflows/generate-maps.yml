@@ -1,0 +1,54 @@
+name: Generate Market Cap Maps
+
+on:
+  schedule:
+    # Run every day at 9 AM UTC (adjust timezone as needed)
+    - cron: '0 9 * * *'
+  workflow_dispatch:  # Allows manual trigger from Actions tab
+  push:
+    branches: [ main ]  # Run on push to test
+
+# CRITICAL: Grant write permissions to GITHUB_TOKEN
+permissions:
+  contents: write
+
+jobs:
+  generate-maps:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install pandas matplotlib requests pillow squarify
+        
+    - name: Generate maps
+      run: |
+        python generate_maps.py
+        
+    - name: Commit and push maps
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        # Create img dir if not exists
+        mkdir -p img
+        git add img/map1.png img/map2.png
+        git diff --staged --quiet || git commit -m "Update market cap maps [$(date +%Y-%m-%d)]"
+        git push
+        
+    - name: Upload maps as artifacts
+      if: always()  # Run even if generation fails
+      uses: actions/upload-artifact@v4
+      with:
+        name: maps-output
+        path: |
+          img/map1.png
+          img/map2.png
