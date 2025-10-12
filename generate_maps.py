@@ -1,9 +1,12 @@
 import pandas as pd
 import squarify
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import requests
 import os
+import gc
 from io import StringIO, BytesIO
 from PIL import Image
 import numpy as np
@@ -41,8 +44,93 @@ empire_images = {
 response = requests.get(GLOBAL_CSV_URL)
 global_df = pd.read_csv(StringIO(response.text))
 global_df['perc'] = pd.to_numeric(global_df['% of Global Market Cap'], errors='coerce')
-global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(20)  # Reduced to 20 for memory and clarity
+global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(15)  # Top 15 for global
 
 # Fetch and load empire data
 response = requests.get(EMPIRE_CSV_URL)
-empire_df = pd.read_csv(String
+empire_df = pd.read_csv(StringIO(response.text))
+empire_df['perc'] = pd.to_numeric(empire_df['% of Empire Total'].str.replace('%', ''), errors='coerce')
+empire_df = empire_df[empire_df['Rank'] <= 3]  # All 3 empires
+
+# Function to fetch image as PIL
+def fetch_image(url):
+    try:
+        resp = requests.get(url, timeout=5)
+        resp.raise_for_status()
+        return Image.open(BytesIO(resp.content)).convert('RGBA')
+    except Exception as e:
+        print(f"Failed to fetch {url}: {e}")
+        # Fallback: create a colored square
+        colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange']
+        return Image.new('RGBA', (100, 100), color=colors[hash(url) % len(colors)])
+
+# Function to get rectangle positions without plotting
+def get_rect_positions(sizes):
+    normalized = squarify.normalize_sizes(sizes, 1, 1)
+    rects = squarify.squarify(normalized, 0, 0, 1, 1)
+    return [(r['x'], r['y'], r['dx'], r['dy']) for r in rects]
+
+# Function to generate treemap PNG with overlays
+def generate_treemap(df, title, filename, is_empire=False):
+    values = df['perc'].tolist()
+    labels = df['Country or region'].tolist() if not is_empire else df['Empire'].tolist()
+    
+    # Get positions without temp plot
+    rect_positions = get_rect_positions(values)
+    
+    # Create final figure
+    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.axis('off')
+    
+    # Calculate figure dimensions in pixels
+    dpi = 150
+    fig_width_px = 12 * dpi
+    fig_height_px = 8 * dpi
+    
+    # Draw rectangles and overlay images
+    for i, (rx, ry, rw, rh) in enumerate(rect_positions):
+        # Draw border rect
+        rect_patch = patches.Rectangle((rx, ry), rw, rh, linewidth=1, edgecolor='black', facecolor='none')
+        ax.add_patch(rect_patch)
+        
+        # Fetch image
+        if is_empire:
+            rank = df.iloc[i]['Rank']
+            img_url = empire_images.get(rank, '')
+            pil_img = fetch_image(img_url)
+        else:
+            country = labels[i]
+            iso = country_to_iso.get(country, 'xx')
+            if iso != 'xx':
+                img_url = f"https://flagcdn.com/w320/{iso}.png"
+                pil_img = fetch_image(img_url)
+            else:
+                pil_img = Image.new('RGBA', (100, 100), color='gray')
+        
+        # Calculate target size and resize
+        target_w = max(1, int(rw * fig_width_px))
+        target_h = max(1, int(rh * fig_height_px))
+        pil_resized = pil_img.resize((target_w, target_h), Image.Resampling.LANCZOS)
+        img_array = np.array(pil_resized)
+        
+        # Use imshow to scale and stretch
+        ax.imshow(img_array, extent=[rx, rx + rw, ry, ry + rh], aspect='auto', zorder=1)
+        
+        # Add label if space
+        if rw > 0.08 or rh > 0.08:
+            label_text = str(labels[i])[:10]
+            ax.text(rx + 0.01, ry + rh - 0.01, label_text, fontsize=8, color='white', va='top', ha='left', zorder=2, weight='bold')
+    
+    ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
+    plt.savefig(f'img/{filename}', dpi=dpi, bbox_inches='tight', facecolor='white')
+    plt.close(fig)
+    gc.collect()
+    print(f"Generated img/{filename} with overlays")
+
+# Generate maps
+generate_treemap(global_df, 'Global Market Cap Treemap (% of Global)', 'map1.png', False)
+generate_treemap(empire_df, 'Empire Market Cap Treemap (% of Empire Total)', 'map2.png', True)
+
+print("Maps with flag overlays generated and saved to img/!")
