@@ -62,7 +62,7 @@ def generate_treemap(df, title, filename, is_empire=False):
     labels = df['Country or region'].tolist() if not is_empire else [f"Emp {r}" for r in df['Rank']]
     
     # Generate layout
-    rects = squarify.normalized_sizes(sizes, 1, 1)
+    rects = squarify.normalize_sizes(sizes, 1, 1)
     x = 0
     y = 0
     rect_positions = []
