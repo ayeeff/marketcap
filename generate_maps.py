@@ -71,15 +71,15 @@ def generate_treemap(df, title, filename, is_empire=False):
     # Create final figure
     fig, ax = plt.subplots(1, 1, figsize=(10, 7))  # Smaller size for memory
     ax.set_xlim(0, 1)
-    ax.set_ylim(1, 0)  # Invert y for top-left origin in imshow
+    ax.set_ylim(0, 1)  # Standard y (bottom-up)
     ax.axis('off')
     
     # Draw rectangles and overlay images
     for i, rect in enumerate(rects):
         rx, ry, rw, rh = rect['x'], rect['y'], rect['dx'], rect['dy']
         
-        # Draw border rect (y inverted for plot)
-        rect_patch = patches.Rectangle((rx, 1 - (ry + rh)), rw, rh, linewidth=1, edgecolor='black', facecolor='none')
+        # Draw border rect
+        rect_patch = patches.Rectangle((rx, ry), rw, rh, linewidth=1, edgecolor='black', facecolor='none')
         ax.add_patch(rect_patch)
         
         # Fetch and overlay image (scale to rect size)
@@ -97,27 +97,4 @@ def generate_treemap(df, title, filename, is_empire=False):
                 img_url = f"https://flagcdn.com/w320/{iso}.png"
                 pil_img = fetch_image(img_url)
             else:
-                pil_img = Image.new('RGBA', (100, 100), color='gray')
-        
-        # Resize PIL image to fit rect (approximate)
-        pil_resized = pil_img.resize((int(rw * 1000), int(rh * 1000)), Image.Resampling.LANCZOS)
-        img_array = np.array(pil_resized)
-        
-        # Add to axes (y inverted)
-        ax.imshow(img_array, extent=[rx, rx + rw, 1 - (ry + rh), 1 - ry], aspect='auto', zorder=1)
-        
-        # Add label if space
-        if rw > 0.05 or rh > 0.05:  # Adjusted threshold
-            label_text = str(labels[i])[:6]  # Shorter labels
-            ax.text(rx + 0.005, 1 - (ry + rh + 0.005), label_text, fontsize=6, color='white', va='bottom', ha='left', zorder=2, weight='bold')
-    
-    ax.set_title(title, fontsize=14, fontweight='bold', pad=10)
-    plt.savefig(f'img/{filename}', dpi=100, bbox_inches='tight', facecolor='white')  # Low DPI for memory
-    plt.close()
-    print(f"Generated img/{filename} with overlays")
-
-# Generate maps
-generate_treemap(global_df, 'Global Market Cap Treemap (% of Global)', 'map1.png', False)
-generate_treemap(empire_df, 'Empire Market Cap Treemap (% of Empire Total)', 'map2.png', True)
-
-print("Maps with flag overlays generated and saved to img/!")
+                pil_img = Image.new('RGBA', (100,
