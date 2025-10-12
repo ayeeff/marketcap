@@ -117,9 +117,15 @@ def generate_treemap(df, title, filename, is_empire=False):
             else:
                 pil_img = Image.new('RGBA', (100, 100), color='gray')
         
-        # Calculate target size and resize
+        # Calculate target size and resize with max dim limit to avoid huge SVG
         target_w = max(1, int(rw * fig_width_px))
         target_h = max(1, int(rh * fig_height_px))
+        max_dim = 300  # Limit max dimension for embedded images
+        scale = min(max_dim / max(target_w, target_h), 1.0) if max(target_w, target_h) > 0 else 1.0
+        target_w = int(target_w * scale)
+        target_h = int(target_h * scale)
+        print(f"Resizing to {target_w}x{target_h} for {labels[i]}")
+        
         pil_resized = pil_img.resize((target_w, target_h), Image.Resampling.LANCZOS)
         img_array = np.array(pil_resized)
         
@@ -134,25 +140,35 @@ def generate_treemap(df, title, filename, is_empire=False):
     ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
     
     if is_empire:
-        # Save to SVG buffer and add tooltips
-        svg_buffer = BytesIO()
-        plt.savefig(svg_buffer, format='svg', bbox_inches='tight', facecolor='white', dpi=dpi)
-        svg_buffer.seek(0)
-        svg_str = svg_buffer.read().decode('utf-8')
-        
-        root = ET.fromstring(svg_str)
-        ns = {'svg': 'http://www.w3.org/2000/svg'}
-        images = root.findall('.//svg:image', ns)
-        
-        for j, img in enumerate(images[:len(tooltip_texts)]):
-            title_elem = ET.SubElement(img, '{http://www.w3.org/2000/svg}title')
-            title_elem.text = tooltip_texts[j]
-        
-        svg_output = ET.tostring(root, encoding='unicode', method='xml')
-        filename_out = filename.replace('.png', '.svg')
-        with open(f'img/{filename_out}', 'w', encoding='utf-8') as f:
-            f.write(svg_output)
-        print(f"Generated img/{filename_out} with overlays and tooltips")
+        try:
+            # Save to SVG buffer and add tooltips
+            svg_buffer = BytesIO()
+            plt.savefig(svg_buffer, format='svg', bbox_inches='tight', facecolor='white', dpi=dpi)
+            svg_buffer.seek(0)
+            svg_str = svg_buffer.read().decode('utf-8')
+            
+            print(f'SVG string length: {len(svg_str)}')
+            
+            root = ET.fromstring(svg_str)
+            ns = {'svg': 'http://www.w3.org/2000/svg'}
+            images = root.findall('.//svg:image', ns)
+            print(f'Number of images found in SVG: {len(images)}')
+            
+            for j, img in enumerate(images[:len(tooltip_texts)]):
+                title_elem = ET.SubElement(img, '{http://www.w3.org/2000/svg}title')
+                title_elem.text = tooltip_texts[j]
+                print(f'Added tooltip {j+1}')
+            
+            svg_output = ET.tostring(root, encoding='unicode', method='xml')
+            filename_out = filename.replace('.png', '.svg')
+            with open(f'img/{filename_out}', 'w', encoding='utf-8') as f:
+                f.write(svg_output)
+            print(f"Generated img/{filename_out} with overlays and tooltips")
+        except Exception as e:
+            print(f"Error in SVG generation: {e}")
+            # Fallback to PNG
+            plt.savefig(f'img/{filename.replace(".png", "_fallback.png")}', dpi=dpi, bbox_inches='tight', facecolor='white')
+            print(f"Fallback PNG generated due to SVG error")
     else:
         plt.savefig(f'img/{filename}', dpi=dpi, bbox_inches='tight', facecolor='white')
         print(f"Generated img/{filename} with overlays")
