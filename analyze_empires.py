@@ -94,14 +94,9 @@ print(df.head())
 print(f"\nColumn dtypes:")
 print(df.dtypes)
 
-# Find the market cap column
-market_cap_col = None
-country_col = None
-for col in df.columns:
-    if 'market' in col.lower() and 'cap' in col.lower():
-        market_cap_col = col
-    if 'country' in col.lower():
-        country_col = col
+# Find the market cap column more specifically
+market_cap_col = next((col for col in df.columns if 'total marketcap' in col.lower()), None)
+country_col = next((col for col in df.columns if 'country' in col.lower()), None)
 
 if not market_cap_col or not country_col:
     raise ValueError(f"Could not find required columns. Available: {list(df.columns)}")
