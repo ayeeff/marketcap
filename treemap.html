@@ -13,7 +13,7 @@
             background: white;
         }
         .label {
-            fill: white;
+            fill: black;
             font-weight: bold;
             text-anchor: start;
             dominant-baseline: central;
@@ -277,14 +277,17 @@
         countryToISO["Vietnam"] = "vn";
         countryToISO["Ivory Coast"] = "ci";
         countryToISO["Palestine"] = "ps";
-        countryToISO["Czech Republic"] = "cz"; // Already there, but ensure
 
         d3.csv("https://raw.githubusercontent.com/ayeeff/marketcap/main/data/countries_marketcap.csv").then(data => {
+            console.log("Data loaded:", data.length, "rows");
             data.forEach(d => {
                 d.perc = +d["% of Global Market Cap"];
             });
 
-            // Use all data
+            // Filter to only countries with positive %, and sort
+            data = data.filter(d => d.perc > 0).sort((a, b) => b.perc - a.perc);
+            console.log("Filtered data:", data.length, "rows");
+
             const root = d3.hierarchy({children: data})
                 .sum(d => d.perc)
                 .sort((a, b) => b.value - a.value);
@@ -299,30 +302,29 @@
 
             const defs = svg.append("defs");
 
-            // Create patterns for flags
+            // Create patterns for flags using PNG for better compatibility
             data.forEach(d => {
                 const country = d["Country or region"];
                 let iso = countryToISO[country];
                 if (!iso) {
-                    // Fallback for aliases
                     if (country === "South Korea") iso = "kr";
                     else if (country === "Russia") iso = "ru";
                     else if (country === "Vietnam") iso = "vn";
                     else if (country === "Ivory Coast") iso = "ci";
                     else if (country === "Palestine") iso = "ps";
-                    else iso = "xx"; // default
+                    else iso = "xx";
                 }
                 if (iso !== "xx") {
                     const pattern = defs.append("pattern")
                         .attr("id", `flag-${iso}`)
-                        .attr("width", 1)
-                        .attr("height", 1)
-                        .attr("patternUnits", "objectBoundingBox");
+                        .attr("width", "40")
+                        .attr("height", "30")
+                        .attr("patternUnits", "userSpaceOnUse");
 
                     pattern.append("image")
-                        .attr("xlink:href", `https://flagcdn.com/${iso}.svg`)
-                        .attr("width", 1)
-                        .attr("height", 1)
+                        .attr("xlink:href", `https://flagcdn.com/w40/${iso}.png`)
+                        .attr("width", "40")
+                        .attr("height", "30")
                         .attr("x", 0)
                         .attr("y", 0)
                         .attr("preserveAspectRatio", "none");
@@ -331,7 +333,7 @@
 
             const treemap = d3.treemap()
                 .size([width, height])
-                .padding(2)
+                .padding(1)
                 .round(true);
 
             treemap(root);
@@ -339,11 +341,11 @@
             const leaf = svg.selectAll("g")
                 .data(root.leaves())
                 .join("g")
-                .attr("transform", d => `translate(${d.x0}, ${d.y0})`);
+                .attr("transform", d => `translate(${Math.round(d.x0)}, ${Math.round(d.y0)})`);
 
             leaf.append("rect")
-                .attr("width", d => d.x1 - d.x0)
-                .attr("height", d => d.y1 - d.y0)
+                .attr("width", d => Math.max(1, Math.round(d.x1 - d.x0)))
+                .attr("height", d => Math.max(1, Math.round(d.y1 - d.y0)))
                 .attr("fill", d => {
                     const country = d.data["Country or region"];
                     let iso = countryToISO[country];
@@ -356,19 +358,24 @@
                         else iso = "xx";
                     }
                     return iso === "xx" ? "#ccc" : `url(#flag-${iso})`;
-                });
+                })
+                .style("stroke", "#000")
+                .style("stroke-width", 0.5);
 
-            // Fixed label rendering: set font-size on text element
+            // Labels with better visibility
             const text = leaf.append("text")
-                .attr("font-size", d => Math.min((d.x1 - d.x0) / 10, 12))
+                .attr("font-size", d => Math.min((d.x1 - d.x0) / 8, (d.y1 - d.y0) / 8, 12))
+                .attr("fill", "black")
                 .classed("label", true);
 
-            text.selectAll("tspan")
-                .data(d => d.data["Country or region"].split(/(?=[A-Z])/))
-                .join("tspan")
-                .attr("x", 3)
-                .attr("y", (_, i) => 1 + i * 13)
-                .text(t => t);
+            text.append("tspan")
+                .attr("x", 2)
+                .attr("y", (_, i) => 12 + i * 12)
+                .text(d => {
+                    const name = d.data["Country or region"];
+                    const shortName = name.length > 10 ? name.substring(0, 10) + '...' : name;
+                    return shortName;
+                });
 
             // Tooltip
             const tooltip = d3.select("body").append("div")
@@ -379,14 +386,19 @@
                 .style("border-radius", "4px")
                 .style("pointer-events", "none")
                 .style("opacity", 0)
-                .style("font-size", "12px");
+                .style("font-size", "12px")
+                .style("z-index", 1000);
 
             leaf.on("mouseover", (event, d) => {
+                const rect = event.currentTarget.querySelector("rect");
+                d3.select(rect).style("stroke-width", 2);
                 tooltip.style("opacity", 1)
-                    .html(`${d.data["Country or region"]}<br/>${d.data["Total MarketCap"]}<br/>${d.data.perc}% of Global`)
+                    .html(`${d.data["Country or region"]}<br/>${d.data["Total MarketCap"]}<br/>${d.data.perc.toFixed(2)}% of Global`)
                     .style("left", (event.pageX + 10) + "px")
                     .style("top", (event.pageY - 28) + "px");
-            }).on("mouseout", () => {
+            }).on("mouseout", (event, d) => {
+                const rect = event.currentTarget.querySelector("rect");
+                d3.select(rect).style("stroke-width", 0.5);
                 tooltip.style("opacity", 0);
             });
         }).catch(error => {
