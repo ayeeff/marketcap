@@ -57,33 +57,31 @@ def fetch_image(url):
 
 # Function to generate treemap PNG with overlays
 def generate_treemap(df, title, filename, is_empire=False):
-    # Get sizes and positions from squarify
-    sizes = df['perc'].tolist()
+    values = df['perc'].tolist()
     labels = df['Country or region'].tolist() if not is_empire else [f"Emp {r}" for r in df['Rank']]
     
-    # Generate layout
-    rects = squarify.normalize_sizes(sizes, 1, 1)
-    x = 0
-    y = 0
-    rect_positions = []
-    for rect in rects:
-        rect_positions.append((x, y, rect['dx'], rect['dy']))
-        x += rect['dx']
-        if x >= 1:
-            x = 0
-            y += rect['dy']
+    # Temporary plot to get positions
+    fig_temp, ax_temp = plt.subplots(1, 1, figsize=(12, 8))
+    squarify.plot(sizes=values, label=labels, color=['white'] * len(values), alpha=0, ax=ax_temp)
+    ax_temp.axis('off')
+    plt.close(fig_temp)
     
-    # Create figure with tight layout
+    # Extract positions from patches (normalized 0-1)
+    rect_positions = []
+    for patch in ax_temp.patches:
+        bbox = patch.get_bbox().bounds
+        rect_positions.append((bbox[0], bbox[1], bbox[2], bbox[3]))
+    
+    # Create final figure
     fig, ax = plt.subplots(1, 1, figsize=(12, 8))
     ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.invert_yaxis()  # Squarify uses top-left origin
+    ax.set_ylim(1, 0)  # Invert y for top-left origin in imshow
     ax.axis('off')
     
     # Draw rectangles and overlay images
     for i, (rx, ry, rw, rh) in enumerate(rect_positions):
-        # Draw border rect
-        rect_patch = patches.Rectangle((rx, ry), rw, rh, linewidth=1, edgecolor='black', facecolor='none')
+        # Draw border rect (note y inverted)
+        rect_patch = patches.Rectangle((rx, 1 - (ry + rh)), rw, rh, linewidth=1, edgecolor='black', facecolor='none')
         ax.add_patch(rect_patch)
         
         # Fetch and overlay image (scale to rect size)
@@ -103,14 +101,13 @@ def generate_treemap(df, title, filename, is_empire=False):
             else:
                 pil_img = Image.new('RGBA', (100, 100), color='gray')
         
-        # Convert PIL to numpy and add to axes
+        # Convert PIL to numpy and add to axes (y inverted)
         img_array = np.array(pil_img)
-        # Scale to plot coords (fig size 12x8, but normalized 0-1)
-        ax.imshow(img_array, extent=[rx, rx + rw, ry, ry + rh], aspect='auto', zorder=1)
+        ax.imshow(img_array, extent=[rx, rx + rw, 1 - (ry + rh), 1 - ry], aspect='auto', zorder=1)
         
         # Add label if space
         if rw > 0.1 or rh > 0.1:  # Threshold for label
-            ax.text(rx + 0.01, ry + rh - 0.01, str(labels[i])[:8], fontsize=8, color='white', va='top', ha='left', zorder=2)
+            ax.text(rx + 0.01, 1 - (ry + 0.01), str(labels[i])[:8], fontsize=8, color='white', va='top', ha='left', zorder=2)
     
     ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
     plt.tight_layout()
