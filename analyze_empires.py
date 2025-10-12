@@ -19,16 +19,12 @@ COMMONWEALTH_COUNTRIES = [
     'United Kingdom', 'UK', 'Great Britain',
     'Canada',
     'Australia',
-    'India',
     'Singapore',
     
     # Other Commonwealth nations
     'New Zealand',
     'South Africa',
     'Malaysia',
-    'Pakistan',
-    'Bangladesh',
-    'Sri Lanka',
     'Nigeria',
     'Kenya',
     'Ghana',
