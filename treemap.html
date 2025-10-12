@@ -311,6 +311,9 @@
         countryToISO["Palestine"] = "ps";
         countryToISO["Eswatini"] = "sz"; // Formerly Swaziland
 
+        // Cache-busting timestamp
+        const cacheBust = Date.now();
+
         // Function to create treemap
         function createTreemap(svgSelector, data, isEmpire = false) {
             const root = d3.hierarchy({children: data})
@@ -345,7 +348,7 @@
                 .attr("xlink:href", d => {
                     if (isEmpire) {
                         const rank = +d.data.Rank;
-                        return `https://raw.githubusercontent.com/ayeeff/marketcap/main/img/emp${rank}.png`;
+                        return `https://raw.githubusercontent.com/ayeeff/marketcap/main/img/emp${rank}.png?v=${cacheBust}`;
                     } else {
                         const country = d.data["Country or region"];
                         let iso = countryToISO[country];
@@ -401,12 +404,19 @@
             leaf.on("mouseover", (event, d) => {
                 const rect = event.currentTarget.querySelector("rect");
                 d3.select(rect).style("stroke-width", 2);
-                const name = isEmpire ? d.data.Empire : d.data["Country or region"];
-                const cap = isEmpire ? d.data["Total MarketCap"] : d.data["Total MarketCap"];
-                tooltip.style("opacity", 1)
-                    .html(`${name}<br/>${cap}<br/>${d.data.perc.toFixed(2)}%`)
-                    .style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY - 28) + "px");
+                if (isEmpire) {
+                    tooltip.style("opacity", 1)
+                        .html(`${d.data.Empire}<br/>${d.data.Description}<br/>${d.data["Total Market Cap"]}<br/>${d.data.perc.toFixed(2)}% of Empire Total`)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                } else {
+                    const name = d.data["Country or region"];
+                    const cap = d.data["Total MarketCap"];
+                    tooltip.style("opacity", 1)
+                        .html(`${name}<br/>${cap}<br/>${d.data.perc.toFixed(2)}%`)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                }
             }).on("mouseout", (event) => {
                 const rect = event.currentTarget.querySelector("rect");
                 d3.select(rect).style("stroke-width", 0.5);
@@ -415,7 +425,7 @@
         }
 
         // Load global data for first map
-        d3.csv("https://raw.githubusercontent.com/ayeeff/marketcap/main/data/countries_marketcap.csv").then(globalData => {
+        d3.csv(`https://raw.githubusercontent.com/ayeeff/marketcap/main/data/countries_marketcap.csv?v=${cacheBust}`).then(globalData => {
             console.log("Global data loaded:", globalData.length, "rows");
             globalData.forEach(d => {
                 d.perc = +d["% of Global Market Cap"];
@@ -429,7 +439,7 @@
             createTreemap("#first-map .container svg", filteredGlobal, false);
 
             // Load empire data for second map
-            d3.csv("https://raw.githubusercontent.com/ayeeff/marketcap/main/data/empire_marketcap.csv").then(empData => {
+            d3.csv(`https://raw.githubusercontent.com/ayeeff/marketcap/main/data/empire_marketcap.csv?v=${cacheBust}`).then(empData => {
                 console.log("Empire data loaded:", empData.length, "rows");
                 empData.forEach(d => {
                     // Parse percentage, removing % if present
