@@ -160,6 +160,14 @@ empire_3_empire_percent = (empire_3_total / grand_total * 100) if grand_total > 
 
 # Create empire dataframe
 empire_data = {
+    'Rank': [
+        '1',
+        '2',
+        '3',
+        '-',
+        '-',
+        '-'
+    ],
     'Empire': [
         'Empire 1.0: Steam & Colonies',
         'Empire 2.0: Oil & Silicon',
