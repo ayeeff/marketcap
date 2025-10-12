@@ -21,7 +21,6 @@ COMMONWEALTH_COUNTRIES = [
     'Australia',
     'India',
     'Singapore',
-    # Hong Kong - EXCLUDED (now part of China)
     
     # Other Commonwealth nations
     'New Zealand',
@@ -122,11 +121,15 @@ print(f"\nSample market cap values (parsed to numeric):")
 for idx, row in df.head(5).iterrows():
     print(f"  {row[country_col]}: {row['MarketCapNumeric']:,.0f} -> {format_market_cap(row['MarketCapNumeric'])}")
 
+# Normalize country names for matching (strip and lower)
+df['CountryNormalized'] = df[country_col].str.strip().str.lower()
+commonwealth_normalized = [c.strip().lower() for c in COMMONWEALTH_COUNTRIES]
+
 # Calculate Empire totals
 print(f"\nSearching for Commonwealth countries in dataset...")
 print(f"Available countries in CSV: {sorted(df[country_col].unique())}\n")
 
-empire_1_countries = df[df[country_col].isin(COMMONWEALTH_COUNTRIES)].copy()
+empire_1_countries = df[df['CountryNormalized'].isin(commonwealth_normalized)].copy()
 empire_1_total = empire_1_countries['MarketCapNumeric'].sum()
 empire_1_count = len(empire_1_countries)
 
@@ -146,11 +149,15 @@ if missing_countries:
     for country in sorted(missing_countries):
         print(f"  - {country}")
 
-empire_2_countries = df[df[country_col] == 'United States'].copy()
+# Empire 2: United States (case insensitive)
+us_mask = df['CountryNormalized'].str.contains('united states', na=False)
+empire_2_countries = df[us_mask].copy()
 empire_2_total = empire_2_countries['MarketCapNumeric'].sum()
 empire_2_count = len(empire_2_countries)
 
-empire_3_countries = df[df[country_col].isin(['China', 'Hong Kong'])].copy()
+# Empire 3: China + Hong Kong (case insensitive)
+china_hk_mask = df['CountryNormalized'].str.contains('china|hong kong', na=False)
+empire_3_countries = df[china_hk_mask].copy()
 empire_3_total = empire_3_countries['MarketCapNumeric'].sum()
 empire_3_count = len(empire_3_countries)
 
@@ -173,63 +180,38 @@ empire_1_empire_percent = (empire_1_total / grand_total * 100) if grand_total > 
 empire_2_empire_percent = (empire_2_total / grand_total * 100) if grand_total > 0 else 0
 empire_3_empire_percent = (empire_3_total / grand_total * 100) if grand_total > 0 else 0
 
-# Create empire dataframe
+# Create empire dataframe (only top 3 empires, matching attached table)
 empire_data = {
-    'Rank': [
-        '1',
-        '2',
-        '3',
-        '-',
-        '-',
-        '-'
-    ],
+    'Rank': [1, 2, 3],
     'Empire': [
         'Empire 1.0: Steam & Colonies',
         'Empire 2.0: Oil & Silicon',
-        'Empire 3.0: Rare Earths, Renewables & Robotics',
-        'TOTAL (All Three Empires)',
-        'Rest of World',
-        'GLOBAL TOTAL'
+        'Empire 3.0: Rare Earths, Renewables & Robotics'
     ],
     'Description': [
-        'British Commonwealth (excl. Hong Kong)',
+        'British Commonwealth',
         'United States',
-        'China + Hong Kong',
-        'Combined Empire Total',
-        'All Other Countries',
-        'All Countries'
+        'China + Hong Kong'
     ],
     'Total Market Cap': [
         format_market_cap(empire_1_total),
         format_market_cap(empire_2_total),
-        format_market_cap(empire_3_total),
-        format_market_cap(grand_total),
-        format_market_cap(global_total - grand_total),
-        format_market_cap(global_total)
+        format_market_cap(empire_3_total)
     ],
     'Countries': [
         empire_1_count,
         empire_2_count,
-        empire_3_count,
-        empire_1_count + empire_2_count + empire_3_count,
-        len(df) - empire_1_count - empire_2_count - empire_3_count,
-        len(df)
+        empire_3_count
     ],
     '% of Global': [
-        round(empire_1_percent, 2),
-        round(empire_2_percent, 2),
-        round(empire_3_percent, 2),
-        round((grand_total / global_total * 100), 2),
-        round(((global_total - grand_total) / global_total * 100), 2),
-        100.0
+        f"{empire_1_percent:.2f}%",
+        f"{empire_2_percent:.2f}%",
+        f"{empire_3_percent:.2f}%"
     ],
     '% of Empire Total': [
-        round(empire_1_empire_percent, 2),
-        round(empire_2_empire_percent, 2),
-        round(empire_3_empire_percent, 2),
-        100.0,
-        '-',
-        '-'
+        f"{empire_1_empire_percent:.2f}%",
+        f"{empire_2_empire_percent:.2f}%",
+        f"{empire_3_empire_percent:.2f}%"
     ]
 }
 
