@@ -1,0 +1,176 @@
+<style>
+  .map-container-global {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f0f0f0;
+    height: 40vh; /* Adjust as needed */
+  }
+  .container-global {
+    width: 80%;
+    height: 100%;
+    max-width: 80%;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: white;
+  }
+  .label {
+    fill: black;
+    font-weight: bold;
+    text-anchor: start;
+    dominant-baseline: central;
+  }
+  #tooltip-global {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    font-size: 12px;
+    z-index: 1000;
+  }
+</style>
+
+<div class="map-container-global">
+  <div class="container-global">
+    <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+  (function() {  // IIFE to scope to this widget
+    const countryToISO = {
+      // Full object from original (abbreviated here for brevity; copy the complete one from treemap.html source)
+      "United States": "us", "China": "cn", "Japan": "jp", "India": "in", "United Kingdom": "gb",
+      "Canada": "ca", "France": "fr", "Taiwan": "tw", "Germany": "de", "Switzerland": "ch",
+      "Saudi Arabia": "sa", "South Korea": "kr", "Australia": "au", "Netherlands": "nl",
+      "Sweden": "se", "Spain": "es", "Italy": "it", "United Arab Emirates": "ae", "Ireland": "ie",
+      "Hong Kong": "hk", "Brazil": "br", "Indonesia": "id", "Singapore": "sg", "Denmark": "dk"
+      // Add the full list from the original HTML if more countries appear in top 15
+    };
+    // Aliases
+    countryToISO["South Korea"] = "kr";
+    countryToISO["Russia"] = "ru";
+    countryToISO["Vietnam"] = "vn";
+    countryToISO["Ivory Coast"] = "ci";
+    countryToISO["Palestine"] = "ps";
+    countryToISO["Eswatini"] = "sz";
+
+    const cacheBust = Date.now();
+
+    // Adapted createTreemap for global only
+    function createTreemapGlobal(svgSelector, data) {
+      const root = d3.hierarchy({children: data})
+        .sum(d => d.perc)
+        .sort((a, b) => b.value - a.value);
+
+      const viewWidth = 1200;
+      const viewHeight = 800;
+
+      const svg = d3.select(svgSelector);
+
+      const treemap = d3.treemap()
+        .size([viewWidth, viewHeight])
+        .padding(1)
+        .round(true);
+
+      treemap(root);
+
+      const leaf = svg.selectAll("g")
+        .data(root.leaves())
+        .join("g")
+        .attr("transform", d => `translate(${Math.round(d.x0)}, ${Math.round(d.y0)})`);
+
+      leaf.append("rect")
+        .attr("width", d => Math.max(1, Math.round(d.x1 - d.x0)))
+        .attr("height", d => Math.max(1, Math.round(d.y1 - d.y0)))
+        .attr("fill", "none")
+        .style("stroke", "#000")
+        .style("stroke-width", 0.5);
+
+      leaf.append("image")
+        .attr("xlink:href", d => {
+          const country = d.data["Country or region"];
+          let iso = countryToISO[country];
+          if (!iso) {
+            if (country === "South Korea") iso = "kr";
+            else if (country === "Russia") iso = "ru";
+            else if (country === "Vietnam") iso = "vn";
+            else if (country === "Ivory Coast") iso = "ci";
+            else if (country === "Palestine") iso = "ps";
+            else return null;
+          }
+          return `https://flagcdn.com/w320/${iso}.png?v=${cacheBust}`;
+        })
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", d => Math.max(1, Math.round(d.x1 - d.x0)))
+        .attr("height", d => Math.max(1, Math.round(d.y1 - d.y0)))
+        .attr("preserveAspectRatio", "none");
+
+      // Labels
+      const text = leaf.append("text")
+        .attr("font-size", d => Math.min((d.x1 - d.x0) / 8, (d.y1 - d.y0) / 8, 12))
+        .attr("fill", "black")
+        .classed("label", true);
+
+      text.append("tspan")
+        .attr("x", 2)
+        .attr("y", 12)
+        .text(d => {
+          const name = d.data["Country or region"];
+          const shortName = name.length > 10 ? name.substring(0, 10) + '...' : name;
+          return shortName;
+        });
+
+      // Tooltip for global
+      let tooltip = d3.select("#tooltip-global");
+      if (tooltip.empty()) {
+        tooltip = d3.select("body").append("div")
+          .attr("id", "tooltip-global")
+          .style("position", "absolute")
+          .style("background", "rgba(0, 0, 0, 0.8)")
+          .style("color", "white")
+          .style("padding", "8px")
+          .style("border-radius", "4px")
+          .style("pointer-events", "none")
+          .style("opacity", 0)
+          .style("font-size", "12px")
+          .style("z-index", 1000);
+      }
+
+      leaf.on("mouseover", (event, d) => {
+        const rect = event.currentTarget.querySelector("rect");
+        d3.select(rect).style("stroke-width", 2);
+        const name = d.data["Country or region"];
+        const cap = d.data["Total MarketCap"];
+        tooltip.style("opacity", 1)
+          .html(`${name}<br/>${cap}<br/>${d.data.perc.toFixed(2)}%`)
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 28) + "px");
+      }).on("mouseout", (event) => {
+        const rect = event.currentTarget.querySelector("rect");
+        d3.select(rect).style("stroke-width", 0.5);
+        tooltip.style("opacity", 0);
+      });
+    }
+
+    // Load global data
+    d3.csv(`https://raw.githubusercontent.com/ayeeff/marketcap/main/data/countries_marketcap.csv?v=${cacheBust}`).then(globalData => {
+      globalData.forEach(d => {
+        d.perc = +d["% of Global Market Cap"];
+      });
+      const filteredGlobal = globalData.filter(d => d.perc > 0).sort((a, b) => b.perc - a.perc).slice(0, 15);
+      createTreemapGlobal("#first-map .container-global svg", filteredGlobal);  // Note: Update selector if ID changes
+    }).catch(error => {
+      console.error("Error loading global CSV:", error);
+    });
+  })();
+</script>
