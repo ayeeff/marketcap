@@ -41,7 +41,7 @@ empire_images = {
 response = requests.get(GLOBAL_CSV_URL)
 global_df = pd.read_csv(StringIO(response.text))
 global_df['perc'] = pd.to_numeric(global_df['% of Global Market Cap'], errors='coerce')
-global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(20)  # Reduced to 20 for memory and clarity
+global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(8)  # Top 8 to avoid memory issues
 
 # Fetch and load empire data
 response = requests.get(EMPIRE_CSV_URL)
@@ -66,26 +66,19 @@ def generate_treemap(df, title, filename, is_empire=False):
     values = df['perc'].tolist()
     labels = df['Country or region'].tolist() if not is_empire else df['Empire'].tolist()
     
-    # Plot to get positions
-    fig_temp, ax_temp = plt.subplots(1, 1, figsize=(12, 8))
-    squarify.plot(sizes=values, label=[''] * len(values), color=['white'] * len(values), ax=ax_temp)
-    ax_temp.axis('off')
-    plt.close(fig_temp)
+    # Use squarify to get positions (normalized 0-1)
+    rects = squarify.squarify(values, 0, 0, 1, 1)
     
-    # Extract positions from patches
-    rect_positions = []
-    for patch in ax_temp.patches:
-        bbox = patch.get_bbox().bounds
-        rect_positions.append((bbox[0], bbox[1], bbox[2], bbox[3]))
-    
-    # Create final figure
-    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+    # Create final figure with smaller size
+    fig, ax = plt.subplots(1, 1, figsize=(10, 7))
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.axis('off')
     
     # Draw rectangles and overlay images
-    for i, (rx, ry, rw, rh) in enumerate(rect_positions):
+    for i, rect in enumerate(rects):
+        rx, ry, rw, rh = rect['x'], rect['y'], rect['dx'], rect['dy']
+        
         # Draw border rect
         rect_patch = patches.Rectangle((rx, ry), rw, rh, linewidth=1, edgecolor='black', facecolor='none')
         ax.add_patch(rect_patch)
@@ -109,14 +102,13 @@ def generate_treemap(df, title, filename, is_empire=False):
         ax.imshow(img_array, extent=[rx, rx + rw, ry, ry + rh], aspect='auto', zorder=1)
         
         # Add label if space
-        if rw > 0.08 or rh > 0.08:
-            label_text = str(labels[i])[:10]
+        if rw > 0.1 or rh > 0.1:
+            label_text = str(labels[i])[:8]
             ax.text(rx + 0.01, ry + rh - 0.01, label_text, fontsize=8, color='white', va='top', ha='left', zorder=2, weight='bold')
     
     ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
-    plt.tight_layout()
-    plt.savefig(f'img/{filename}', dpi=150, bbox_inches='tight', facecolor='white')
-    plt.close()
+    plt.savefig(f'img/{filename}', dpi=72, bbox_inches='tight', facecolor='white')
+    plt.close(fig)
     print(f"Generated img/{filename} with overlays")
 
 # Generate maps
