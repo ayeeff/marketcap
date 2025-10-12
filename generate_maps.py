@@ -41,7 +41,7 @@ empire_images = {
 response = requests.get(GLOBAL_CSV_URL)
 global_df = pd.read_csv(StringIO(response.text))
 global_df['perc'] = pd.to_numeric(global_df['% of Global Market Cap'], errors='coerce')
-global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(10)  # Top 10 for clean layout
+global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(20)  # Reduced to 20 for memory and clarity
 
 # Fetch and load empire data
 response = requests.get(EMPIRE_CSV_URL)
@@ -115,4 +115,12 @@ def generate_treemap(df, title, filename, is_empire=False):
     
     ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
     plt.tight_layout()
-    plt.savefig(f'
+    plt.savefig(f'img/{filename}', dpi=150, bbox_inches='tight', facecolor='white')
+    plt.close()
+    print(f"Generated img/{filename} with overlays")
+
+# Generate maps
+generate_treemap(global_df, 'Global Market Cap Treemap (% of Global)', 'map1.png', False)
+generate_treemap(empire_df, 'Empire Market Cap Treemap (% of Empire Total)', 'map2.png', True)
+
+print("Maps with flag overlays
