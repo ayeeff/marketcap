@@ -12,6 +12,7 @@ from PIL import Image
 import numpy as np
 import warnings
 from urllib.parse import quote
+import xml.etree.ElementTree as ET
 
 # Suppress tight layout warning
 warnings.filterwarnings("ignore", message="Tight layout")
@@ -39,6 +40,13 @@ empire_images = {
     2: 'https://raw.githubusercontent.com/ayeeff/marketcap/main/img/emp2.png',
     3: 'https://raw.githubusercontent.com/ayeeff/marketcap/main/img/emp3.png'
 }
+
+# Tooltip texts for empires
+tooltip_texts = [
+    '1,Empire 1.0: Steam & Colonies,British Commonwealth,$12.26 T,21,8.28%,11.65%',
+    '2,Empire 2.0: Oil & Silicon,United States,$68.89 T,1,46.50%,65.42%',
+    '3,"Empire 3.0: Rare Earths, Renewables & Robotics",China + Hong Kong + Taiwan,$24.15 T,3,16.30%,22.93%'
+]
 
 # Fetch and load global data
 response = requests.get(GLOBAL_CSV_URL)
@@ -70,7 +78,7 @@ def get_rect_positions(sizes):
     rects = squarify.squarify(normalized, 0, 0, 1, 1)
     return [(r['x'], r['y'], r['dx'], r['dy']) for r in rects]
 
-# Function to generate treemap PNG with overlays
+# Function to generate treemap PNG/SVG with overlays
 def generate_treemap(df, title, filename, is_empire=False):
     values = df['perc'].tolist()
     labels = df['Country or region'].tolist() if not is_empire else df['Empire'].tolist()
@@ -124,10 +132,33 @@ def generate_treemap(df, title, filename, is_empire=False):
             ax.text(rx + 0.01, ry + rh - 0.01, label_text, fontsize=8, color='white', va='top', ha='left', zorder=2, weight='bold')
     
     ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
-    plt.savefig(f'img/{filename}', dpi=dpi, bbox_inches='tight', facecolor='white')
+    
+    if is_empire:
+        # Save to SVG buffer and add tooltips
+        svg_buffer = BytesIO()
+        plt.savefig(svg_buffer, format='svg', bbox_inches='tight', facecolor='white', dpi=dpi)
+        svg_buffer.seek(0)
+        svg_str = svg_buffer.read().decode('utf-8')
+        
+        root = ET.fromstring(svg_str)
+        ns = {'svg': 'http://www.w3.org/2000/svg'}
+        images = root.findall('.//svg:image', ns)
+        
+        for j, img in enumerate(images[:len(tooltip_texts)]):
+            title_elem = ET.SubElement(img, '{http://www.w3.org/2000/svg}title')
+            title_elem.text = tooltip_texts[j]
+        
+        svg_output = ET.tostring(root, encoding='unicode', method='xml')
+        filename_out = filename.replace('.png', '.svg')
+        with open(f'img/{filename_out}', 'w', encoding='utf-8') as f:
+            f.write(svg_output)
+        print(f"Generated img/{filename_out} with overlays and tooltips")
+    else:
+        plt.savefig(f'img/{filename}', dpi=dpi, bbox_inches='tight', facecolor='white')
+        print(f"Generated img/{filename} with overlays")
+    
     plt.close(fig)
     gc.collect()
-    print(f"Generated img/{filename} with overlays")
 
 # Generate maps
 generate_treemap(global_df, 'Global Market Cap Treemap (% of Global)', 'map1.png', False)
