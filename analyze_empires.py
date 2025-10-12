@@ -150,13 +150,13 @@ empire_2_countries = df[us_mask].copy()
 empire_2_total = empire_2_countries['MarketCapNumeric'].sum()
 empire_2_count = len(empire_2_countries)
 
-# Empire 3: China + Hong Kong (case insensitive)
-china_hk_mask = df['CountryNormalized'].str.contains('china|hong kong', na=False)
-empire_3_countries = df[china_hk_mask].copy()
+# Empire 3: China + Hong Kong + Taiwan (case insensitive)
+china_hk_tw_mask = df['CountryNormalized'].str.contains('china|hong kong|taiwan', na=False)
+empire_3_countries = df[china_hk_tw_mask].copy()
 empire_3_total = empire_3_countries['MarketCapNumeric'].sum()
 empire_3_count = len(empire_3_countries)
 
-print(f"\nEmpire 3.0 (China + Hong Kong):")
+print(f"\nEmpire 3.0 (China + Hong Kong + Taiwan):")
 for country in empire_3_countries[country_col].unique():
     mc = empire_3_countries[empire_3_countries[country_col] == country]['MarketCapNumeric'].sum()
     print(f"  - {country}: {format_market_cap(mc)}")
@@ -186,7 +186,7 @@ empire_data = {
     'Description': [
         'British Commonwealth',
         'United States',
-        'China + Hong Kong'
+        'China + Hong Kong + Taiwan'
     ],
     'Total Market Cap': [
         format_market_cap(empire_1_total),
