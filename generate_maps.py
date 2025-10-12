@@ -1,4 +1,5 @@
 import pandas as pd
+import squarify
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import requests
@@ -40,7 +41,7 @@ empire_images = {
 response = requests.get(GLOBAL_CSV_URL)
 global_df = pd.read_csv(StringIO(response.text))
 global_df['perc'] = pd.to_numeric(global_df['% of Global Market Cap'], errors='coerce')
-global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(20)  # Reduced to 20 for memory and clarity
+global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(15)  # Top 15 for layout
 
 # Fetch and load empire data
 response = requests.get(EMPIRE_CSV_URL)
@@ -54,42 +55,22 @@ def fetch_image(url):
         resp = requests.get(url, timeout=5)
         resp.raise_for_status()
         return Image.open(BytesIO(resp.content)).convert('RGBA')
-    except:
-        # Fallback: create a colored square based on index
+    except Exception as e:
+        print(f"Failed to fetch {url}: {e}")
+        # Fallback: create a colored square
         colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange']
         return Image.new('RGBA', (100, 100), color=colors[hash(url) % len(colors)])
-
-# Simple treemap layout (slice-and-dice)
-def simple_treemap_layout(values, width=1, height=1):
-    total = sum(values)
-    rects = []
-    x, y = 0, 0
-    for val in values:
-        area = (val / total) * width * height
-        if width > height:
-            # Horizontal slice
-            h = area / width
-            rects.append({'x': x, 'y': y, 'dx': width, 'dy': h})
-            y += h
-            height -= h
-        else:
-            # Vertical slice
-            w = area / height
-            rects.append({'x': x, 'y': y, 'dx': w, 'dy': height})
-            x += w
-            width -= w
-    return rects
 
 # Function to generate treemap PNG with overlays
 def generate_treemap(df, title, filename, is_empire=False):
     values = df['perc'].tolist()
     labels = df['Country or region'].tolist() if not is_empire else df['Empire'].tolist()
     
-    # Get rect positions
-    rects = simple_treemap_layout(values)
+    # Use squarify to get positions (normalized 0-1)
+    rects = squarify.squarify(values, 0, 0, 1, 1)
     
     # Create final figure
-    fig, ax = plt.subplots(1, 1, figsize=(10, 7))  # Smaller size for memory
+    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.axis('off')
@@ -102,14 +83,11 @@ def generate_treemap(df, title, filename, is_empire=False):
         rect_patch = patches.Rectangle((rx, ry), rw, rh, linewidth=1, edgecolor='black', facecolor='none')
         ax.add_patch(rect_patch)
         
-        # Fetch and overlay image
+        # Fetch image
         if is_empire:
             rank = df.iloc[i]['Rank']
             img_url = empire_images.get(rank, '')
-            if img_url:
-                pil_img = fetch_image(img_url)
-            else:
-                pil_img = Image.new('RGBA', (100, 100), color='gray')
+            pil_img = fetch_image(img_url)
         else:
             country = labels[i]
             iso = country_to_iso.get(country, 'xx')
@@ -119,17 +97,18 @@ def generate_treemap(df, title, filename, is_empire=False):
             else:
                 pil_img = Image.new('RGBA', (100, 100), color='gray')
         
-        # No resize; let imshow scale
+        # Use imshow to scale and stretch image to rect
         img_array = np.array(pil_img)
         ax.imshow(img_array, extent=[rx, rx + rw, ry, ry + rh], aspect='auto', zorder=1)
         
         # Add label if space
-        if rw > 0.05 or rh > 0.05:
-            label_text = str(labels[i])[:6]
-            ax.text(rx + 0.005, ry + rh - 0.005, label_text, fontsize=6, color='white', va='top', ha='left', zorder=2, weight='bold')
+        if rw > 0.08 or rh > 0.08:
+            label_text = str(labels[i])[:10]
+            ax.text(rx + 0.01, ry + rh - 0.01, label_text, fontsize=8, color='white', va='top', ha='left', zorder=2, weight='bold')
     
-    ax.set_title(title, fontsize=14, fontweight='bold', pad=10)
-    plt.savefig(f'img/{filename}', dpi=100, bbox_inches='tight', facecolor='white')
+    ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
+    plt.tight_layout()
+    plt.savefig(f'img/{filename}', dpi=150, bbox_inches='tight', facecolor='white')
     plt.close()
     print(f"Generated img/{filename} with overlays")
 
