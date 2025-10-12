@@ -206,6 +206,27 @@ try:
     
     # Cleanup
     os.remove(local_csv)
+    
+    # Generate Empire Market Cap Analysis
+    print("\n" + "="*80)
+    print("GENERATING EMPIRE MARKET CAP ANALYSIS")
+    print("="*80)
+    try:
+        import subprocess
+        # Save CSV temporarily for empire analysis
+        df.to_csv(local_csv, index=False)
+        result = subprocess.run(['python', 'analyze_empires.py'], 
+                              capture_output=True, text=True, check=True)
+        print(result.stdout)
+        # Clean up the temp CSV
+        if os.path.exists(local_csv):
+            os.remove(local_csv)
+        print("✓ Empire analysis completed!")
+    except subprocess.CalledProcessError as e:
+        print(f"⚠️ Empire analysis failed: {e.stderr}")
+    except FileNotFoundError:
+        print("⚠️ analyze_empires.py not found, skipping empire analysis")
+    
     print("\n✅ Script completed successfully!")
 
 except Exception as e:
