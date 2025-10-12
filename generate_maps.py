@@ -41,53 +41,8 @@ empire_images = {
 response = requests.get(GLOBAL_CSV_URL)
 global_df = pd.read_csv(StringIO(response.text))
 global_df['perc'] = pd.to_numeric(global_df['% of Global Market Cap'], errors='coerce')
-global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(10)  # Top 10 to avoid memory issues
+global_df = global_df[global_df['perc'] > 0].sort_values('perc', ascending=False).head(20)  # Reduced to 20 for memory and clarity
 
 # Fetch and load empire data
 response = requests.get(EMPIRE_CSV_URL)
-empire_df = pd.read_csv(StringIO(response.text))
-empire_df['perc'] = pd.to_numeric(empire_df['% of Empire Total'].str.replace('%', ''), errors='coerce')
-empire_df = empire_df[empire_df['Rank'] <= 3]
-
-# Function to fetch image as PIL
-def fetch_image(url):
-    try:
-        resp = requests.get(url, timeout=5)
-        resp.raise_for_status()
-        return Image.open(BytesIO(resp.content)).convert('RGBA')
-    except Exception as e:
-        print(f"Failed to fetch {url}: {e}")
-        # Fallback: create a colored square
-        colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange']
-        return Image.new('RGBA', (100, 100), color=colors[hash(url) % len(colors)])
-
-# Function to generate treemap PNG with overlays
-def generate_treemap(df, title, filename, is_empire=False):
-    values = df['perc'].tolist()
-    labels = df['Country or region'].tolist() if not is_empire else df['Empire'].tolist()
-    
-    # Use squarify to get positions (normalized 0-1)
-    rects = squarify.squarify(values, 0, 0, 1, 1)
-    
-    # Create final figure with smaller size
-    fig, ax = plt.subplots(1, 1, figsize=(8, 6))  # Smaller for memory
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.axis('off')
-    
-    # Draw rectangles and overlay images
-    for i, rect in enumerate(rects):
-        rx, ry, rw, rh = rect['x'], rect['y'], rect['dx'], rect['dy']
-        
-        # Draw border rect
-        rect_patch = patches.Rectangle((rx, ry), rw, rh, linewidth=1, edgecolor='black', facecolor='none')
-        ax.add_patch(rect_patch)
-        
-        # Fetch image
-        if is_empire:
-            rank = df.iloc[i]['Rank']
-            img_url = empire_images.get(rank, '')
-            pil_img = fetch_image(img_url)
-        else:
-            country = labels[i]
-            iso = country_to_iso.get(country
+empire_df = pd.read_csv(String
