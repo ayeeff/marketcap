@@ -227,6 +227,25 @@ try:
     except FileNotFoundError:
         print("⚠️ analyze_empires.py not found, skipping empire analysis")
     
+    # Scrape Top Companies by Country
+    print("\n" + "="*80)
+    print("SCRAPING TOP COMPANIES BY COUNTRY")
+    print("="*80)
+    try:
+        # Save CSV temporarily for country companies scraper
+        df.to_csv(local_csv, index=False)
+        result = subprocess.run(['python', 'country_companies.py'], 
+                              capture_output=True, text=True, check=True)
+        print(result.stdout)
+        # Clean up the temp CSV
+        if os.path.exists(local_csv):
+            os.remove(local_csv)
+        print("✓ Country companies scraping completed!")
+    except subprocess.CalledProcessError as e:
+        print(f"⚠️ Country companies scraping failed: {e.stderr}")
+    except FileNotFoundError:
+        print("⚠️ country_companies.py not found, skipping country scraping")
+    
     print("\n✅ Script completed successfully!")
 
 except Exception as e:
