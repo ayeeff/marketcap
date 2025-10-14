@@ -1,85 +1,92 @@
-import wbdata
+import wbgapi as wb
 import pandas as pd
 from datetime import datetime
+import os
 
-# Commonwealth countries
-COMMONWEALTH_COUNTRIES = [
-    # Major economies
-    'United Kingdom', 'Canada', 'Australia', 'Singapore',
-    
-    # Other Commonwealth nations
-    'New Zealand', 'South Africa', 'Malaysia', 'Nigeria',
-    'Kenya', 'Ghana', 'Jamaica', 'Uganda', 'Tanzania',
-    'Zambia', 'Malawi', 'Cyprus', 'Malta', 'Mauritius',
-    'Botswana', 'Namibia', 'Zimbabwe',
-    
-    # Caribbean
-    'Barbados', 'Trinidad and Tobago',
-    
-    # Pacific
-    'Fiji', 'Papua New Guinea'
-]
+# Commonwealth countries (ISO3 codes for API)
+COMMONWEALTH_ISO3 = {
+    'GBR': 'United Kingdom',
+    'CAN': 'Canada', 
+    'AUS': 'Australia',
+    'SGP': 'Singapore',
+    'NZL': 'New Zealand',
+    'ZAF': 'South Africa',
+    'MYS': 'Malaysia',
+    'NGA': 'Nigeria',
+    'KEN': 'Kenya',
+    'GHA': 'Ghana',
+    'JAM': 'Jamaica',
+    'UGA': 'Uganda',
+    'TZA': 'Tanzania',
+    'ZMB': 'Zambia',
+    'MWI': 'Malawi',
+    'CYP': 'Cyprus',
+    'MLT': 'Malta',
+    'MUS': 'Mauritius',
+    'BWA': 'Botswana',
+    'NAM': 'Namibia',
+    'ZWE': 'Zimbabwe',
+    'BRB': 'Barbados',
+    'TTO': 'Trinidad and Tobago',
+    'FJI': 'Fiji',
+    'PNG': 'Papua New Guinea'
+}
 
-# Empire definitions
+# Empire definitions (using ISO3 codes)
 EMPIRES = {
-    'Empire 1.0': COMMONWEALTH_COUNTRIES,
-    'Empire 2.0': ['United States'],
-    'Empire 3.0': ['China', 'Hong Kong SAR, China', 'Taiwan, China']
+    'Empire 1.0': list(COMMONWEALTH_ISO3.keys()),
+    'Empire 2.0': ['USA'],
+    'Empire 3.0': ['CHN', 'HKG', 'TWN']  # China, Hong Kong, Taiwan
 }
 
 # World Bank indicators
 GDP_PPP_INDICATOR = 'NY.GDP.MKTP.PP.CD'  # GDP, PPP (current international $)
-RD_INDICATOR = 'GB.XPD.RSDV.GD.ZS'  # R&D expenditure (% of GDP)
-GDP_CURRENT_INDICATOR = 'NY.GDP.MKTP.CD'  # GDP (current US$) for R&D calculation
+RD_PCT_INDICATOR = 'GB.XPD.RSDV.GD.ZS'    # R&D expenditure (% of GDP)
+GDP_CURRENT_INDICATOR = 'NY.GDP.MKTP.CD'  # GDP (current US$)
 
-def get_empire_data(indicator, year):
-    """Fetch data for all countries for a specific indicator and year."""
+def fetch_indicator_data(indicator, countries, year):
+    """Fetch data for specific countries and indicator."""
     try:
-        # Get data for the specific year
-        data = wbdata.get_dataframe({indicator: 'value'}, convert_date=False)
-        
-        # Filter for the year we want
-        data = data[data.index.get_level_values('date') == str(year)]
-        
+        # Get data for all specified countries
+        data = wb.data.DataFrame(indicator, countries, time=year, skipBlanks=True, numericTimeKeys=True)
         return data
     except Exception as e:
-        print(f"Error fetching data for {indicator}: {e}")
+        print(f"Error fetching {indicator}: {e}")
         return None
 
-def calculate_empire_totals(data, year, data_type):
-    """Calculate totals and percentages for each empire."""
+def calculate_empire_totals(year, data_type, indicator):
+    """Calculate empire totals for a given indicator."""
+    print(f"\nProcessing {data_type}...")
+    
     results = []
-    
-    # Get country data
-    country_values = {}
-    for country in data.index.get_level_values('country').unique():
-        try:
-            val = data.loc[(country, str(year)), 'value']
-            if pd.notna(val):
-                country_values[country] = val
-        except:
-            continue
-    
-    # Calculate empire totals
     empire_totals = {}
-    for empire, countries in EMPIRES.items():
-        total = 0
-        for country in countries:
-            # Try exact match first
-            if country in country_values:
-                total += country_values[country]
-            # Try partial match for variations
+    
+    # Fetch data for each empire
+    for empire_name, countries in EMPIRES.items():
+        try:
+            data = fetch_indicator_data(indicator, countries, year)
+            
+            if data is not None and not data.empty:
+                # Sum up all countries in the empire
+                if year in data.columns:
+                    total = data[year].sum()
+                else:
+                    # Try year as string
+                    total = data[str(year)].sum()
+                    
+                empire_totals[empire_name] = total
+                print(f"  {empire_name}: ${total:,.0f}")
             else:
-                for c in country_values.keys():
-                    if country.lower() in c.lower() or c.lower() in country.lower():
-                        total += country_values[c]
-                        break
-        empire_totals[empire] = total
+                empire_totals[empire_name] = 0
+                print(f"  {empire_name}: No data available")
+                
+        except Exception as e:
+            print(f"  {empire_name}: Error - {e}")
+            empire_totals[empire_name] = 0
     
-    # Calculate global total
-    global_total = sum(country_values.values())
+    # Calculate global total and percentages
+    global_total = sum(empire_totals.values())
     
-    # Create results
     for empire, total in empire_totals.items():
         percentage = (total / global_total * 100) if global_total > 0 else 0
         results.append({
@@ -88,53 +95,101 @@ def calculate_empire_totals(data, year, data_type):
             'percentage': percentage
         })
     
-    # Save to CSV in data folder
-    import os
+    # Save to CSV
     os.makedirs('data', exist_ok=True)
-    
     df = pd.DataFrame(results)
     filename = f'data/empire_{data_type}_{year}.csv'
     df.to_csv(filename, index=False)
-    print(f"Saved {filename}")
-    print(df)
-    print()
+    print(f"\n✓ Saved {filename}")
+    print(df.to_string(index=False))
+    
+    return df
+
+def calculate_rd_expenditure(year):
+    """Calculate R&D expenditure by combining R&D % and GDP."""
+    print(f"\nProcessing R&D expenditure...")
+    
+    results = []
+    empire_totals = {}
+    
+    for empire_name, countries in EMPIRES.items():
+        try:
+            # Fetch both R&D percentage and GDP
+            rd_pct_data = fetch_indicator_data(RD_PCT_INDICATOR, countries, year)
+            gdp_data = fetch_indicator_data(GDP_CURRENT_INDICATOR, countries, year)
+            
+            if rd_pct_data is not None and gdp_data is not None:
+                # Calculate absolute R&D for each country
+                rd_absolute = 0
+                
+                for country in countries:
+                    try:
+                        year_col = year if year in rd_pct_data.columns else str(year)
+                        
+                        if country in rd_pct_data.index and country in gdp_data.index:
+                            rd_pct = rd_pct_data.loc[country, year_col]
+                            gdp = gdp_data.loc[country, year_col]
+                            
+                            if pd.notna(rd_pct) and pd.notna(gdp):
+                                rd_absolute += (rd_pct / 100) * gdp
+                    except:
+                        continue
+                
+                empire_totals[empire_name] = rd_absolute
+                print(f"  {empire_name}: ${rd_absolute:,.0f}")
+            else:
+                empire_totals[empire_name] = 0
+                print(f"  {empire_name}: No data available")
+                
+        except Exception as e:
+            print(f"  {empire_name}: Error - {e}")
+            empire_totals[empire_name] = 0
+    
+    # Calculate global total and percentages
+    global_total = sum(empire_totals.values())
+    
+    for empire, total in empire_totals.items():
+        percentage = (total / global_total * 100) if global_total > 0 else 0
+        results.append({
+            'empire': empire,
+            'total': total,
+            'percentage': percentage
+        })
+    
+    # Save to CSV
+    os.makedirs('data', exist_ok=True)
+    df = pd.DataFrame(results)
+    filename = f'data/empire_rd_expenditure_{year}.csv'
+    df.to_csv(filename, index=False)
+    print(f"\n✓ Saved {filename}")
+    print(df.to_string(index=False))
+    
+    return df
 
 def main():
     """Main function to run annually."""
-    current_year = datetime.now().year - 1  # Use previous year for complete data
+    # Use previous year for most complete data
+    current_year = datetime.now().year - 1
     
-    print(f"Fetching data for year {current_year}...\n")
+    print("=" * 60)
+    print(f"Empire Economic Data Collection - Year {current_year}")
+    print("=" * 60)
     
-    # Fetch and process GDP PPP data
-    print("Processing GDP PPP data...")
-    gdp_data = get_empire_data(GDP_PPP_INDICATOR, current_year)
-    if gdp_data is not None:
-        calculate_empire_totals(gdp_data, current_year, 'gdp_ppp')
-    
-    # Fetch and process R&D expenditure data
-    print("Processing R&D expenditure data...")
-    
-    # R&D is stored as % of GDP, so we need to calculate absolute values
-    rd_pct_data = get_empire_data(RD_INDICATOR, current_year)
-    gdp_current_data = get_empire_data(GDP_CURRENT_INDICATOR, current_year)
-    
-    if rd_pct_data is not None and gdp_current_data is not None:
-        # Calculate absolute R&D expenditure
-        rd_absolute = pd.DataFrame(index=rd_pct_data.index)
+    try:
+        # Fetch and process GDP PPP data
+        calculate_empire_totals(current_year, 'gdp_ppp', GDP_PPP_INDICATOR)
         
-        for idx in rd_pct_data.index:
-            country, year = idx
-            try:
-                rd_pct = rd_pct_data.loc[idx, 'value']
-                gdp = gdp_current_data.loc[idx, 'value']
-                if pd.notna(rd_pct) and pd.notna(gdp):
-                    rd_absolute.loc[idx, 'value'] = (rd_pct / 100) * gdp
-            except:
-                continue
+        # Fetch and process R&D expenditure data
+        calculate_rd_expenditure(current_year)
         
-        calculate_empire_totals(rd_absolute, current_year, 'rd_expenditure')
-    
-    print("Data collection complete!")
+        print("\n" + "=" * 60)
+        print("✓ Data collection complete!")
+        print("=" * 60)
+        
+    except Exception as e:
+        print(f"\n✗ Error in main execution: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()
