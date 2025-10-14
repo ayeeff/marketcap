@@ -88,9 +88,12 @@ def calculate_empire_totals(data, year, data_type):
             'percentage': percentage
         })
     
-    # Save to CSV
+    # Save to CSV in data folder
+    import os
+    os.makedirs('data', exist_ok=True)
+    
     df = pd.DataFrame(results)
-    filename = f'empire_{data_type}_{year}.csv'
+    filename = f'data/empire_{data_type}_{year}.csv'
     df.to_csv(filename, index=False)
     print(f"Saved {filename}")
     print(df)
