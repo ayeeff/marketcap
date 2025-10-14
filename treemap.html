@@ -361,7 +361,12 @@
             leaf.append("image")
                 .attr("xlink:href", d => {
                     if (isEmpire) {
-                        const rank = d.data['empire#'] || d.data.Rank;
+                        // Parse rank from 'empire#' or 'Rank' (e.g., '1.0' -> 1)
+                        let rank = d.data['empire#'] || d.data.Rank;
+                        if (rank) {
+                            rank = rank.toString().replace('.0', ''); // Clean '1.0' to '1'
+                            rank = parseInt(rank, 10);
+                        }
                         return `https://raw.githubusercontent.com/ayeeff/marketcap/main/img/emp${rank || 1}.png?v=${cacheBust}`;
                     } else {
                         const country = d.data["Country or region"];
@@ -459,6 +464,13 @@
                     // Parse percentage, removing % if present
                     let percStr = d["% of Empire Total"].toString().replace('%', '').trim();
                     d.perc = +percStr;
+                    const num = d.Rank;
+                    const desc = empireDescriptions[num];
+                    if (desc) {
+                        d.Empire = desc.empire;
+                        d.Description = desc.desc;
+                        d.Total = `${d['Total Market Cap']}B`;
+                    }
                     console.log(`Empire ${d.Rank}: ${d["% of Empire Total"]} -> ${d.perc}`);
                 });
 
@@ -477,7 +489,7 @@
                 console.log("GDP data loaded:", gdpData.length, "rows");
                 gdpData.forEach(d => {
                     d.perc = +d['%'];
-                    const num = d['empire#'];
+                    const num = d['empire#'].replace('.0', '');
                     const desc = empireDescriptions[num];
                     if (desc) {
                         d.Empire = desc.empire;
@@ -498,7 +510,7 @@
                 console.log("R&D data loaded:", rdData.length, "rows");
                 rdData.forEach(d => {
                     d.perc = +d['%'];
-                    const num = d['empire#'];
+                    const num = d['empire#'].replace('.0', '');
                     const desc = empireDescriptions[num];
                     if (desc) {
                         d.Empire = desc.empire;
