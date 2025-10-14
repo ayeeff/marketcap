@@ -2,8 +2,8 @@ name: Empire Economic Data Scrape from Wikipedia
 
 on:
   schedule:
-    # Run on January 15th at 00:00 UTC every year
-    - cron: '0 0 15 1 *'
+    # Run on the 15th of every month at 00:00 UTC
+    - cron: '0 0 15 * *'
   
   # Allow manual trigger
   workflow_dispatch:
