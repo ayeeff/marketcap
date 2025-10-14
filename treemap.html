@@ -37,6 +37,9 @@
             text-anchor: start;
             dominant-baseline: central;
         }
+        .treemap-g {
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -323,9 +326,9 @@
 
         // Empire descriptions (hardcoded for consistency)
         const empireDescriptions = {
-            '1.0': { empire: 'Empire 1.0: Steam & Colonies', desc: 'British Commonwealth', totalLabel: 'Total Market Cap' },
-            '2.0': { empire: 'Empire 2.0: Oil & Silicon', desc: 'United States', totalLabel: 'Total Market Cap' },
-            '3.0': { empire: 'Empire 3.0: Rare Earths, Renewables & Robotics', desc: 'China + Hong Kong + Taiwan', totalLabel: 'Total Market Cap' }
+            '1': { empire: 'Empire 1.0: Steam & Colonies', desc: 'British Commonwealth', totalLabel: 'Total Market Cap' },
+            '2': { empire: 'Empire 2.0: Oil & Silicon', desc: 'United States', totalLabel: 'Total Market Cap' },
+            '3': { empire: 'Empire 3.0: Rare Earths, Renewables & Robotics', desc: 'China + Hong Kong + Taiwan', totalLabel: 'Total Market Cap' }
         };
 
         // Function to create treemap
@@ -403,7 +406,9 @@
                     return shortName;
                 });
 
-            // Tooltip (shared, but per map)
+            leaf.classed("treemap-g", true); // For cursor
+
+            // Tooltip (separate for global and empire to avoid conflicts)
             const tooltipId = isEmpire ? 'tooltip-emp' : 'tooltip-global';
             let tooltip = d3.select(`#${tooltipId}`);
             if (tooltip.empty()) {
@@ -464,12 +469,14 @@
                     // Parse percentage, removing % if present
                     let percStr = d["% of Empire Total"].toString().replace('%', '').trim();
                     d.perc = +percStr;
-                    const num = d.Rank;
+                    const num = d.Rank.toString();
                     const desc = empireDescriptions[num];
                     if (desc) {
                         d.Empire = desc.empire;
                         d.Description = desc.desc;
-                        d.Total = `${d['Total Market Cap']}B`;
+                        // Clean Total Market Cap (e.g., "$68.86 T" -> "68.86 T")
+                        let totalStr = d['Total Market Cap'].toString().replace('$', '').trim();
+                        d.Total = totalStr;
                     }
                     console.log(`Empire ${d.Rank}: ${d["% of Empire Total"]} -> ${d.perc}`);
                 });
@@ -494,7 +501,9 @@
                     if (desc) {
                         d.Empire = desc.empire;
                         d.Description = desc.desc;
-                        d.Total = `${d.total}B PPP`;
+                        // Format total as trillions (assuming billions in CSV)
+                        const trillions = (d.total / 1000).toFixed(1);
+                        d.Total = `${trillions}T PPP`;
                     }
                 });
 
@@ -515,7 +524,8 @@
                     if (desc) {
                         d.Empire = desc.empire;
                         d.Description = desc.desc;
-                        d.Total = `${d.total}B USD`;
+                        // Format total as billions (keep as is, or trillions if large)
+                        d.Total = `${d.total.toFixed(1)}B USD`;
                     }
                 });
 
