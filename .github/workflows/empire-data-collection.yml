@@ -26,9 +26,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install wbdata pandas
         
-    - name: Run data collection script
-      run: |
-        python empire_data_scraper.py
+    - name: Run empire data collection script
+      run: python empire_data_scraper.py
         
     - name: Get current year
       id: year
