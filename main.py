@@ -9,6 +9,8 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from github import Github, Auth
 import time
+import shutil
+from datetime import datetime, timedelta
 
 # Configuration
 URL = "https://www.marketcapwatch.com/all-countries/"
@@ -45,6 +47,46 @@ chrome_options.add_experimental_option('useAutomationExtension', False)
 print("Setting up ChromeDriver...")
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
+
+# Archive previous day's data before scraping
+if GITHUB_TOKEN:
+    yesterday_str = (datetime.utcnow() - timedelta(days=1)).strftime('%d-%B-%Y')
+    archive_dir = f"data/{yesterday_str}"
+    os.makedirs(archive_dir, exist_ok=True)
+    archived_files = []
+    if os.path.exists("data"):
+        for filename in os.listdir("data"):
+            src_path = os.path.join("data", filename)
+            if os.path.isfile(src_path):
+                dst_path = os.path.join(archive_dir, filename)
+                shutil.copy2(src_path, dst_path)
+                archived_files.append(filename)
+    if archived_files:
+        print(f"Archiving {len(archived_files)} files for {yesterday_str}...")
+        try:
+            auth = Auth.Token(GITHUB_TOKEN)
+            g = Github(auth=auth)
+            repo = g.get_repo(REPO_NAME)
+            timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
+            for filename in archived_files:
+                with open(os.path.join(archive_dir, filename), "r", encoding="utf-8") as f:
+                    content = f.read()
+                github_path = f"data/{yesterday_str}/{filename}"
+                commit_message = f"Archive {filename} to {yesterday_str} - {timestamp}"
+                try:
+                    file_obj = repo.get_contents(github_path)
+                    repo.update_file(github_path, commit_message, content, file_obj.sha)
+                    print(f"  ✓ Archived {github_path}")
+                except Exception as e:
+                    if "not found" in str(e).lower() or "404" in str(e):
+                        repo.create_file(github_path, commit_message, content)
+                        print(f"  ✓ Created archive {github_path}")
+                    else:
+                        print(f"  ⚠️ Error archiving {github_path}: {e}")
+        except Exception as e:
+            print(f"  ❌ Error in archiving: {e}")
+    else:
+        print(f"No files to archive for {yesterday_str}")
 
 try:
     print(f"Loading page: {URL}")
