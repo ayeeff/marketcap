@@ -525,7 +525,7 @@
                         d.Empire = desc.empire;
                         d.Description = desc.desc;
                         // Format total as billions (keep as is, or trillions if large)
-                        d.Total = `${d.total.toFixed(1)}B USD`;
+                        d.Total = `${(+d.total).toFixed(1)}B USD`;
                     }
                 });
 
