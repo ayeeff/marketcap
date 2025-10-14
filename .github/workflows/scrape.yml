@@ -5,8 +5,8 @@ on:
     # Run every day at 9 AM UTC (adjust timezone as needed)
     - cron: '0 9 * * *'
   workflow_dispatch:  # Allows manual trigger from Actions tab
-  push:
-    branches: [ main ]  # Run on push to test
+ # push:
+  #  branches: [ main ]  # Run on push to test
 
 # CRITICAL: Grant write permissions to GITHUB_TOKEN
 permissions:
