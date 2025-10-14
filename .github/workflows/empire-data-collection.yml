@@ -8,6 +8,11 @@ on:
   # Allow manual trigger
   workflow_dispatch:
 
+# Optional: Add concurrency to avoid overlaps (though rare for annual schedule)
+concurrency:
+  group: empire-scrape-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   scrape-data:
     runs-on: ubuntu-latest
@@ -24,10 +29,25 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pandas lxml fuzzywuzzy[levenshtein]
+        pip install pandas lxml fuzzywuzzy[levenshtein] requests
+        
+    - name: List Python files for debug
+      run: |
+        echo "Available Python files:"
+        ls -la *.py
+        echo "Data dir exists? $(ls -la data/ || echo 'No data dir')"
         
     - name: Run empire data scrape script
-      run: python scrape_empire_data.py
+      run: |
+        # Use the correct script name here - adjust if needed
+        if [ -f "scrape_empire_data.py" ]; then
+          python scrape_empire_data.py
+        elif [ -f "empire_data_scraper.py" ]; then
+          python empire_data_scraper.py
+        else
+          echo "❌ No matching script found! Available: $(ls *.py)"
+          exit 1
+        fi
         
     - name: Get current year
       id: year
@@ -44,6 +64,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Upload CSV artifacts
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: empire-wiki-data-${{ steps.year.outputs.year }}
