@@ -21,12 +21,12 @@ Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
 20,Brazil,$966.35 B,346,0.65
 21,Hong Kong,$951.9 B,1242,0.64
 22,Indonesia,$910.55 B,923,0.61
-23,Singapore,$862.92 B,616,0.58
+23,Singapore,$862.49 B,616,0.58
 24,Denmark,$660.64 B,165,0.44
-25,Thailand,$615.74 B,933,0.41
+25,Thailand,$615.73 B,933,0.41
 26,Israel,$588.83 B,584,0.4
-27,Russia,$560.82 B,203,0.38
-28,Mexico,$516.81 B,79,0.35
+27,Russia,$562.74 B,203,0.38
+28,Mexico,$516.89 B,79,0.35
 29,South Africa,$492.84 B,214,0.33
 30,Malaysia,$469.37 B,1078,0.31
 31,Turkey,$408.22 B,585,0.27
@@ -35,10 +35,10 @@ Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
 34,Finland,$351.81 B,182,0.24
 35,Vietnam,$336.28 B,693,0.23
 36,Poland,$261.95 B,664,0.18
-37,Philippines,$239.32 B,271,0.16
+37,Philippines,$239.27 B,271,0.16
 38,Chile,$208.89 B,157,0.14
 39,Austria,$198.94 B,69,0.13
-40,Qatar,$177.92 B,54,0.12
+40,Qatar,$178.03 B,54,0.12
 41,Luxembourg,$172.79 B,64,0.12
 42,Kuwait,$166.99 B,137,0.11
 43,Greece,$154.25 B,167,0.1
@@ -49,12 +49,12 @@ Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
 48,Morocco,$105.8 B,74,0.07
 49,Portugal,$84.65 B,43,0.06
 50,Kazakhstan,$79.2 B,19,0.05
-51,Pakistan,$65.39 B,477,0.04
+51,Pakistan,$65.45 B,477,0.04
 52,Romania,$61.97 B,183,0.04
 53,Egypt,$60.96 B,218,0.04
 54,Argentina,$56.73 B,72,0.04
 55,Nigeria,$56 B,144,0.04
-56,Czech Republic,$53.41 B,24,0.04
+56,Czech Republic,$53.35 B,24,0.04
 57,Hungary,$52.37 B,48,0.04
 58,Oman,$36.08 B,103,0.02
 59,Jordan,$33.16 B,119,0.02
@@ -87,4 +87,4 @@ Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
 86,Botswana,$3.14 B,14,0.0
 87,Serbia,$3.01 B,20,0.0
 88,Namibia,$2.71 B,8,0.0
-89,Latvia,$368.42 M,10,0.0
+89,Latvia,$367.97 M,10,0.0
