@@ -31,7 +31,7 @@ Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
 30,Malaysia,$469.37 B,1078,0.31
 31,Turkey,$408.22 B,585,0.27
 32,Belgium,$404.64 B,131,0.27
-33,Norway,$374.62 B,271,0.25
+33,Norway,$374.45 B,271,0.25
 34,Finland,$351.81 B,182,0.24
 35,Vietnam,$336.28 B,693,0.23
 36,Poland,$261.95 B,664,0.18
@@ -43,7 +43,7 @@ Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
 42,Kuwait,$166.99 B,137,0.11
 43,Greece,$154.25 B,167,0.1
 44,Zimbabwe,$153.71 B,5,0.1
-45,New Zealand,$122.34 B,117,0.08
+45,New Zealand,$122.33 B,117,0.08
 46,Peru,$121.88 B,103,0.08
 47,Colombia,$114.35 B,61,0.08
 48,Morocco,$105.8 B,74,0.07
@@ -53,7 +53,7 @@ Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
 52,Romania,$61.97 B,183,0.04
 53,Egypt,$60.96 B,218,0.04
 54,Argentina,$56.73 B,72,0.04
-55,Nigeria,$55.92 B,144,0.04
+55,Nigeria,$56 B,144,0.04
 56,Czech Republic,$53.41 B,24,0.04
 57,Hungary,$52.37 B,48,0.04
 58,Oman,$36.08 B,103,0.02
@@ -67,7 +67,7 @@ Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
 66,Mauritius,$18.29 B,97,0.01
 67,Lebanon,$18.21 B,5,0.01
 68,Iceland,$16.8 B,28,0.01
-69,Cyprus,$16.41 B,62,0.01
+69,Cyprus,$16.4 B,62,0.01
 70,Malawi,$12.29 B,13,0.01
 71,Jamaica,$11.47 B,94,0.01
 72,Tunisia,$10.93 B,72,0.01
@@ -86,5 +86,5 @@ Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
 85,Venezuela,$3.4 B,24,0.0
 86,Botswana,$3.14 B,14,0.0
 87,Serbia,$3.01 B,20,0.0
-88,Namibia,$2.72 B,8,0.0
+88,Namibia,$2.71 B,8,0.0
 89,Latvia,$368.42 M,10,0.0
