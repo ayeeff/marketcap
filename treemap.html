@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Global Market Cap Treemaps</title>
+    <title>Global Market Cap & Economic Treemaps</title>
     <style>
         body {
             margin: 0;
@@ -17,11 +17,8 @@
             align-items: center;
             background: #f0f0f0;
         }
-        #first-map {
-            height: 40vh;
-        }
-        #second-map {
-            height: 60vh;
+        #first-map, #second-map, #third-map, #fourth-map {
+            height: 25vh;
         }
         .container {
             width: 80vw;
@@ -49,6 +46,16 @@
         </div>
     </div>
     <div class="map-container" id="second-map">
+        <div class="container">
+            <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+    </div>
+    <div class="map-container" id="third-map">
+        <div class="container">
+            <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+    </div>
+    <div class="map-container" id="fourth-map">
         <div class="container">
             <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
@@ -314,8 +321,15 @@
         // Cache-busting timestamp
         const cacheBust = Date.now();
 
+        // Empire descriptions (hardcoded for consistency)
+        const empireDescriptions = {
+            '1.0': { empire: 'Empire 1.0: Steam & Colonies', desc: 'British Commonwealth', totalLabel: 'Total Market Cap' },
+            '2.0': { empire: 'Empire 2.0: Oil & Silicon', desc: 'United States', totalLabel: 'Total Market Cap' },
+            '3.0': { empire: 'Empire 3.0: Rare Earths, Renewables & Robotics', desc: 'China + Hong Kong + Taiwan', totalLabel: 'Total Market Cap' }
+        };
+
         // Function to create treemap
-        function createTreemap(svgSelector, data, isEmpire = false) {
+        function createTreemap(svgSelector, data, isEmpire = false, totalLabel = 'Total') {
             const root = d3.hierarchy({children: data})
                 .sum(d => d.perc)
                 .sort((a, b) => b.value - a.value);
@@ -347,8 +361,8 @@
             leaf.append("image")
                 .attr("xlink:href", d => {
                     if (isEmpire) {
-                        const rank = +d.data.Rank;
-                        return `https://raw.githubusercontent.com/ayeeff/marketcap/main/img/emp${rank}.png?v=${cacheBust}`;
+                        const rank = d.data['empire#'] || d.data.Rank;
+                        return `https://raw.githubusercontent.com/ayeeff/marketcap/main/img/emp${rank || 1}.png?v=${cacheBust}`;
                     } else {
                         const country = d.data["Country or region"];
                         let iso = countryToISO[country];
@@ -385,7 +399,7 @@
                 });
 
             // Tooltip (shared, but per map)
-            const tooltipId = isEmpire ? 'tooltip2' : 'tooltip1';
+            const tooltipId = isEmpire ? 'tooltip-emp' : 'tooltip-global';
             let tooltip = d3.select(`#${tooltipId}`);
             if (tooltip.empty()) {
                 tooltip = d3.select("body").append("div")
@@ -406,7 +420,7 @@
                 d3.select(rect).style("stroke-width", 2);
                 if (isEmpire) {
                     tooltip.style("opacity", 1)
-                        .html(`${d.data.Empire}<br/>${d.data.Description}<br/>${d.data["Total Market Cap"]}<br/>${d.data.perc.toFixed(2)}% of Empire Total`)
+                        .html(`${d.data.Empire}<br/>${d.data.Description}<br/>${d.data.Total}<br/>${d.data.perc.toFixed(2)}% of Combined`)
                         .style("left", (event.pageX + 10) + "px")
                         .style("top", (event.pageY - 28) + "px");
                 } else {
@@ -452,11 +466,54 @@
                 const filteredEmp = empData.filter(d => +d.Rank <= 3 && !isNaN(d.perc)).sort((a, b) => +a.Rank - +b.Rank);
 
                 // Create second map
-                createTreemap("#second-map .container svg", filteredEmp, true);
+                createTreemap("#second-map .container svg", filteredEmp, true, 'Total Market Cap');
             }).catch(error => {
                 console.error("Error loading empire CSV:", error);
                 d3.select("body").append("p").text("Error loading empire data. Check console.");
             });
+
+            // Load GDP PPP data for third map
+            d3.csv(`https://raw.githubusercontent.com/ayeeff/marketcap/main/data/empire_gdp_ppp_2025.csv?v=${cacheBust}`).then(gdpData => {
+                console.log("GDP data loaded:", gdpData.length, "rows");
+                gdpData.forEach(d => {
+                    d.perc = +d['%'];
+                    const num = d['empire#'];
+                    const desc = empireDescriptions[num];
+                    if (desc) {
+                        d.Empire = desc.empire;
+                        d.Description = desc.desc;
+                        d.Total = `${d.total}B PPP`;
+                    }
+                });
+
+                // Create third map
+                createTreemap("#third-map .container svg", gdpData, true, 'Total GDP PPP');
+            }).catch(error => {
+                console.error("Error loading GDP CSV:", error);
+                d3.select("body").append("p").text("Error loading GDP data. Check console.");
+            });
+
+            // Load R&D data for fourth map
+            d3.csv(`https://raw.githubusercontent.com/ayeeff/marketcap/main/data/empire_rd_expenditure_latest.csv?v=${cacheBust}`).then(rdData => {
+                console.log("R&D data loaded:", rdData.length, "rows");
+                rdData.forEach(d => {
+                    d.perc = +d['%'];
+                    const num = d['empire#'];
+                    const desc = empireDescriptions[num];
+                    if (desc) {
+                        d.Empire = desc.empire;
+                        d.Description = desc.desc;
+                        d.Total = `${d.total}B USD`;
+                    }
+                });
+
+                // Create fourth map
+                createTreemap("#fourth-map .container svg", rdData, true, 'Total R&D');
+            }).catch(error => {
+                console.error("Error loading R&D CSV:", error);
+                d3.select("body").append("p").text("Error loading R&D data. Check console.");
+            });
+
         }).catch(error => {
             console.error("Error loading global CSV:", error);
             d3.select("body").append("p").text("Error loading global data. Check console.");
