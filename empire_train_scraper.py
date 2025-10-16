@@ -60,15 +60,21 @@ os.makedirs('data', exist_ok=True)
 print("Scraping metro data...")
 url_metro = 'https://en.wikipedia.org/wiki/List_of_metro_systems'
 response_metro = requests.get(url_metro, headers=headers)
-tables_metro = pd.read_html(StringIO(response_metro.text), match='wikitable', flavor='lxml')
-df_metro = tables_metro[0]
-df_metro.columns = ['City', 'Country', 'Name', 'Service opened', 'Last expanded', 'Stations', 'Lines', 'System length', 'Annual ridership (millions)']
-df_metro['Country'] = df_metro['Country'].astype(str).str.extract(r'>([^<]+)<')[0].str.strip()
-df_metro['Length_km'] = df_metro['System length'].apply(parse_length)
-df_metro['Empire'] = df_metro['Country'].apply(get_empire)
-df_metro = df_metro[df_metro['Empire'].notna()][['Empire', 'Country', 'City', 'Name', 'Length_km']]
-df_metro.to_csv('data/empire_metro.csv', index=False)
-print(f"Metro data saved: {len(df_metro)} rows")
+soup_metro = BeautifulSoup(response_metro.text, 'html.parser')
+# Find wikitable class tables
+wikitable = soup_metro.find('table', {'class': 'wikitable'})
+if wikitable:
+    tables_metro = pd.read_html(StringIO(str(wikitable)), flavor='lxml')
+    df_metro = tables_metro[0]
+    df_metro.columns = ['City', 'Country', 'Name', 'Service opened', 'Last expanded', 'Stations', 'Lines', 'System length', 'Annual ridership (millions)']
+    df_metro['Country'] = df_metro['Country'].astype(str).str.extract(r'>([^<]+)<')[0].str.strip()
+    df_metro['Length_km'] = df_metro['System length'].apply(parse_length)
+    df_metro['Empire'] = df_metro['Country'].apply(get_empire)
+    df_metro = df_metro[df_metro['Empire'].notna()][['Empire', 'Country', 'City', 'Name', 'Length_km']]
+    df_metro.to_csv('data/empire_metro.csv', index=False)
+    print(f"Metro data saved: {len(df_metro)} rows")
+else:
+    print("No metro table found")
 
 # Scrape HSR
 print("Scraping HSR data...")
@@ -77,43 +83,52 @@ response_hsr = requests.get(url_hsr, headers=headers)
 soup = BeautifulSoup(response_hsr.text, 'html.parser')
 hsr_data = []
 # Find country sections (h3 with mw-headline)
-for h3 in soup.find_all('h3', class_='mw-headline'):
-    country = h3.get_text(strip=True)
+for h3 in soup.find_all('h3'):
+    headline = h3.find('span', class_='mw-headline')
+    if not headline:
+        continue
+    country = headline.get_text(strip=True)
     # Only process relevant countries
     if get_empire(country) is not None:
-        table = h3.find_next_sibling('table')
+        # Look for the next table after this heading
+        table = h3.find_next('table', {'class': 'wikitable'})
         if table:
-            tables = pd.read_html(StringIO(str(table)), flavor='lxml')
-            if tables:
-                df = tables[0]
-                # Find length column
-                length_cols = [col for col in df.columns if 'length' in str(col).lower()]
-                if length_cols:
-                    length_col = length_cols[0]
-                    df['Length_km'] = df[length_col].apply(parse_length)
-                else:
-                    continue
-                # Filter operational
-                status_cols = [col for col in df.columns if 'status' in str(col).lower()]
-                if status_cols:
-                    status_col = status_cols[0]
-                    df = df[df[status_col].str.contains('Operational', na=False, case=False)]
-                df['Country'] = country
-                df['Empire'] = get_empire(country)
-                # Find route/line column
-                route_cols = [col for col in df.columns if 'route' in str(col).lower() or 'line' in str(col).lower()]
-                if route_cols:
-                    route_col = route_cols[0]
-                else:
-                    route_col = df.columns[0]  # Fallback
-                for _, row in df.iterrows():
-                    if pd.notna(row.get('Length_km')) and row['Length_km'] > 0:
-                        hsr_data.append({
-                            'Empire': row['Empire'],
-                            'Country': country,
-                            'Line': str(row.get(route_col, '')),
-                            'Length_km': row['Length_km']
-                        })
+            try:
+                tables = pd.read_html(StringIO(str(table)), flavor='lxml')
+                if tables:
+                    df = tables[0]
+                    # Find length column
+                    length_cols = [col for col in df.columns if 'length' in str(col).lower()]
+                    if length_cols:
+                        length_col = length_cols[0]
+                        df['Length_km'] = df[length_col].apply(parse_length)
+                    else:
+                        continue
+                    # Filter operational
+                    status_cols = [col for col in df.columns if 'status' in str(col).lower()]
+                    if status_cols:
+                        status_col = status_cols[0]
+                        df = df[df[status_col].str.contains('Operational', na=False, case=False)]
+                    df['Country'] = country
+                    df['Empire'] = get_empire(country)
+                    # Find route/line column
+                    route_cols = [col for col in df.columns if 'route' in str(col).lower() or 'line' in str(col).lower()]
+                    if route_cols:
+                        route_col = route_cols[0]
+                    else:
+                        route_col = df.columns[0]  # Fallback
+                    for _, row in df.iterrows():
+                        if pd.notna(row.get('Length_km')) and row['Length_km'] > 0:
+                            hsr_data.append({
+                                'Empire': row['Empire'],
+                                'Country': country,
+                                'Line': str(row.get(route_col, '')),
+                                'Length_km': row['Length_km']
+                            })
+            except Exception as e:
+                print(f"Error processing HSR table for {country}: {e}")
+                continue
+
 df_hsr = pd.DataFrame(hsr_data)
 df_hsr.to_csv('data/empire_hsr.csv', index=False)
 print(f"HSR data saved: {len(df_hsr)} rows")
@@ -122,15 +137,20 @@ print(f"HSR data saved: {len(df_hsr)} rows")
 print("Scraping suburban rail data...")
 url_rail = 'https://en.wikipedia.org/wiki/List_of_suburban_and_commuter_rail_systems'
 response_rail = requests.get(url_rail, headers=headers)
-tables_rail = pd.read_html(StringIO(response_rail.text), match='wikitable', flavor='lxml')
-df_rail = tables_rail[0]
-# Columns may vary; assume standard
-df_rail.columns = ['City or area', 'Country', 'Continent', 'Name', 'External link', 'Lines', 'Stations', 'Length (km)', 'Daily ridership']
-df_rail['Country'] = df_rail['Country'].astype(str).str.extract(r'>([^<]+)<')[0].str.strip()
-df_rail['Length_km'] = df_rail['Length (km)'].apply(parse_length)
-df_rail['Empire'] = df_rail['Country'].apply(get_empire)
-df_rail = df_rail[df_rail['Empire'].notna()][['Empire', 'Country', 'City or area', 'Name', 'Length_km']]
-df_rail.to_csv('data/empire_rail.csv', index=False)
-print(f"Rail data saved: {len(df_rail)} rows")
+soup_rail = BeautifulSoup(response_rail.text, 'html.parser')
+wikitable_rail = soup_rail.find('table', {'class': 'wikitable'})
+if wikitable_rail:
+    tables_rail = pd.read_html(StringIO(str(wikitable_rail)), flavor='lxml')
+    df_rail = tables_rail[0]
+    # Columns may vary; assume standard
+    df_rail.columns = ['City or area', 'Country', 'Continent', 'Name', 'External link', 'Lines', 'Stations', 'Length (km)', 'Daily ridership']
+    df_rail['Country'] = df_rail['Country'].astype(str).str.extract(r'>([^<]+)<')[0].str.strip()
+    df_rail['Length_km'] = df_rail['Length (km)'].apply(parse_length)
+    df_rail['Empire'] = df_rail['Country'].apply(get_empire)
+    df_rail = df_rail[df_rail['Empire'].notna()][['Empire', 'Country', 'City or area', 'Name', 'Length_km']]
+    df_rail.to_csv('data/empire_rail.csv', index=False)
+    print(f"Rail data saved: {len(df_rail)} rows")
+else:
+    print("No rail table found")
 
 print("Scraping complete!")
