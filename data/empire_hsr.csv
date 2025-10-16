@@ -1,7 +1,7 @@
 Empire,Country,Line,Length_km
 3,China,Shanghai maglev train,30.5
 3,China,Beijing–Shanghai,1318.0
-3,China,Beijing–Guangzhou[ba],2230.0
+3,China,Beijing–Guangzhou,2230.0
 3,China,Hangzhou–Fuzhou–Shenzhen,1495.0
 3,China,Huhanrong PDL,2078.0
 3,China,Shanghai–Kunming,2066.0
@@ -9,17 +9,17 @@ Empire,Country,Line,Length_km
 3,China,Suifenhe–Manzhouli,714.0
 3,China,Qingdao–Yinchuan,1762.0
 3,China,Beijing–Lanzhou,1526.0
-3,China,Beijing–Harbin[ba],1700.0
+3,China,Beijing–Harbin,1700.0
 3,China,Eurasia Continental Bridge,3422.0
-3,China,Coastal corridor (north extension)[bb],2659.0
-3,China,Coastal corridor (south extension)[bb],954.0
-3,China,Hohhot–Nanning,2779.7
-3,China,Baotou (Yinchuan)–Hainan[bf],4664.0
-3,China,Lanzhou (Xining)–Guangzhou,2282.0
-3,China,Beijing–Hong Kong (Taipei),4392.0
-3,China,Shanghai–Chongqing–Chengdu,5130.0
-3,China,Beijing–Kunming[bl],3795.7
-3,China,Xiamen–Chongqing,937.0
+3,China,Coastal corridor (north extension),1595.3999999999999
+3,China,Coastal corridor (south extension),572.4
+3,China,Hohhot–Nanning,1667.82
+3,China,Baotou (Yinchuan)–Hainan,2798.4
+3,China,Lanzhou (Xining)–Guangzhou,1369.2
+3,China,Beijing–Hong Kong (Taipei),2635.2
+3,China,Shanghai–Chongqing–Chengdu,2052.0
+3,China,Beijing–Kunming,2277.4199999999996
+3,China,Xiamen–Chongqing,374.8
 3,China,Regional railways,1611.0
 3,China,Intercity railways,7210.0
 3,China,Class I railways,5056.9
