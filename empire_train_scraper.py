@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import re
 import os
 
-# Define countries for each empire
+# Define countries for each empire - SIMPLIFIED TO 1, 2, 3
 EMPIRE_1_COUNTRIES = {
     'United Kingdom', 'Canada', 'Australia', 'New Zealand', 'South Africa', 
     'Nigeria', 'Ghana', 'Kenya', 'Uganda', 'Tanzania', 'Zambia', 'Malawi', 
@@ -20,20 +20,20 @@ EMPIRE_2_COUNTRIES = {'United States'}
 EMPIRE_3_COUNTRIES = {'China', 'Hong Kong', 'Taiwan'}
 
 EMPIRES = {
-    'Empire 1.0: Steam & Colonies British Commonwealth excluding India': EMPIRE_1_COUNTRIES,
-    'Empire 2.0: Oil & Silicon United States': EMPIRE_2_COUNTRIES,
-    'Empire 3.0: Rare Earths, Renewables & Robotics China + Hong Kong + taiwan': EMPIRE_3_COUNTRIES
+    '1': EMPIRE_1_COUNTRIES,
+    '2': EMPIRE_2_COUNTRIES,
+    '3': EMPIRE_3_COUNTRIES
 }
 
 def get_empire(country):
-    """Match country to empire"""
+    """Match country to empire (returns 1, 2, or 3)"""
     if pd.isna(country) or not country:
         return None
     country_str = str(country).strip()
-    for empire_name, countries in EMPIRES.items():
+    for empire_num, countries in EMPIRES.items():
         for emp_country in countries:
             if emp_country.lower() in country_str.lower():
-                return empire_name
+                return empire_num
     return None
 
 def parse_length(text):
@@ -114,21 +114,28 @@ try:
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'html.parser')
     
-    # Find all h3 headings (country sections)
-    for heading in soup.find_all(['h2', 'h3']):
-        # Look for country name in heading
-        country_name = heading.get_text(strip=True)
+    # Strategy: Find h3 headings that contain country names
+    # These are marked with <span class="mw-headline">
+    for heading in soup.find_all('h3'):
+        span = heading.find('span', class_='mw-headline')
+        if not span:
+            continue
+            
+        country_name = span.get_text(strip=True)
         empire = get_empire(country_name)
         
         if empire:
-            # Find next table after this heading
-            current = heading.find_next_sibling()
-            while current:
-                if current.name == 'table' and 'wikitable' in current.get('class', []):
+            print(f"  Found {country_name} -> Empire {empire}")
+            
+            # Find the next table after this heading
+            current_element = heading.find_next_sibling()
+            while current_element:
+                if current_element.name == 'table' and 'wikitable' in current_element.get('class', []):
                     try:
-                        df = pd.read_html(str(current))[0]
+                        # Parse this table
+                        df = pd.read_html(str(current_element))[0]
                         
-                        # Try to find length column
+                        # Find length column
                         length_col = None
                         for col in df.columns:
                             if 'length' in str(col).lower():
@@ -136,8 +143,8 @@ try:
                                 break
                         
                         if length_col:
-                            # Extract route/line name
-                            line_col = df.columns[0]  # Usually first column
+                            # Get line/route name (usually first column)
+                            line_col = df.columns[0]
                             
                             for idx, row in df.iterrows():
                                 try:
@@ -151,12 +158,13 @@ try:
                                         })
                                 except:
                                     continue
-                    except:
-                        pass
+                    except Exception as e:
+                        print(f"  Error parsing table for {country_name}: {e}")
                     break
-                elif current.name in ['h2', 'h3']:
+                elif current_element.name in ['h2', 'h3', 'h4']:
+                    # Hit next section, stop looking
                     break
-                current = current.find_next_sibling()
+                current_element = current_element.find_next_sibling()
     
     if hsr_data:
         df_hsr = pd.DataFrame(hsr_data)
@@ -168,6 +176,8 @@ try:
         
 except Exception as e:
     print(f"Error scraping HSR data: {e}")
+    import traceback
+    traceback.print_exc()
     pd.DataFrame(columns=['Empire', 'Country', 'Line', 'Length_km']).to_csv('data/empire_hsr.csv', index=False)
 
 # ===== SCRAPE SUBURBAN RAIL DATA =====
@@ -225,12 +235,19 @@ except Exception as e:
     print(f"Error scraping rail data: {e}")
     pd.DataFrame(columns=['Empire', 'Country', 'City or area', 'Name', 'Length_km']).to_csv('data/empire_rail.csv', index=False)
 
-print("\nScraping complete!")
+print("\n" + "="*60)
+print("SCRAPING COMPLETE!")
+print("="*60)
 print("\nSummary:")
 for file in ['empire_metro.csv', 'empire_hsr.csv', 'empire_rail.csv']:
     filepath = f'data/{file}'
     if os.path.exists(filepath):
         df = pd.read_csv(filepath)
-        print(f"{file}: {len(df)} rows")
+        print(f"\n{file}: {len(df)} rows")
         if len(df) > 0:
-            print(f"  Empires: {df['Empire'].nunique()}")
+            print(f"  Empires present: {sorted(df['Empire'].unique())}")
+            print(f"  Countries: {df['Country'].nunique()}")
+            for empire in sorted(df['Empire'].unique()):
+                empire_df = df[df['Empire'] == empire]
+                total_km = empire_df['Length_km'].sum()
+                print(f"  Empire {empire}: {len(empire_df)} entries, {total_km:,.1f} km total")
