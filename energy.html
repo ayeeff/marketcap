@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Three Empires – 2023 Electricity Report</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <div class="max-w-5xl mx-auto px-6 py-10 space-y-12">
+
+    <!-- Header -->
+    <header class="text-center">
+      <h1 class="text-4xl font-extrabold text-gray-900">Three Empires – 2023 Electricity Snapshot</h1>
+      <p class="text-gray-600 mt-2">Generation mix and key metrics side-by-side.</p>
+    </header>
+
+    <!-- Empire 1.0 -->
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <h2 class="text-2xl font-semibold text-amber-600 mb-4">Empire 1.0 – Steam & Colonies</h2>
+      <div id="treemap1" style="height:360px"></div>
+      <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Total Gen</div><div class="text-xl font-bold">994 TWh</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Clean Share</div><div class="text-xl font-bold">48 %</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Wind+Solar</div><div class="text-xl font-bold">281 TWh</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Fossil</div><div class="text-xl font-bold">516 TWh</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Renewables</div><div class="text-xl font-bold">423 TWh</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Emissions</div><div class="text-xl font-bold">642 MtCO₂</div></div>
+        <div class="p-3 rounded-lg bg-gray-50 col-span-2 sm:col-span-1"><div class="text-gray-500">CO₂ Intensity</div><div class="text-xl font-bold">420 g/kWh</div></div>
+      </div>
+    </section>
+
+    <!-- Empire 2.0 -->
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <h2 class="text-2xl font-semibold text-blue-600 mb-4">Empire 2.0 – Oil & Silicon</h2>
+      <div id="treemap2" style="height:360px"></div>
+      <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Total Gen</div><div class="text-xl font-bold">4 393 TWh</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Clean Share</div><div class="text-xl font-bold">42 %</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Wind+Solar</div><div class="text-xl font-bold">751 TWh</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Fossil</div><div class="text-xl font-bold">2 548 TWh</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Renewables</div><div class="text-xl font-bold">1 011 TWh</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Emissions</div><div class="text-xl font-bold">1 580 MtCO₂</div></div>
+        <div class="p-3 rounded-lg bg-gray-50 col-span-2 sm:col-span-1"><div class="text-gray-500">CO₂ Intensity</div><div class="text-xl font-bold">360 g/kWh</div></div>
+      </div>
+    </section>
+
+    <!-- Empire 3.0 -->
+    <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <h2 class="text-2xl font-semibold text-emerald-600 mb-4">Empire 3.0 – Rare Earths & Robotics</h2>
+      <div id="treemap3" style="height:360px"></div>
+      <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Total Gen</div><div class="text-xl font-bold">8 550 TWh</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Clean Share</div><div class="text-xl font-bold">33 %</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Wind+Solar</div><div class="text-xl font-bold">1 530 TWh</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Fossil</div><div class="text-xl font-bold">5 734 TWh</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Renewables</div><div class="text-xl font-bold">2 872 TWh</div></div>
+        <div class="p-3 rounded-lg bg-gray-50"><div class="text-gray-500">Emissions</div><div class="text-xl font-bold">4 530 MtCO₂</div></div>
+        <div class="p-3 rounded-lg bg-gray-50 col-span-2 sm:col-span-1"><div class="text-gray-500">CO₂ Intensity</div><div class="text-xl font-bold">530 g/kWh</div></div>
+      </div>
+    </section>
+
+    <footer class="text-center text-gray-500 text-sm">Source: Ember monthly electricity data, 2023 annual aggregates.</footer>
+  </div>
+
+  <script>
+    // Empire 1.0 data
+    const emp1 = {
+      labels: ['Coal','Gas','Nuclear','Hydro','Wind','Solar','Other'],
+      values: [42, 312, 189, 142, 198, 83, 28],
+      colors: ['#78716c','#f59e0b','#06b6d4','#38bdf8','#10b981','#facc15','#9ca3af']
+    };
+    Plotly.newPlot('treemap1', [{
+      type:'treemap',
+      labels: emp1.labels,
+      parents: Array(emp1.labels.length).fill(''),
+      values: emp1.values,
+      marker:{ colors:emp1.colors, line:{color:'#fff',width:2} },
+      textfont:{color:'#fff',size:14}
+    }], { paper_bgcolor:'#fff', margin:{t:0,b:0} });
+
+    // Empire 2.0 data
+    const emp2 = {
+      labels: ['Coal','Gas','Nuclear','Hydro','Wind','Solar','Other'],
+      values: [704, 1876, 806, 260, 513, 238, 196],
+      colors: ['#78716c','#3b82f6','#06b6d4','#38bdf8','#10b981','#facc15','#9ca3af']
+    };
+    Plotly.newPlot('treemap2', [{
+      type:'treemap',
+      labels: emp2.labels,
+      parents: Array(emp2.labels.length).fill(''),
+      values: emp2.values,
+      marker:{ colors:emp2.colors, line:{color:'#fff',width:2} },
+      textfont:{color:'#fff',size:14}
+    }], { paper_bgcolor:'#fff', margin:{t:0,b:0} });
+
+    // Empire 3.0 data
+    const emp3 = {
+      labels: ['Coal','Gas','Nuclear','Hydro','Wind','Solar','Other'],
+      values: [4700, 592, 434, 342, 1090, 440, 552],
+      colors: ['#78716c','#6b7280','#06b6d4','#38bdf8','#10b981','#facc15','#9ca3af']
+    };
+    Plotly.newPlot('treemap3', [{
+      type:'treemap',
+      labels: emp3.labels,
+      parents: Array(emp3.labels.length).fill(''),
+      values: emp3.values,
+      marker:{ colors:emp3.colors, line:{color:'#fff',width:2} },
+      textfont:{color:'#fff',size:14}
+    }], { paper_bgcolor:'#fff', margin:{t:0,b:0} });
+  </script>
+</body>
+</html>
