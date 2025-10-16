@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Three Empires of Energy</title>
+<script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body.dark {
+    background-color: #0b0c10;
+    color: #e5e7eb;
+  }
+  .card {
+    @apply rounded-2xl shadow-lg p-4 m-2 transition-colors;
+  }
+  .dark .card {
+    background-color: #1f2937;
+  }
+</style>
+</head>
+<body class="bg-white text-gray-800 transition-colors duration-300">
+  <div class="flex justify-between items-center p-4 border-b">
+    <h1 class="text-2xl font-bold">🌍 The Three Empires of Energy</h1>
+    <button id="themeToggle" class="border rounded-lg px-3 py-1">Toggle Theme</button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+    <!-- Empire 1.0 -->
+    <div class="card">
+      <h2 class="text-xl font-semibold mb-2">Empire 1.0 — Steam & Colonies</h2>
+      <div id="gen1" class="h-60"></div>
+      <div id="emi1" class="h-40 mt-4"></div>
+      <div id="dem1" class="h-40 mt-4"></div>
+    </div>
+
+    <!-- Empire 2.0 -->
+    <div class="card">
+      <h2 class="text-xl font-semibold mb-2">Empire 2.0 — Oil & Silicon</h2>
+      <div id="gen2" class="h-60"></div>
+      <div id="emi2" class="h-40 mt-4"></div>
+      <div id="dem2" class="h-40 mt-4"></div>
+    </div>
+
+    <!-- Empire 3.0 -->
+    <div class="card">
+      <h2 class="text-xl font-semibold mb-2">Empire 3.0 — Rare Earths & Robotics</h2>
+      <div id="gen3" class="h-60"></div>
+      <div id="emi3" class="h-40 mt-4"></div>
+      <div id="dem3" class="h-40 mt-4"></div>
+    </div>
+  </div>
+
+  <script>
+    // 🌓 Theme toggle
+    document.getElementById("themeToggle").onclick = () => {
+      document.body.classList.toggle("dark");
+    };
+
+    // 📦 Base64 CSV blob placeholder
+    const base64CSV = `<<<INSERT_BASE64_CSV_HERE>>>`;
+
+    // 📥 Decode and parse CSV into JS objects
+    async function parseCSV(base64) {
+      const csvData = atob(base64);
+      const lines = csvData.split("\n").filter(l => l.trim().length > 0);
+      const headers = lines[0].split(",");
+      return lines.slice(1).map(line => {
+        const cols = line.split(",");
+        const obj = {};
+        headers.forEach((h, i) => obj[h.trim()] = cols[i]);
+        return obj;
+      });
+    }
+
+    // 🧩 Initialize charts (called after parsing)
+    function renderCharts(data) {
+      const empires = ["Empire 1.0 - Steam & Colonies", "Empire 2.0 - Oil & Silicon", "Empire 3.0 - Rare Earths & Robotics"];
+      empires.forEach((empire, idx) => {
+        const filtered = data.filter(d => d.Empire === empire);
+        const gen = filtered.filter(d => d.Category === "Electricity generation");
+        const emi = filtered.filter(d => d.Category === "Emissions intensity");
+        const dem = filtered.filter(d => d.Category === "Electricity demand");
+
+        // Generation mix
+        const sources = [...new Set(gen.map(d => d.Variable))];
+        const genTraces = sources.map(src => ({
+          x: gen.filter(g => g.Variable === src).map(g => g.Date),
+          y: gen.filter(g => g.Variable === src).map(g => +g.Value),
+          name: src,
+          stackgroup: "one"
+        }));
+        Plotly.newPlot(`gen${idx+1}`, genTraces, {title:"Generation Mix (TWh)", showlegend:true}, {responsive:true});
+
+        // Emissions intensity
+        Plotly.newPlot(`emi${idx+1}`, [{
+          x: emi.map(e => e.Date),
+          y: emi.map(e => +e.Value),
+          mode:"lines",
+          name:"Emissions Intensity",
+          line:{color:"#ef4444"}
+        }], {title:"Emissions Intensity (gCO₂/kWh)"}, {responsive:true});
+
+        // Demand
+        Plotly.newPlot(`dem${idx+1}`, [{
+          x: dem.map(e => e.Date),
+          y: dem.map(e => +e.Value),
+          type:"bar",
+          marker:{color:"#3b82f6"}
+        }], {title:"Electricity Demand (TWh)"}, {responsive:true});
+      });
+    }
+
+    // 🏁 Run
+    parseCSV(base64CSV).then(renderCharts);
+  </script>
+</body>
+</html>
