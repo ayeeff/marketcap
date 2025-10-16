@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empire High-Speed Rail - Infrastructure Comparison</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        /* High-speed rail track with motion */
+        .hsr-track {
+            position: relative;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                transparent 48%, 
+                currentColor 48%, 
+                currentColor 52%, 
+                transparent 52%, 
+                transparent 100%
+            );
+            overflow: hidden;
+        }
+        
+        .hsr-track::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -100%;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255,255,255,0.8) 50%, 
+                transparent 100%
+            );
+            animation: trainPass 3s ease-in-out infinite;
+        }
+        
+        @keyframes trainPass {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+        
+        /* Sleeper ties */
+        .rail-ties {
+            background-image: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 30px,
+                currentColor 30px,
+                currentColor 35px
+            );
+            height: 2px;
+            opacity: 0.3;
+        }
+        
+        .speed-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .speed-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.6s;
+        }
+        
+        .speed-card:hover::before {
+            left: 100%;
+        }
+        
+        .speed-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.3);
+        }
+        
+        .steam-glow {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
+        }
+        
+        .oil-glow {
+            background: linear-gradient(135deg, #991b1b 0%, #dc2626 50%, #f87171 100%);
+            box-shadow: 0 0 40px rgba(220, 38, 38, 0.4);
+        }
+        
+        .tech-glow {
+            background: linear-gradient(135deg, #065f46 0%, #10b981 50%, #6ee7b7 100%);
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.4);
+        }
+        
+        .stat-number {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .velocity-bar {
+            height: 8px;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0.2) 0%, 
+                currentColor 50%, 
+                rgba(255,255,255,0.2) 100%
+            );
+            border-radius: 4px;
+            box-shadow: 0 0 20px currentColor;
+        }
+        
+        /* Network visualization dots */
+        .network-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            position: absolute;
+            background: currentColor;
+            box-shadow: 0 0 10px currentColor;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.5); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-slate-900 to-black min-h-screen text-white">
+    
+    <!-- Header with animated track -->
+    <div class="relative">
+        <div class="absolute top-0 left-0 w-full h-1 rail-ties text-blue-500"></div>
+        <div class="container mx-auto px-4 py-12">
+            <div class="text-center mb-8">
+                <div class="inline-block mb-4">
+                    <h1 class="text-6xl font-black orbitron mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        HIGH-SPEED RAIL
+                    </h1>
+                    <div class="hsr-track text-purple-400"></div>
+                </div>
+                <p class="text-2xl text-slate-300 mb-2">The Race for Ultra-Fast Rail Infrastructure</p>
+                <p class="text-lg text-slate-400">Comparing 200+ km/h rail networks across three economic empires</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 pb-12">
+        
+        <!-- Empire Speed Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            
+            <!-- Empire 1: Steam & Colonies -->
+            <div class="speed-card rounded-2xl p-8 group">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 steam-glow rounded-xl flex items-center justify-center text-3xl">
+                        🚂
+                    </div>
+                    <div>
+                        <div class="text-sm text-blue-400 orbitron">EMPIRE 1.0</div>
+                        <div class="text-xl font-bold">Steam & Colonies</div>
+                        <div class="text-xs text-slate-400">British Commonwealth</div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <div class="stat-number text-5xl mb-1" id="empire1-total">-</div>
+                        <div class="text-sm text-slate-400">Total HSR Length (km)</div>
+                        <div class="velocity-bar text-blue-500 mt-2" id="empire1-bar"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
+                        <div>
+                            <div class="text-2xl font-bold orbitron text-blue-400" id="empire1-lines">-</div>
+                            <div class="text-xs text-slate-400">Lines</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold orbitron text-blue-400" id="empire1-countries">-</div>
+                            <div class="text-xs text-slate-400">Countries</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empire 2: Oil & Silicon -->
+            <div class="speed-card rounded-2xl p-8 group">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 oil-glow rounded-xl flex items-center justify-center text-3xl">
+                        🛢️
+                    </div>
+                    <div>
+                        <div class="text-sm text-red-400 orbitron">EMPIRE 2.0</div>
+                        <div class="text-xl font-bold">Oil & Silicon</div>
+                        <div class="text-xs text-slate-400">United States</div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <div class="stat-number text-5xl mb-1" id="empire2-total">-</div>
+                        <div class="text-sm text-slate-400">Total HSR Length (km)</div>
+                        <div class="velocity-bar text-red-500 mt-2" id="empire2-bar"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
+                        <div>
+                            <div class="text-2xl font-bold orbitron text-red-400" id="empire2-lines">-</div>
+                            <div class="text-xs text-slate-400">Lines</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold orbitron text-red-400" id="empire2-countries">-</div>
+                            <div class="text-xs text-slate-400">Countries</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empire 3: Rare Earths & Robotics -->
+            <div class="speed-card rounded-2xl p-8 group relative">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 tech-glow rounded-xl flex items-center justify-center text-3xl">
+                        🤖
+                    </div>
+                    <div>
+                        <div class="text-sm text-green-400 orbitron">EMPIRE 3.0</div>
+                        <div class="text-xl font-bold">Rare Earths & Robotics</div>
+                        <div class="text-xs text-slate-400">China + HK + Taiwan</div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <div class="stat-number text-5xl mb-1" id="empire3-total">-</div>
+                        <div class="text-sm text-slate-400">Total HSR Length (km)</div>
+                        <div class="velocity-bar text-green-500 mt-2" id="empire3-bar"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
+                        <div>
+                            <div class="text-2xl font-bold orbitron text-green-400" id="empire3-lines">-</div>
+                            <div class="text-xs text-slate-400">Lines</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold orbitron text-green-400" id="empire3-countries">-</div>
+                            <div class="text-xs text-slate-400">Countries</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            
+            <!-- Total Length Comparison -->
+            <div class="speed-card rounded-2xl p-8">
+                <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
+                    <span class="text-3xl">⚡</span>
+                    Total HSR Network Length
+                </h2>
+                <div id="totalLengthChart"></div>
+            </div>
+
+            <!-- Market Share -->
+            <div class="speed-card rounded-2xl p-8">
+                <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
+                    <span class="text-3xl">🌍</span>
+                    Global HSR Distribution
+                </h2>
+                <div id="distributionChart"></div>
+            </div>
+        </div>
+
+        <!-- Top Lines -->
+        <div class="speed-card rounded-2xl p-8 mb-12">
+            <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
+                <span class="text-3xl">🏆</span>
+                Top 20 Longest High-Speed Rail Lines
+            </h2>
+            <div id="topLinesChart"></div>
+        </div>
+
+        <!-- Country Comparison -->
+        <div class="speed-card rounded-2xl p-8 mb-12">
+            <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
+                <span class="text-3xl">🗺️</span>
+                HSR Length by Country
+            </h2>
+            <div id="countryChart"></div>
+        </div>
+
+        <!-- Detailed Lines Table -->
+        <div class="speed-card rounded-2xl p-8">
+            <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
+                <span class="text-3xl">📊</span>
+                Complete HSR Lines Database
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-700">
+                            <th class="text-left py-4 px-4 orbitron">EMPIRE</th>
+                            <th class="text-left py-4 px-4 orbitron">COUNTRY</th>
+                            <th class="text-left py-4 px-4 orbitron">LINE</th>
+                            <th class="text-right py-4 px-4 orbitron">LENGTH (KM)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const empireInfo = {
+            '1': { name: 'Steam & Colonies', color: '#3b82f6', symbol: '🚂' },
+            '2': { name: 'Oil & Silicon', color: '#ef4444', symbol: '🛢️' },
+            '3': { name: 'Rare Earths', color: '#10b981', symbol: '🤖' }
+        };
+
+        async function loadData() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/ayeeff/marketcap/main/data/empire_hsr.csv');
+                const csvText = await response.text();
+                
+                const lines = csvText.trim().split('\n');
+                const data = lines.slice(1).map(line => {
+                    const values = line.split(',');
+                    return {
+                        empire: values[0],
+                        country: values[1],
+                        line: values[2],
+                        length: parseFloat(values[3]) || 0
+                    };
+                }).filter(d => d.length > 0);
+
+                return data;
+            } catch (error) {
+                console.error('Error loading data:', error);
+                return [];
+            }
+        }
+
+        function updateSummaryCards(data) {
+            const maxLength = Math.max(...['1', '2', '3'].map(empire => {
+                const empireData = data.filter(d => d.empire === empire);
+                return empireData.reduce((sum, d) => sum + d.length, 0);
+            }));
+
+            ['1', '2', '3'].forEach(empire => {
+                const empireData = data.filter(d => d.empire === empire);
+                const totalLength = empireData.reduce((sum, d) => sum + d.length, 0);
+                const lineCount = empireData.length;
+                const countries = new Set(empireData.map(d => d.country)).size;
+                
+                document.getElementById(`empire${empire}-total`).textContent = 
+                    totalLength.toLocaleString(undefined, {maximumFractionDigits: 0});
+                document.getElementById(`empire${empire}-lines`).textContent = lineCount;
+                document.getElementById(`empire${empire}-countries`).textContent = countries;
+                
+                // Animate velocity bar
+                const barWidth = (totalLength / maxLength * 100);
+                document.getElementById(`empire${empire}-bar`).style.width = barWidth + '%';
+            });
+        }
+
+        function createTotalLengthChart(data) {
+            const empireData = ['1', '2', '3'].map(empire => {
+                const filtered = data.filter(d => d.empire === empire);
+                const total = filtered.reduce((sum, d) => sum + d.length, 0);
+                return { empire, total, name: empireInfo[empire].name, color: empireInfo[empire].color };
+            });
+
+            const trace = {
+                x: empireData.map(d => d.name),
+                y: empireData.map(d => d.total),
+                type: 'bar',
+                marker: {
+                    color: empireData.map(d => d.color),
+                    line: { color: 'rgba(255,255,255,0.3)', width: 2 }
+                },
+                text: empireData.map(d => d.total.toLocaleString() + ' km'),
+                textposition: 'outside',
+                textfont: { color: 'white', size: 16, family: 'Orbitron' }
+            };
+
+            const layout = {
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white', family: 'Inter' },
+                xaxis: { showgrid: false, tickfont: { size: 12 } },
+                yaxis: { 
+                    showgrid: true, 
+                    gridcolor: 'rgba(255,255,255,0.05)',
+                    title: { text: 'Total Length (km)', font: { family: 'Orbitron' } }
+                },
+                margin: { t: 20, r: 20, b: 60, l: 70 },
+                height: 350
+            };
+
+            Plotly.newPlot('totalLengthChart', [trace], layout, {responsive: true, displayModeBar: false});
+        }
+
+        function createDistributionChart(data) {
+            const empireData = ['1', '2', '3'].map(empire => {
+                const filtered = data.filter(d => d.empire === empire);
+                const total = filtered.reduce((sum, d) => sum + d.length, 0);
+                return { empire, total, name: empireInfo[empire].name, color: empireInfo[empire].color };
+            });
+
+            const trace = {
+                labels: empireData.map(d => d.name),
+                values: empireData.map(d => d.total),
+                type: 'pie',
+                marker: {
+                    colors: empireData.map(d => d.color),
+                    line: { color: '#1e293b', width: 3 }
+                },
+                textinfo: 'label+percent',
+                textfont: { color: 'white', size: 13, family: 'Orbitron' },
+                hovertemplate: '<b>%{label}</b><br>%{value:,.0f} km<br>%{percent}<extra></extra>',
+                hole: 0.4
+            };
+
+            const layout = {
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white', family: 'Inter' },
+                showlegend: false,
+                margin: { t: 20, r: 20, b: 20, l: 20 },
+                height: 350
+            };
+
+            Plotly.newPlot('distributionChart', [trace], layout, {responsive: true, displayModeBar: false});
+        }
+
+        function createTopLinesChart(data) {
+            const sortedData = [...data].sort((a, b) => b.length - a.length).slice(0, 20);
+
+            const trace = {
+                x: sortedData.map(d => d.length),
+                y: sortedData.map(d => d.line.substring(0, 50)),
+                type: 'bar',
+                orientation: 'h',
+                marker: {
+                    color: sortedData.map(d => empireInfo[d.empire].color),
+                    line: { color: 'rgba(255,255,255,0.2)', width: 1 }
+                },
+                text: sortedData.map(d => d.length.toLocaleString() + ' km'),
+                textposition: 'outside',
+                textfont: { color: 'white', size: 11, family: 'Orbitron' }
+            };
+
+            const layout = {
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white', family: 'Inter', size: 10 },
+                xaxis: { 
+                    showgrid: true, 
+                    gridcolor: 'rgba(255,255,255,0.05)',
+                    title: { text: 'Length (km)', font: { family: 'Orbitron' } }
+                },
+                yaxis: { showgrid: false, automargin: true },
+                margin: { t: 20, r: 100, b: 60, l: 250 },
+                height: 600
+            };
+
+            Plotly.newPlot('topLinesChart', [trace], layout, {responsive: true, displayModeBar: false});
+        }
+
+        function createCountryChart(data) {
+            const countryData = {};
+            data.forEach(d => {
+                if (!countryData[d.country]) {
+                    countryData[d.country] = { total: 0, empire: d.empire, country: d.country };
+                }
+                countryData[d.country].total += d.length;
+            });
+
+            const sortedCountries = Object.values(countryData).sort((a, b) => b.total - a.total);
+
+            const trace = {
+                x: sortedCountries.map(d => d.country),
+                y: sortedCountries.map(d => d.total),
+                type: 'bar',
+                marker: {
+                    color: sortedCountries.map(d => empireInfo[d.empire].color),
+                    line: { color: 'rgba(255,255,255,0.2)', width: 1 }
+                },
+                text: sortedCountries.map(d => d.total.toLocaleString() + ' km'),
+                textposition: 'outside',
+                textfont: { color: 'white', size: 12, family: 'Orbitron' }
+            };
+
+            const layout = {
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white', family: 'Inter' },
+                xaxis: { showgrid: false, tickangle: -45, tickfont: { size: 11 } },
+                yaxis: { 
+                    showgrid: true, 
+                    gridcolor: 'rgba(255,255,255,0.05)',
+                    title: { text: 'Total HSR Length (km)', font: { family: 'Orbitron' } }
+                },
+                margin: { t: 20, r: 20, b: 120, l: 70 },
+                height: 450
+            };
+
+            Plotly.newPlot('countryChart', [trace], layout, {responsive: true, displayModeBar: false});
+        }
+
+        function createDataTable(data) {
+            const tbody = document.getElementById('tableBody');
+            const sortedData = [...data].sort((a, b) => b.length - a.length);
+            
+            sortedData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-slate-800 hover:bg-white/5 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-4 px-4">
+                        <span class="inline-flex items-center gap-2">
+                            <span class="text-xl">${empireInfo[row.empire].symbol}</span>
+                            <span class="font-mono">${row.empire}</span>
+                        </span>
+                    </td>
+                    <td class="py-4 px-4 font-medium">${row.country}</td>
+                    <td class="py-4 px-4 text-slate-300">${row.line}</td>
+                    <td class="py-4 px-4 text-right font-mono text-lg" style="color: ${empireInfo[row.empire].color}">
+                        ${row.length.toLocaleString()}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Initialize
+        loadData().then(data => {
+            if (data.length === 0) {
+                console.error('No data loaded');
+                document.body.innerHTML += '<div class="text-center text-red-500 p-8">No HSR data available</div>';
+                return;
+            }
+
+            console.log(`Loaded ${data.length} HSR lines`);
+            updateSummaryCards(data);
+            createTotalLengthChart(data);
+            createDistributionChart(data);
+            createTopLinesChart(data);
+            createCountryChart(data);
+            createDataTable(data);
+        });
+    </script>
+</body>
+</html>
