@@ -8,6 +8,7 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,15 +23,21 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas beautifulsoup4 requests lxml
+          pip install pandas beautifulsoup4 requests lxml html5lib
 
       - name: Run scraper
         run: python empire_train_scraper.py
 
-      - name: Commit and push changes
+      - name: Check for changes
+        id: check_changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git diff --quiet data/*.csv || echo "changes=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push changes
+        if: steps.check_changes.outputs.changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add data/*.csv
-          git diff --staged --quiet || git commit -m "Update empire rail data CSVs [$(date +'%Y-%m-%d')]"
+          git commit -m "Update empire rail data CSVs [$(date +'%Y-%m-%d %H:%M:%S UTC')]"
           git push
