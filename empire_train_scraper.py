@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import os
+from io import StringIO
 
 # Define countries for each empire (matched to Wikipedia naming conventions)
 EMPIRE_1_COUNTRIES = {
@@ -25,9 +26,13 @@ EMPIRES = {
 }
 
 def get_empire(country):
-    country = country.strip().lower()
+    if pd.isna(country) or str(country).lower() == 'nan':
+        return None
+    country = str(country).strip().lower()
+    lowered_countries = [c.lower() for c in EMPIRES.values()]
     for empire_name, countries in EMPIRES.items():
-        if country in [c.lower() for c in countries] or any(alias.lower() in country for alias in [c.lower() for c in countries]):
+        lowered_countries_list = [c.lower() for c in countries]
+        if country in lowered_countries_list or any(alias in country for alias in lowered_countries_list):
             return empire_name
     return None
 
@@ -56,7 +61,7 @@ os.makedirs('data', exist_ok=True)
 print("Scraping metro data...")
 url_metro = 'https://en.wikipedia.org/wiki/List_of_metro_systems'
 response_metro = requests.get(url_metro, headers=headers)
-tables_metro = pd.read_html(response_metro.text)
+tables_metro = pd.read_html(StringIO(response_metro.text))
 df_metro = tables_metro[0]
 df_metro.columns = ['City', 'Country', 'Name', 'Service opened', 'Last expanded', 'Stations', 'Lines', 'System length', 'Annual ridership (millions)']
 df_metro['Country'] = df_metro['Country'].astype(str).str.extract(r'>([^<]+)<')[0].str.strip()
@@ -79,7 +84,7 @@ for h3 in soup.find_all('h3', class_='mw-headline'):
     if get_empire(country) is not None:
         table = h3.find_next_sibling('table')
         if table:
-            tables = pd.read_html(str(table))
+            tables = pd.read_html(StringIO(str(table)))
             if tables:
                 df = tables[0]
                 # Find length column
@@ -118,7 +123,7 @@ print(f"HSR data saved: {len(df_hsr)} rows")
 print("Scraping suburban rail data...")
 url_rail = 'https://en.wikipedia.org/wiki/List_of_suburban_and_commuter_rail_systems'
 response_rail = requests.get(url_rail, headers=headers)
-tables_rail = pd.read_html(response_rail.text)
+tables_rail = pd.read_html(StringIO(response_rail.text))
 df_rail = tables_rail[0]
 # Columns may vary; assume standard
 df_rail.columns = ['City or area', 'Country', 'Continent', 'Name', 'External link', 'Lines', 'Stations', 'Length (km)', 'Daily ridership']
