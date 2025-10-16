@@ -402,19 +402,39 @@
                 const response = await fetch('https://raw.githubusercontent.com/ayeeff/marketcap/main/data/empire_metro.csv');
                 const csvText = await response.text();
                 
-                // Parse CSV
+                // Parse CSV properly handling quoted fields
                 const lines = csvText.trim().split('\n');
-                const headers = lines[0].split(',');
-                const data = lines.slice(1).map(line => {
-                    const values = line.split(',');
-                    return {
-                        empire: values[0],
-                        country: values[1],
-                        city: values[2],
-                        name: values[3] || values[2],
-                        length: parseFloat(values[4]) || 0
-                    };
-                });
+                const data = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i];
+                    const values = [];
+                    let current = '';
+                    let inQuotes = false;
+                    
+                    for (let j = 0; j < line.length; j++) {
+                        const char = line[j];
+                        if (char === '"') {
+                            inQuotes = !inQuotes;
+                        } else if (char === ',' && !inQuotes) {
+                            values.push(current);
+                            current = '';
+                        } else {
+                            current += char;
+                        }
+                    }
+                    values.push(current);
+                    
+                    if (values.length >= 5) {
+                        data.push({
+                            empire: values[0].trim(),
+                            country: values[1].trim(),
+                            city: values[2].trim(),
+                            name: values[3].trim() || values[2].trim(),
+                            length: parseFloat(values[4]) || 0
+                        });
+                    }
+                }
 
                 return data;
             } catch (error) {
@@ -640,4 +660,18 @@
         // Initialize
         loadData().then(data => {
             if (data.length === 0) {
-                console.error('No
+                console.error('No data loaded');
+                return;
+            }
+
+            console.log(`Loaded ${data.length} metro systems`);
+            updateSummaryCards(data);
+            createTotalLengthChart(data);
+            createDistributionChart(data);
+            createTopCitiesChart(data);
+            createCountryChart(data);
+            createDataTable(data);
+        });
+    </script>
+</body>
+</html>
