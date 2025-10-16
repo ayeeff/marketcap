@@ -7,146 +7,319 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
         
-        body {
-            font-family: 'Space Grotesk', sans-serif;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-        .rail-line {
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #0a0e27;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(180deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+            animation: gridScroll 20s linear infinite;
+        }
+        
+        @keyframes gridScroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
+        }
+        
+        .neon-glow {
+            text-shadow: 
+                0 0 10px currentColor,
+                0 0 20px currentColor,
+                0 0 30px currentColor,
+                0 0 40px currentColor;
+        }
+        
+        .hologram-card {
+            background: linear-gradient(135deg, 
+                rgba(10, 20, 50, 0.8) 0%, 
+                rgba(20, 30, 60, 0.6) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.2),
+                inset 0 0 20px rgba(0, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .hologram-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(0, 255, 255, 0.1) 50%,
+                transparent 70%
+            );
+            animation: scan 3s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .hologram-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 
+                0 0 40px rgba(0, 255, 255, 0.4),
+                inset 0 0 30px rgba(0, 255, 255, 0.1);
+        }
+        
+        .empire-1-glow {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+        }
+        
+        .empire-2-glow {
+            background: linear-gradient(135deg, #450a0a 0%, #991b1b 100%);
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+        }
+        
+        .empire-3-glow {
+            background: linear-gradient(135deg, #052e16 0%, #166534 100%);
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+        }
+        
+        .data-stream {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .data-stream::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
             background: linear-gradient(90deg, 
                 transparent 0%, 
-                transparent calc(50% - 2px), 
-                currentColor calc(50% - 2px), 
-                currentColor calc(50% + 2px), 
-                transparent calc(50% + 2px), 
-                transparent 100%
-            );
+                rgba(0, 255, 255, 0.3) 50%, 
+                transparent 100%);
+            animation: stream 2s ease-in-out infinite;
+        }
+        
+        @keyframes stream {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .metric-display {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+        
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .hex-pattern {
+            background-image: 
+                radial-gradient(circle at center, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        
+        .cyber-border {
+            position: relative;
+            padding: 2px;
+            background: linear-gradient(45deg, #00ffff, #0080ff, #ff00ff, #00ffff);
+            background-size: 300% 300%;
+            animation: borderFlow 4s ease infinite;
+        }
+        
+        @keyframes borderFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .glitch {
             position: relative;
         }
         
-        .rail-line::before,
-        .rail-line::after {
-            content: '';
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
             position: absolute;
-            width: 8px;
-            height: 8px;
-            background: currentColor;
-            border-radius: 50%;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
         
-        .rail-line::before { left: 0; }
-        .rail-line::after { right: 0; }
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 #00ffff;
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim 3s infinite linear alternate-reverse;
+        }
         
-        .empire-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 #ff00ff;
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+        
+        @keyframes glitch-anim {
+            0% { clip: rect(random(100) + px, 9999px, random(100) + px, 0); }
+            100% { clip: rect(random(100) + px, 9999px, random(100) + px, 0); }
+        }
+        
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        tbody tr {
+            border-left: 2px solid transparent;
             transition: all 0.3s ease;
         }
         
-        .empire-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        tbody tr:hover {
+            background: rgba(0, 255, 255, 0.1) !important;
+            border-left-color: #00ffff;
         }
         
-        .steam-gradient {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-        }
-        
-        .oil-gradient {
-            background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%);
-        }
-        
-        .tech-gradient {
-            background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px currentColor;
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen text-white">
+<body class="relative">
+    <div class="cyber-grid"></div>
     
-    <!-- Header -->
-    <div class="container mx-auto px-4 py-8">
-        <div class="text-center mb-12">
-            <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Empire Metro Systems
-            </h1>
-            <p class="text-xl text-slate-300">Comparing Urban Rail Infrastructure Across Three Economic Eras</p>
-            <div class="rail-line text-blue-400 h-1 w-64 mx-auto mt-6"></div>
+    <div class="relative z-10 container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-16">
+            <div class="inline-block mb-6">
+                <h1 class="text-6xl md:text-7xl font-black mb-2 glitch" data-text="METRO SYSTEMS" style="font-family: 'Orbitron', monospace; color: #00ffff;">
+                    METRO SYSTEMS
+                </h1>
+            </div>
+            <p class="text-2xl text-cyan-400 mb-4" style="font-family: 'Rajdhani', sans-serif; font-weight: 500;">
+                GLOBAL RAIL INFRASTRUCTURE ANALYSIS
+            </p>
+            <div class="flex items-center justify-center gap-4 text-cyan-500">
+                <div class="w-16 h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent"></div>
+                <span class="text-xs tracking-widest">REAL-TIME DATA VISUALIZATION</span>
+                <div class="w-16 h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent"></div>
+            </div>
         </div>
 
         <!-- Empire Overview Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
             <!-- Empire 1 -->
-            <div class="empire-card rounded-xl p-6 steam-gradient">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center text-2xl">
-                        🚂
+            <div class="cyber-border rounded-2xl">
+                <div class="hologram-card empire-1-glow rounded-2xl p-6 h-full">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-14 h-14 bg-blue-500/20 rounded-xl flex items-center justify-center text-3xl border border-blue-400/30">
+                            🚂
+                        </div>
+                        <div>
+                            <div class="text-xs text-blue-400 tracking-widest font-bold">EMPIRE 1.0</div>
+                            <div class="text-xl font-bold text-cyan-300" style="font-family: 'Orbitron', monospace;">STEAM ERA</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-sm text-blue-200">Empire 1.0</div>
-                        <div class="font-bold">Steam & Colonies</div>
-                    </div>
-                </div>
-                <div class="text-sm text-blue-100 mb-4">British Commonwealth (excluding India)</div>
-                <div class="flex justify-between items-end">
-                    <div>
-                        <div class="text-3xl font-bold" id="empire1-total">-</div>
-                        <div class="text-sm text-blue-200">Total km</div>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-bold" id="empire1-cities">-</div>
-                        <div class="text-sm text-blue-200">Cities</div>
+                    <div class="text-sm text-blue-300 mb-6 opacity-80">British Commonwealth Network</div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="data-stream bg-blue-950/50 p-3 rounded-lg border border-blue-500/30">
+                            <div class="metric-display text-3xl text-cyan-400 mb-1" id="empire1-total">-</div>
+                            <div class="text-xs text-blue-400 tracking-wider">TOTAL KM</div>
+                        </div>
+                        <div class="data-stream bg-blue-950/50 p-3 rounded-lg border border-blue-500/30">
+                            <div class="metric-display text-3xl text-cyan-400 mb-1" id="empire1-cities">-</div>
+                            <div class="text-xs text-blue-400 tracking-wider">CITIES</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Empire 2 -->
-            <div class="empire-card rounded-xl p-6 oil-gradient">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center text-2xl">
-                        🛢️
+            <div class="cyber-border rounded-2xl">
+                <div class="hologram-card empire-2-glow rounded-2xl p-6 h-full">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-14 h-14 bg-red-500/20 rounded-xl flex items-center justify-center text-3xl border border-red-400/30">
+                            🛢️
+                        </div>
+                        <div>
+                            <div class="text-xs text-red-400 tracking-widest font-bold">EMPIRE 2.0</div>
+                            <div class="text-xl font-bold text-red-300" style="font-family: 'Orbitron', monospace;">OIL ERA</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-sm text-red-200">Empire 2.0</div>
-                        <div class="font-bold">Oil & Silicon</div>
-                    </div>
-                </div>
-                <div class="text-sm text-red-100 mb-4">United States</div>
-                <div class="flex justify-between items-end">
-                    <div>
-                        <div class="text-3xl font-bold" id="empire2-total">-</div>
-                        <div class="text-sm text-red-200">Total km</div>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-bold" id="empire2-cities">-</div>
-                        <div class="text-sm text-red-200">Cities</div>
+                    <div class="text-sm text-red-300 mb-6 opacity-80">United States Infrastructure</div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="data-stream bg-red-950/50 p-3 rounded-lg border border-red-500/30">
+                            <div class="metric-display text-3xl text-red-400 mb-1" id="empire2-total">-</div>
+                            <div class="text-xs text-red-400 tracking-wider">TOTAL KM</div>
+                        </div>
+                        <div class="data-stream bg-red-950/50 p-3 rounded-lg border border-red-500/30">
+                            <div class="metric-display text-3xl text-red-400 mb-1" id="empire2-cities">-</div>
+                            <div class="text-xs text-red-400 tracking-wider">CITIES</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Empire 3 -->
-            <div class="empire-card rounded-xl p-6 tech-gradient">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center text-2xl">
-                        🤖
+            <div class="cyber-border rounded-2xl">
+                <div class="hologram-card empire-3-glow rounded-2xl p-6 h-full">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-14 h-14 bg-green-500/20 rounded-xl flex items-center justify-center text-3xl border border-green-400/30">
+                            🤖
+                        </div>
+                        <div>
+                            <div class="text-xs text-green-400 tracking-widest font-bold">EMPIRE 3.0</div>
+                            <div class="text-xl font-bold text-green-300" style="font-family: 'Orbitron', monospace;">TECH ERA</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-sm text-green-200">Empire 3.0</div>
-                        <div class="font-bold">Rare Earths & Robotics</div>
-                    </div>
-                </div>
-                <div class="text-sm text-green-100 mb-4">China + Hong Kong + Taiwan</div>
-                <div class="flex justify-between items-end">
-                    <div>
-                        <div class="text-3xl font-bold" id="empire3-total">-</div>
-                        <div class="text-sm text-green-200">Total km</div>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-bold" id="empire3-cities">-</div>
-                        <div class="text-sm text-green-200">Cities</div>
+                    <div class="text-sm text-green-300 mb-6 opacity-80">China + HK + Taiwan Systems</div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="data-stream bg-green-950/50 p-3 rounded-lg border border-green-500/30">
+                            <div class="metric-display text-3xl text-green-400 mb-1" id="empire3-total">-</div>
+                            <div class="text-xs text-green-400 tracking-wider">TOTAL KM</div>
+                        </div>
+                        <div class="data-stream bg-green-950/50 p-3 rounded-lg border border-green-500/30">
+                            <div class="metric-display text-3xl text-green-400 mb-1" id="empire3-cities">-</div>
+                            <div class="text-xs text-green-400 tracking-wider">CITIES</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -155,42 +328,57 @@
         <!-- Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
             <!-- Total Length Comparison -->
-            <div class="empire-card rounded-xl p-6">
-                <h2 class="text-2xl font-bold mb-4">Total Metro Length by Empire</h2>
+            <div class="hologram-card rounded-2xl p-6">
+                <h2 class="text-2xl font-bold mb-6 text-cyan-400" style="font-family: 'Orbitron', monospace;">
+                    <span class="pulse-dot inline-block w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                    TOTAL LENGTH ANALYSIS
+                </h2>
                 <div id="totalLengthChart"></div>
             </div>
 
             <!-- Distribution by Empire -->
-            <div class="empire-card rounded-xl p-6">
-                <h2 class="text-2xl font-bold mb-4">Metro Network Distribution</h2>
+            <div class="hologram-card rounded-2xl p-6">
+                <h2 class="text-2xl font-bold mb-6 text-cyan-400" style="font-family: 'Orbitron', monospace;">
+                    <span class="pulse-dot inline-block w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                    NETWORK DISTRIBUTION
+                </h2>
                 <div id="distributionChart"></div>
             </div>
         </div>
 
         <!-- Top Cities -->
-        <div class="empire-card rounded-xl p-6 mb-12">
-            <h2 class="text-2xl font-bold mb-6">Top 15 Metro Systems by Length</h2>
+        <div class="hologram-card rounded-2xl p-6 mb-12">
+            <h2 class="text-2xl font-bold mb-6 text-cyan-400" style="font-family: 'Orbitron', monospace;">
+                <span class="pulse-dot inline-block w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                TOP 15 METRO SYSTEMS
+            </h2>
             <div id="topCitiesChart"></div>
         </div>
 
         <!-- Country Breakdown -->
-        <div class="empire-card rounded-xl p-6 mb-12">
-            <h2 class="text-2xl font-bold mb-6">Metro Length by Country</h2>
+        <div class="hologram-card rounded-2xl p-6 mb-12">
+            <h2 class="text-2xl font-bold mb-6 text-cyan-400" style="font-family: 'Orbitron', monospace;">
+                <span class="pulse-dot inline-block w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                COUNTRY RANKINGS
+            </h2>
             <div id="countryChart"></div>
         </div>
 
         <!-- Data Table -->
-        <div class="empire-card rounded-xl p-6">
-            <h2 class="text-2xl font-bold mb-6">Detailed Metro Systems</h2>
+        <div class="hologram-card rounded-2xl p-6">
+            <h2 class="text-2xl font-bold mb-6 text-cyan-400" style="font-family: 'Orbitron', monospace;">
+                <span class="pulse-dot inline-block w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                SYSTEM DATABASE
+            </h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm" id="dataTable">
                     <thead>
-                        <tr class="border-b border-slate-600">
-                            <th class="text-left py-3 px-4">Empire</th>
-                            <th class="text-left py-3 px-4">Country</th>
-                            <th class="text-left py-3 px-4">City</th>
-                            <th class="text-left py-3 px-4">Name</th>
-                            <th class="text-right py-3 px-4">Length (km)</th>
+                        <tr class="border-b-2 border-cyan-500/30">
+                            <th class="text-left py-4 px-4 text-cyan-400 tracking-wider text-xs font-bold">EMPIRE</th>
+                            <th class="text-left py-4 px-4 text-cyan-400 tracking-wider text-xs font-bold">COUNTRY</th>
+                            <th class="text-left py-4 px-4 text-cyan-400 tracking-wider text-xs font-bold">CITY</th>
+                            <th class="text-left py-4 px-4 text-cyan-400 tracking-wider text-xs font-bold">SYSTEM</th>
+                            <th class="text-right py-4 px-4 text-cyan-400 tracking-wider text-xs font-bold">LENGTH (KM)</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -203,9 +391,9 @@
     <script>
         // Empire metadata
         const empireInfo = {
-            '1': { name: 'Steam & Colonies', color: '#3b82f6', fullName: 'Empire 1.0: Steam & Colonies' },
-            '2': { name: 'Oil & Silicon', color: '#ef4444', fullName: 'Empire 2.0: Oil & Silicon' },
-            '3': { name: 'Rare Earths & Robotics', color: '#22c55e', fullName: 'Empire 3.0: Rare Earths & Robotics' }
+            '1': { name: 'Steam Era', color: '#3b82f6', fullName: 'Empire 1.0: Steam & Colonies' },
+            '2': { name: 'Oil Era', color: '#ef4444', fullName: 'Empire 2.0: Oil & Silicon' },
+            '3': { name: 'Tech Era', color: '#22c55e', fullName: 'Empire 3.0: Rare Earths & Robotics' }
         };
 
         // Load and process data
@@ -235,14 +423,36 @@
             }
         }
 
+        function animateNumber(element, target) {
+            const duration = 1500;
+            const start = 0;
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const current = Math.floor(start + (target - start) * progress);
+                element.textContent = current.toLocaleString();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
+
         function updateSummaryCards(data) {
             ['1', '2', '3'].forEach(empire => {
                 const empireData = data.filter(d => d.empire === empire);
                 const totalLength = empireData.reduce((sum, d) => sum + d.length, 0);
                 const cities = new Set(empireData.map(d => d.city)).size;
                 
-                document.getElementById(`empire${empire}-total`).textContent = totalLength.toLocaleString(undefined, {maximumFractionDigits: 0}) + ' km';
-                document.getElementById(`empire${empire}-cities`).textContent = cities;
+                const totalEl = document.getElementById(`empire${empire}-total`);
+                const citiesEl = document.getElementById(`empire${empire}-cities`);
+                
+                animateNumber(totalEl, Math.round(totalLength));
+                animateNumber(citiesEl, cities);
             });
         }
 
@@ -264,22 +474,22 @@
                 type: 'bar',
                 marker: {
                     color: empireData.map(d => d.color),
-                    line: { color: 'rgba(255,255,255,0.2)', width: 2 }
+                    line: { color: 'rgba(0, 255, 255, 0.4)', width: 2 }
                 },
                 text: empireData.map(d => d.total.toLocaleString() + ' km'),
                 textposition: 'outside',
-                textfont: { color: 'white', size: 14, family: 'Space Grotesk' }
+                textfont: { color: '#00ffff', size: 14, family: 'Orbitron' }
             };
 
             const layout = {
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: 'white', family: 'Space Grotesk' },
-                xaxis: { showgrid: false },
+                font: { color: '#00ffff', family: 'Rajdhani' },
+                xaxis: { showgrid: false, color: '#00ffff' },
                 yaxis: { 
                     showgrid: true, 
-                    gridcolor: 'rgba(255,255,255,0.1)',
-                    title: 'Total Length (km)'
+                    gridcolor: 'rgba(0, 255, 255, 0.1)',
+                    title: { text: 'Total Length (km)', font: { color: '#00ffff' } }
                 },
                 margin: { t: 20, r: 20, b: 60, l: 60 },
                 height: 300
@@ -306,17 +516,17 @@
                 type: 'pie',
                 marker: {
                     colors: empireData.map(d => d.color),
-                    line: { color: 'rgba(255,255,255,0.2)', width: 2 }
+                    line: { color: 'rgba(0, 255, 255, 0.3)', width: 2 }
                 },
                 textinfo: 'label+percent',
-                textfont: { color: 'white', size: 12, family: 'Space Grotesk' },
+                textfont: { color: 'white', size: 12, family: 'Rajdhani' },
                 hovertemplate: '<b>%{label}</b><br>%{value:,.0f} km<br>%{percent}<extra></extra>'
             };
 
             const layout = {
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: 'white', family: 'Space Grotesk' },
+                font: { color: '#00ffff', family: 'Rajdhani' },
                 showlegend: false,
                 margin: { t: 20, r: 20, b: 20, l: 20 },
                 height: 300
@@ -335,21 +545,21 @@
                 orientation: 'h',
                 marker: {
                     color: sortedData.map(d => empireInfo[d.empire].color),
-                    line: { color: 'rgba(255,255,255,0.2)', width: 1 }
+                    line: { color: 'rgba(0, 255, 255, 0.3)', width: 1 }
                 },
                 text: sortedData.map(d => d.length.toLocaleString() + ' km'),
                 textposition: 'outside',
-                textfont: { color: 'white', size: 11, family: 'Space Grotesk' }
+                textfont: { color: '#00ffff', size: 11, family: 'Orbitron' }
             };
 
             const layout = {
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: 'white', family: 'Space Grotesk', size: 11 },
+                font: { color: '#00ffff', family: 'Rajdhani', size: 11 },
                 xaxis: { 
                     showgrid: true, 
-                    gridcolor: 'rgba(255,255,255,0.1)',
-                    title: 'Length (km)'
+                    gridcolor: 'rgba(0, 255, 255, 0.1)',
+                    title: { text: 'Length (km)', font: { color: '#00ffff' } }
                 },
                 yaxis: { showgrid: false, automargin: true },
                 margin: { t: 20, r: 100, b: 60, l: 200 },
@@ -360,7 +570,6 @@
         }
 
         function createCountryChart(data) {
-            // Aggregate by country
             const countryData = {};
             data.forEach(d => {
                 if (!countryData[d.country]) {
@@ -383,22 +592,22 @@
                 type: 'bar',
                 marker: {
                     color: sortedCountries.map(d => empireInfo[d.empire].color),
-                    line: { color: 'rgba(255,255,255,0.2)', width: 1 }
+                    line: { color: 'rgba(0, 255, 255, 0.3)', width: 1 }
                 },
                 text: sortedCountries.map(d => d.total.toLocaleString() + ' km'),
                 textposition: 'outside',
-                textfont: { color: 'white', size: 11, family: 'Space Grotesk' }
+                textfont: { color: '#00ffff', size: 11, family: 'Orbitron' }
             };
 
             const layout = {
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: 'white', family: 'Space Grotesk' },
-                xaxis: { showgrid: false, tickangle: -45 },
+                font: { color: '#00ffff', family: 'Rajdhani' },
+                xaxis: { showgrid: false, tickangle: -45, color: '#00ffff' },
                 yaxis: { 
                     showgrid: true, 
-                    gridcolor: 'rgba(255,255,255,0.1)',
-                    title: 'Total Metro Length (km)'
+                    gridcolor: 'rgba(0, 255, 255, 0.1)',
+                    title: { text: 'Total Metro Length (km)', font: { color: '#00ffff' } }
                 },
                 margin: { t: 20, r: 20, b: 120, l: 60 },
                 height: 400
@@ -413,16 +622,16 @@
             
             sortedData.forEach(row => {
                 const tr = document.createElement('tr');
-                tr.className = 'border-b border-slate-700 hover:bg-white/5';
+                tr.className = 'border-b border-cyan-500/10 hover:bg-cyan-500/5';
                 tr.innerHTML = `
-                    <td class="py-3 px-4">
-                        <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: ${empireInfo[row.empire].color}"></span>
-                        ${row.empire}
+                    <td class="py-4 px-4">
+                        <span class="status-indicator pulse-dot" style="background-color: ${empireInfo[row.empire].color}"></span>
+                        <span class="font-mono text-cyan-300">${row.empire}</span>
                     </td>
-                    <td class="py-3 px-4">${row.country}</td>
-                    <td class="py-3 px-4 font-semibold">${row.city}</td>
-                    <td class="py-3 px-4">${row.name}</td>
-                    <td class="py-3 px-4 text-right font-mono">${row.length.toLocaleString()}</td>
+                    <td class="py-4 px-4 text-slate-300">${row.country}</td>
+                    <td class="py-4 px-4 font-semibold text-cyan-200">${row.city}</td>
+                    <td class="py-4 px-4 text-slate-400">${row.name}</td>
+                    <td class="py-4 px-4 text-right metric-display text-cyan-400">${row.length.toLocaleString()}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -431,17 +640,4 @@
         // Initialize
         loadData().then(data => {
             if (data.length === 0) {
-                console.error('No data loaded');
-                return;
-            }
-
-            updateSummaryCards(data);
-            createTotalLengthChart(data);
-            createDistributionChart(data);
-            createTopCitiesChart(data);
-            createCountryChart(data);
-            createDataTable(data);
-        });
-    </script>
-</body>
-</html>
+                console.error('No
