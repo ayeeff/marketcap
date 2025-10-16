@@ -128,6 +128,8 @@
             );
             border-radius: 4px;
             box-shadow: 0 0 20px currentColor;
+            width: 0%;
+            transition: width 1.5s ease-out;
         }
         
         /* Network visualization dots */
@@ -323,6 +325,7 @@
                         <tr class="border-b border-slate-700">
                             <th class="text-left py-4 px-4 orbitron">EMPIRE</th>
                             <th class="text-left py-4 px-4 orbitron">COUNTRY</th>
+                            <th class="text-left py-4 px-4 orbitron">CITY/AREA</th>
                             <th class="text-left py-4 px-4 orbitron">LINE</th>
                             <th class="text-right py-4 px-4 orbitron">LENGTH (KM)</th>
                         </tr>
@@ -348,13 +351,15 @@
                 const lines = csvText.trim().split('\n');
                 const data = lines.slice(1).map(line => {
                     const values = line.split(',');
+                    if (values.length < 5) return null;
                     return {
-                        empire: values[0],
-                        country: values[1],
-                        line: values[2],
-                        length: parseFloat(values[3]) || 0
+                        empire: values[0].trim(),
+                        country: values[1].trim(),
+                        city: values[2].trim(),
+                        line: values[3].trim(),
+                        length: parseFloat(values[4]) || 0
                     };
-                }).filter(d => d.length > 0);
+                }).filter(d => d !== null && d.length > 0);
 
                 return data;
             } catch (error) {
@@ -381,8 +386,11 @@
                 document.getElementById(`empire${empire}-countries`).textContent = countries;
                 
                 // Animate velocity bar
+                const barElement = document.getElementById(`empire${empire}-bar`);
                 const barWidth = (totalLength / maxLength * 100);
-                document.getElementById(`empire${empire}-bar`).style.width = barWidth + '%';
+                setTimeout(() => {
+                    barElement.style.width = barWidth + '%';
+                }, 500);
             });
         }
 
@@ -461,7 +469,7 @@
 
             const trace = {
                 x: sortedData.map(d => d.length),
-                y: sortedData.map(d => d.line.substring(0, 50)),
+                y: sortedData.map(d => `${d.city} - ${d.line}`.substring(0, 50)),
                 type: 'bar',
                 orientation: 'h',
                 marker: {
@@ -546,6 +554,7 @@
                         </span>
                     </td>
                     <td class="py-4 px-4 font-medium">${row.country}</td>
+                    <td class="py-4 px-4 text-slate-300">${row.city}</td>
                     <td class="py-4 px-4 text-slate-300">${row.line}</td>
                     <td class="py-4 px-4 text-right font-mono text-lg" style="color: ${empireInfo[row.empire].color}">
                         ${row.length.toLocaleString()}
