@@ -38,7 +38,7 @@ def get_empire(country):
 def parse_length(text):
     if pd.isna(text):
         return 0.0
-    text = str(text)
+    text = str(text).replace(',', '')
     # Match number before 'km'
     match = re.search(r'(\d+(?:\.\d+)?)\s*km', text)
     if match:
@@ -60,9 +60,10 @@ os.makedirs('data', exist_ok=True)
 print("Scraping metro data...")
 url_metro = 'https://en.wikipedia.org/wiki/List_of_metro_systems'
 response_metro = requests.get(url_metro, headers=headers)
-tables_metro = pd.read_html(StringIO(response_metro.text), match='wikitable')
+tables_metro = pd.read_html(StringIO(response_metro.text), match='wikitable', flavor='lxml')
 df_metro = tables_metro[0]
 df_metro.columns = ['City', 'Country', 'Name', 'Service opened', 'Last expanded', 'Stations', 'Lines', 'System length', 'Annual ridership (millions)']
+df_metro['Country'] = df_metro['Country'].astype(str).str.extract(r'>([^<]+)<')[0].str.strip()
 df_metro['Length_km'] = df_metro['System length'].apply(parse_length)
 df_metro['Empire'] = df_metro['Country'].apply(get_empire)
 df_metro = df_metro[df_metro['Empire'].notna()][['Empire', 'Country', 'City', 'Name', 'Length_km']]
@@ -82,7 +83,7 @@ for h3 in soup.find_all('h3', class_='mw-headline'):
     if get_empire(country) is not None:
         table = h3.find_next_sibling('table')
         if table:
-            tables = pd.read_html(StringIO(str(table)))
+            tables = pd.read_html(StringIO(str(table)), flavor='lxml')
             if tables:
                 df = tables[0]
                 # Find length column
@@ -121,11 +122,12 @@ print(f"HSR data saved: {len(df_hsr)} rows")
 print("Scraping suburban rail data...")
 url_rail = 'https://en.wikipedia.org/wiki/List_of_suburban_and_commuter_rail_systems'
 response_rail = requests.get(url_rail, headers=headers)
-tables_rail = pd.read_html(StringIO(response_rail.text), match='wikitable')
+tables_rail = pd.read_html(StringIO(response_rail.text), match='wikitable', flavor='lxml')
 df_rail = tables_rail[0]
 # Columns may vary; assume standard
 df_rail.columns = ['City or area', 'Country', 'Continent', 'Name', 'External link', 'Lines', 'Stations', 'Length (km)', 'Daily ridership']
-df_rail['Length_km'] = pd.to_numeric(df_rail['Length (km)'], errors='coerce').fillna(0)
+df_rail['Country'] = df_rail['Country'].astype(str).str.extract(r'>([^<]+)<')[0].str.strip()
+df_rail['Length_km'] = df_rail['Length (km)'].apply(parse_length)
 df_rail['Empire'] = df_rail['Country'].apply(get_empire)
 df_rail = df_rail[df_rail['Empire'].notna()][['Empire', 'Country', 'City or area', 'Name', 'Length_km']]
 df_rail.to_csv('data/empire_rail.csv', index=False)
