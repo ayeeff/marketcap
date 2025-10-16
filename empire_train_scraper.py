@@ -96,12 +96,12 @@ try:
         
         metro_df = metro_df[cols]
         metro_df.to_csv('data/empire_metro.csv', index=False)
-        print(f"Metro data saved: {len(metro_df)} rows")
+        print(f"✓ Metro data saved: {len(metro_df)} rows")
     else:
-        print("Could not find metro table")
+        print("✗ Could not find metro table")
         pd.DataFrame(columns=['Empire', 'Country', 'City', 'Name', 'Length_km']).to_csv('data/empire_metro.csv', index=False)
 except Exception as e:
-    print(f"Error scraping metro data: {e}")
+    print(f"✗ Error scraping metro data: {e}")
     pd.DataFrame(columns=['Empire', 'Country', 'City', 'Name', 'Length_km']).to_csv('data/empire_metro.csv', index=False)
 
 # ===== SCRAPE HSR DATA =====
@@ -114,68 +114,94 @@ try:
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'html.parser')
     
-    # Strategy: Find h3 headings that contain country names
-    # These are marked with <span class="mw-headline">
-    for heading in soup.find_all('h3'):
-        span = heading.find('span', class_='mw-headline')
-        if not span:
+    # STRATEGY: Find all wikitables, then look backwards for country heading
+    all_tables = soup.find_all('table', class_='wikitable')
+    print(f"Found {len(all_tables)} wikitables on page")
+    
+    for table in all_tables:
+        # Check if this looks like an HSR line table
+        try:
+            df = pd.read_html(str(table))[0]
+            
+            # Must have 'Line' or 'Route' column and 'Length' column
+            has_line = any('line' in str(col).lower() or 'route' in str(col).lower() for col in df.columns)
+            has_length = any('length' in str(col).lower() for col in df.columns)
+            
+            if not (has_line and has_length):
+                continue
+            
+            # This looks like an HSR table! Now find what country it belongs to
+            # Look backwards for the nearest h2 or h3 heading
+            prev_heading = table.find_previous(['h2', 'h3'])
+            if not prev_heading:
+                continue
+            
+            country_name = prev_heading.get_text(strip=True)
+            # Clean up country name (remove edit links, etc)
+            country_name = re.sub(r'\[edit\]', '', country_name).strip()
+            
+            empire = get_empire(country_name)
+            if not empire:
+                continue
+            
+            print(f"  Processing table for {country_name} (Empire {empire})")
+            
+            # Find the length column
+            length_col = None
+            for col in df.columns:
+                if 'length' in str(col).lower():
+                    length_col = col
+                    break
+            
+            if not length_col:
+                continue
+            
+            # Find line/route column (usually first column or has 'line' in name)
+            line_col = None
+            for col in df.columns:
+                if 'line' in str(col).lower() or 'route' in str(col).lower():
+                    line_col = col
+                    break
+            if not line_col:
+                line_col = df.columns[0]  # Fallback to first column
+            
+            # Extract data from this table
+            count = 0
+            for idx, row in df.iterrows():
+                try:
+                    length = parse_length(row[length_col])
+                    if length > 0:
+                        line_name = str(row[line_col])
+                        # Skip if it's just a header row
+                        if 'line' in line_name.lower() and len(line_name) < 10:
+                            continue
+                        
+                        hsr_data.append({
+                            'Empire': empire,
+                            'Country': country_name,
+                            'Line': line_name,
+                            'Length_km': length
+                        })
+                        count += 1
+                except:
+                    continue
+            
+            if count > 0:
+                print(f"    Added {count} lines")
+                
+        except Exception as e:
             continue
-            
-        country_name = span.get_text(strip=True)
-        empire = get_empire(country_name)
-        
-        if empire:
-            print(f"  Found {country_name} -> Empire {empire}")
-            
-            # Find the next table after this heading
-            current_element = heading.find_next_sibling()
-            while current_element:
-                if current_element.name == 'table' and 'wikitable' in current_element.get('class', []):
-                    try:
-                        # Parse this table
-                        df = pd.read_html(str(current_element))[0]
-                        
-                        # Find length column
-                        length_col = None
-                        for col in df.columns:
-                            if 'length' in str(col).lower():
-                                length_col = col
-                                break
-                        
-                        if length_col:
-                            # Get line/route name (usually first column)
-                            line_col = df.columns[0]
-                            
-                            for idx, row in df.iterrows():
-                                try:
-                                    length = parse_length(row[length_col])
-                                    if length > 0:
-                                        hsr_data.append({
-                                            'Empire': empire,
-                                            'Country': country_name,
-                                            'Line': str(row[line_col]),
-                                            'Length_km': length
-                                        })
-                                except:
-                                    continue
-                    except Exception as e:
-                        print(f"  Error parsing table for {country_name}: {e}")
-                    break
-                elif current_element.name in ['h2', 'h3', 'h4']:
-                    # Hit next section, stop looking
-                    break
-                current_element = current_element.find_next_sibling()
     
     if hsr_data:
         df_hsr = pd.DataFrame(hsr_data)
         df_hsr.to_csv('data/empire_hsr.csv', index=False)
-        print(f"HSR data saved: {len(df_hsr)} rows")
+        print(f"✓ HSR data saved: {len(df_hsr)} rows")
     else:
-        print("No HSR data found")
+        print("✗ No HSR data found for target empires")
         pd.DataFrame(columns=['Empire', 'Country', 'Line', 'Length_km']).to_csv('data/empire_hsr.csv', index=False)
         
 except Exception as e:
-    print(f"Error scraping HSR data: {e}")
+    print(f"✗ Error scraping HSR data: {e}")
     import traceback
     traceback.print_exc()
     pd.DataFrame(columns=['Empire', 'Country', 'Line', 'Length_km']).to_csv('data/empire_hsr.csv', index=False)
@@ -226,18 +252,18 @@ try:
         
         rail_df = rail_df[cols]
         rail_df.to_csv('data/empire_rail.csv', index=False)
-        print(f"Rail data saved: {len(rail_df)} rows")
+        print(f"✓ Rail data saved: {len(rail_df)} rows")
     else:
-        print("Could not find rail table")
+        print("✗ Could not find rail table")
         pd.DataFrame(columns=['Empire', 'Country', 'City or area', 'Name', 'Length_km']).to_csv('data/empire_rail.csv', index=False)
         
 except Exception as e:
-    print(f"Error scraping rail data: {e}")
+    print(f"✗ Error scraping rail data: {e}")
     pd.DataFrame(columns=['Empire', 'Country', 'City or area', 'Name', 'Length_km']).to_csv('data/empire_rail.csv', index=False)
 
-print("\n" + "="*60)
+print("\n" + "="*80)
 print("SCRAPING COMPLETE!")
-print("="*60)
+print("="*80)
 print("\nSummary:")
 for file in ['empire_metro.csv', 'empire_hsr.csv', 'empire_rail.csv']:
     filepath = f'data/{file}'
