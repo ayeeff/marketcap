@@ -9,8 +9,8 @@ EMPIRE_1_COUNTRIES = {
     'United Kingdom', 'Canada', 'Australia', 'New Zealand', 'South Africa', 'Nigeria', 'Ghana', 'Kenya', 'Uganda', 'Tanzania',
     'Zambia', 'Malawi', 'Botswana', 'Namibia', 'Lesotho', 'Eswatini', 'Jamaica', 'Trinidad and Tobago', 'Barbados', 'Bahamas',
     'Belize', 'Guyana', 'Saint Lucia', 'Grenada', 'Saint Vincent and the Grenadines', 'Antigua and Barbuda', 'Dominica',
-    'Saint Kitts and Nevis', 'Cyprus', 'Malta', 'Singapore', 'Malaysia', 'Brunei', 'Bangladesh', 'Sri Lanka', 'Maldives'
-    # Note: Excluding India as per request, but included here for matching; filter later if needed
+    'Saint Kitts and Nevis', 'Cyprus', 'Malta', 'Singapore', 'Malaysia', 'Brunei', 'Bangladesh', 'Sri Lanka', 'Maldives',
+    'Pakistan'  # Excluding India
     # Add more as needed; small islands may not have data
 }
 
@@ -25,9 +25,9 @@ EMPIRES = {
 }
 
 def get_empire(country):
-    country = country.strip()
+    country = country.strip().lower()
     for empire_name, countries in EMPIRES.items():
-        if country in countries or any(alias in country for alias in countries):  # Simple fuzzy match
+        if country in [c.lower() for c in countries] or any(alias.lower() in country for alias in [c.lower() for c in countries]):
             return empire_name
     return None
 
@@ -45,13 +45,18 @@ def parse_length(text):
         return float(match.group(1))
     return 0.0
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+}
+
 # Ensure data directory exists
 os.makedirs('data', exist_ok=True)
 
 # Scrape Metro
 print("Scraping metro data...")
 url_metro = 'https://en.wikipedia.org/wiki/List_of_metro_systems'
-tables_metro = pd.read_html(url_metro)
+response_metro = requests.get(url_metro, headers=headers)
+tables_metro = pd.read_html(response_metro.text)
 df_metro = tables_metro[0]
 df_metro.columns = ['City', 'Country', 'Name', 'Service opened', 'Last expanded', 'Stations', 'Lines', 'System length', 'Annual ridership (millions)']
 df_metro['Country'] = df_metro['Country'].astype(str).str.extract(r'>([^<]+)<')[0].str.strip()
@@ -64,8 +69,8 @@ print(f"Metro data saved: {len(df_metro)} rows")
 # Scrape HSR
 print("Scraping HSR data...")
 url_hsr = 'https://en.wikipedia.org/wiki/List_of_high-speed_railway_lines'
-response = requests.get(url_hsr)
-soup = BeautifulSoup(response.text, 'html.parser')
+response_hsr = requests.get(url_hsr, headers=headers)
+soup = BeautifulSoup(response_hsr.text, 'html.parser')
 hsr_data = []
 # Find country sections (h3 with mw-headline)
 for h3 in soup.find_all('h3', class_='mw-headline'):
@@ -77,22 +82,34 @@ for h3 in soup.find_all('h3', class_='mw-headline'):
             tables = pd.read_html(str(table))
             if tables:
                 df = tables[0]
-                # Assume standard columns; adjust based on table
-                if 'Length' in df.columns:
-                    df['Length_km'] = df['Length'].apply(parse_length)
-                    # Filter operational
-                    if 'Status' in df.columns:
-                        df = df[df['Status'].str.contains('Operational', na=False)]
-                    df['Country'] = country
-                    df['Empire'] = get_empire(country)
-                    for _, row in df.iterrows():
-                        if pd.notna(row.get('Length_km', 0)) and row['Length_km'] > 0:
-                            hsr_data.append({
-                                'Empire': row['Empire'],
-                                'Country': country,
-                                'Line': row.get('Line', row.get('Route', '')),
-                                'Length_km': row['Length_km']
-                            })
+                # Find length column
+                length_cols = [col for col in df.columns if 'length' in str(col).lower()]
+                if length_cols:
+                    length_col = length_cols[0]
+                    df['Length_km'] = df[length_col].apply(parse_length)
+                else:
+                    continue
+                # Filter operational
+                status_cols = [col for col in df.columns if 'status' in str(col).lower()]
+                if status_cols:
+                    status_col = status_cols[0]
+                    df = df[df[status_col].str.contains('Operational', na=False, case=False)]
+                df['Country'] = country
+                df['Empire'] = get_empire(country)
+                # Find route/line column
+                route_cols = [col for col in df.columns if 'route' in str(col).lower() or 'line' in str(col).lower()]
+                if route_cols:
+                    route_col = route_cols[0]
+                else:
+                    route_col = df.columns[0]  # Fallback
+                for _, row in df.iterrows():
+                    if pd.notna(row.get('Length_km')) and row['Length_km'] > 0:
+                        hsr_data.append({
+                            'Empire': row['Empire'],
+                            'Country': country,
+                            'Line': str(row.get(route_col, '')),
+                            'Length_km': row['Length_km']
+                        })
 df_hsr = pd.DataFrame(hsr_data)
 df_hsr.to_csv('data/empire_hsr.csv', index=False)
 print(f"HSR data saved: {len(df_hsr)} rows")
@@ -100,7 +117,8 @@ print(f"HSR data saved: {len(df_hsr)} rows")
 # Scrape Suburban Rail
 print("Scraping suburban rail data...")
 url_rail = 'https://en.wikipedia.org/wiki/List_of_suburban_and_commuter_rail_systems'
-tables_rail = pd.read_html(url_rail)
+response_rail = requests.get(url_rail, headers=headers)
+tables_rail = pd.read_html(response_rail.text)
 df_rail = tables_rail[0]
 # Columns may vary; assume standard
 df_rail.columns = ['City or area', 'Country', 'Continent', 'Name', 'External link', 'Lines', 'Stations', 'Length (km)', 'Daily ridership']
