@@ -12,7 +12,7 @@ EMPIRE_1_COUNTRIES = {
     'Barbados', 'Bahamas', 'Belize', 'Guyana', 'Saint Lucia', 'Grenada', 
     'Saint Vincent and the Grenadines', 'Antigua and Barbuda', 'Dominica',
     'Saint Kitts and Nevis', 'Cyprus', 'Malta', 'Singapore', 'Malaysia', 
-    'Brunei', 'Bangladesh', 'Sri Lanka', 'Maldives', 'Pakistan'
+    'Brunei', 'Bangladesh', 'Sri Lanka', 'Maldives'
 }
 
 EMPIRE_2_COUNTRIES = {'United States'}
@@ -175,6 +175,21 @@ try:
                         # Skip if it's just a header row
                         if 'line' in line_name.lower() and len(line_name) < 10:
                             continue
+                        
+                        # Remove bracket references like [ba], [bb], [bl]
+                        line_name = re.sub(r'\[[\w]+\]', '', line_name).strip()
+                        
+                        # Check operational status and apply multipliers
+                        # Concatenate all row values to check for status
+                        status_text = ' '.join([str(val) for val in row.values if pd.notna(val)])
+                        status_text_lower = status_text.lower()
+                        
+                        if 'mostly operational' in status_text_lower:
+                            length = length * 0.6
+                            print(f"    Applied 0.6 multiplier to {line_name}: {length:.1f} km")
+                        elif 'partly operational' in status_text_lower:
+                            length = length * 0.4
+                            print(f"    Applied 0.4 multiplier to {line_name}: {length:.1f} km")
                         
                         hsr_data.append({
                             'Empire': empire,
