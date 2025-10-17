@@ -1,0 +1,81 @@
+Empire,Country,City,Name,Length_km
+1,Australia,Sydney,Sydney Metro,52.0
+1,Bangladesh,Dhaka,Dhaka Metro Rail,20.1
+1,Canada,Montreal,Montreal Metro,69.2
+1,Canada,Montreal,Réseau express métropolitain,16.6
+1,Canada,Toronto,Toronto subway[60],70.5
+1,Canada,Vancouver,SkyTrain,79.6
+3,China,Beijing,Beijing Subway[72],879.0
+3,China,Changchun,Changchun Rail Transit,117.1
+3,China,Changsha,Changsha Metro,218.28
+3,China,Changzhou,Changzhou Metro,54.0
+3,China,Chengdu,Chengdu Metro,659.4
+3,China,Chongqing,Chongqing Rail Transit,560.04
+3,China,Dalian,Dalian Metro[86],237.7
+3,China,Dongguan,Dongguan Rail Transit,37.7
+3,China,Foshan,Foshan Metro[Nb 23],134.9
+3,China,Fuzhou,Fuzhou Metro,201.4
+3,China,Guangzhou,Guangzhou Metro[Nb 25][Nb 23],768.4
+3,China,Guiyang,Guiyang Metro,149.05
+3,China,Hangzhou,Hangzhou Metro[96],516.2
+3,China,Harbin,Harbin Metro,91.57
+3,China,Hefei,Hefei Metro,238.92
+3,China,Hohhot,Hohhot Metro,49.0
+3,China,Hong Kong,Mass Transit Railway,209.1
+3,China,Jinan,Jinan Metro,96.3
+3,China,Jinhua,Jinhua Rail Transit,118.5
+3,China,Kunming,Kunming Metro,165.85
+3,China,Lanzhou,Lanzhou Metro,35.0
+3,China,Luoyang,Luoyang Subway,43.6
+3,China,Macau,Macau Light Rapid Transit,16.3
+3,China,Nanchang,Nanchang Metro,160.2
+3,China,Nanjing,Nanjing Metro[117],556.69
+3,China,Nanning,Nanning Metro[121],132.0
+3,China,Nantong,Nantong Rail Transit,60.0
+3,China,Ningbo,Ningbo Rail Transit[124],262.0
+3,China,Qingdao,Qingdao Metro,352.68
+3,China,Shanghai,Shanghai Metro,808.0
+3,China,Shaoxing,Shaoxing Metro,65.2
+3,China,Shenyang,Shenyang Metro,202.7
+3,China,Shenzhen,Shenzhen Metro,583.35
+3,China,Shijiazhuang,Shijiazhuang Metro,76.5
+3,China,Suzhou,Suzhou Metro,346.76
+3,China,Taiyuan,Taiyuan Metro,52.384
+3,China,Taizhou,Taizhou Rail Transit,52.4
+3,China,Tianjin,Tianjin Metro,355.0
+3,China,Ürümqi,Ürümqi Metro,32.88
+3,China,Wenzhou,Wenzhou Rail Transit,116.5
+3,China,Wuhan,Wuhan Metro,518.1
+3,China,Wuhu,Wuhu Rail Transit,46.2
+3,China,Wuxi,Wuxi Metro,145.2
+3,China,Xiamen,Xiamen Metro,98.4
+3,China,Xi'an,Xi'an Metro,402.3
+3,China,Xuzhou,Xuzhou Metro,95.452
+3,China,Zhengzhou,Zhengzhou Metro,449.81
+1,Dominican Republic,Santo Domingo,Santo Domingo Metro,31.0
+1,Malaysia,Kuala Lumpur,Rapid KL[Nb 65],204.8
+1,Nigeria,Lagos,Lagos Rail Mass Transit[Nb 75],13.0
+1,Singapore,Singapore,Mass Rapid Transit,242.6
+3,Taiwan,Kaohsiung,Kaohsiung Rapid Transit,45.5
+3,Taiwan,Taipei,Taipei Metro,152.9
+3,Taiwan,Taichung,Taichung Metro[390],16.7
+3,Taiwan,Taoyuan,Taoyuan Metro,53.1
+1,United Kingdom,Glasgow,Glasgow Subway,10.4
+1,United Kingdom,London,London Underground[414],402.0
+1,United Kingdom,London,Docklands Light Railway,34.0
+2,United States,Atlanta,MARTA,76.6
+2,United States,Baltimore,Baltimore Metro SubwayLink,24.9
+2,United States,Boston,MBTA subway[Nb 96],63.9
+2,United States,Chicago,"Chicago ""L""[Nb 76]",165.4
+2,United States,Cleveland,Red Line (RTA Rapid Transit),31.0
+2,United States,Honolulu,Skyline,17.4
+2,United States,Los Angeles,Metro Rail[Nb 100],28.0
+2,United States,Miami,Metrorail,39.3
+2,United States,New York City,New York City Subway,399.0
+2,United States,New York City,Staten Island Railway,22.5
+2,United States,New York City,PATH,22.2
+2,United States,Philadelphia,"SEPTA Metro: L, B, M[440]",59.1
+2,United States,Philadelphia,PATCO Speedline,22.9
+2,United States,San Francisco (Bay Area),BART[Nb 107],192.0
+2,United States,"Washington, D.C.",Washington Metro,208.0
+2,United States,San Juan,Tren Urbano,17.2
