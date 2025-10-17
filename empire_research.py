@@ -1,6 +1,6 @@
 """
-Empire Research Scraper - Direct URL Version
-Uses the Wikipedia-referenced Nature Index URL
+Empire Research Scraper - Final Version
+Fixed empire numbering and country parsing
 """
 import requests
 import csv
@@ -128,6 +128,9 @@ def parse_rankings_table(table):
                         name = name_country_match.group(1).strip()
                         country = name_country_match.group(2).strip()
                         
+                        # Clean up country - remove extra parenthetical info
+                        country = clean_country_name(country)
+                        
                         institutions.append({
                             'rank': rank,
                             'name': name,
@@ -144,6 +147,28 @@ def parse_rankings_table(table):
                         break
     
     return institutions
+
+
+def clean_country_name(country):
+    """Clean and normalize country names."""
+    # Remove extra parenthetical information after country
+    country = re.sub(r'\s*\([^)]*\)$', '', country).strip()
+    
+    # Handle specific cases
+    if 'United States of America' in country:
+        return 'United States of America'
+    elif 'United Kingdom' in country:
+        return 'United Kingdom'
+    elif 'China' in country:
+        return 'China'
+    elif 'Canada' in country:
+        return 'Canada'
+    elif 'Australia' in country:
+        return 'Australia'
+    elif 'Singapore' in country:
+        return 'Singapore'
+    
+    return country
 
 
 def parse_institution_elements(elements):
@@ -164,10 +189,11 @@ def parse_institution_elements(elements):
             for match in matches:
                 if len(match) == 3:
                     try:
+                        country = clean_country_name(match[2].strip())
                         institutions.append({
                             'rank': int(match[0]),
                             'name': match[1].strip(),
-                            'country': match[2].strip()
+                            'country': country
                         })
                     except:
                         continue
@@ -190,10 +216,11 @@ def extract_institutions_from_text(text):
         for match in matches:
             if len(match) == 3:
                 try:
+                    country = clean_country_name(match[2].strip())
                     institutions.append({
                         'rank': int(match[0]),
                         'name': match[1].strip(),
-                        'country': match[2].strip()
+                        'country': country
                     })
                 except:
                     continue
@@ -285,7 +312,7 @@ def save_to_csv(empire_data, output_dir='data'):
         # Empire 1: Commonwealth
         for idx, inst in enumerate(empire_data['empire_1'], 1):
             writer.writerow([
-                'Empire_1_Commonwealth',
+                '1',  # Changed from 'Empire_1_Commonwealth' to '1'
                 idx,
                 inst['name'],
                 inst['country'],
@@ -295,7 +322,7 @@ def save_to_csv(empire_data, output_dir='data'):
         # Empire 2: USA
         for idx, inst in enumerate(empire_data['empire_2'], 1):
             writer.writerow([
-                'Empire_2_USA',
+                '2',  # Changed from 'Empire_2_USA' to '2'
                 idx,
                 inst['name'],
                 inst['country'],
@@ -305,7 +332,7 @@ def save_to_csv(empire_data, output_dir='data'):
         # Empire 3: China
         for idx, inst in enumerate(empire_data['empire_3'], 1):
             writer.writerow([
-                'Empire_3_China',
+                '3',  # Changed from 'Empire_3_China' to '3'
                 idx,
                 inst['name'],
                 inst['country'],
@@ -319,7 +346,7 @@ def save_to_csv(empire_data, output_dir='data'):
 def main():
     """Main scraper function."""
     print("=" * 60)
-    print("Nature Index Empire Research Scraper - Direct URL")
+    print("Nature Index Empire Research Scraper - Final Version")
     print("=" * 60)
     print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
