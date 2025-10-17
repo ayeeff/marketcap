@@ -1,6 +1,6 @@
 """
-Empire Research Scraper - Corrected Version
-Handles Nature Index form submission to get actual data
+Empire Research Scraper - Direct Scraping Version
+Scrapes the actual Nature Index rankings page directly
 """
 import requests
 import csv
@@ -18,7 +18,7 @@ EMPIRE_1_COUNTRIES = {
     'Barbados', 'Bahamas', 'Belize', 'Guyana', 'Saint Lucia', 'Grenada',
     'Saint Vincent and the Grenadines', 'Antigua and Barbuda', 'Dominica',
     'Saint Kitts and Nevis', 'Cyprus', 'Malta', 'Singapore', 'Malaysia',
-    'Brunei', 'Bangladesh', 'Sri Lanka', 'Maldives'
+    'Brunei', 'Bangladesh', 'Sri Lanka', 'Maldives', 'India', 'Pakistan'
 }
 
 EMPIRE_2_COUNTRIES = {'United States of America', 'USA', 'United States'}
@@ -26,169 +26,252 @@ EMPIRE_2_COUNTRIES = {'United States of America', 'USA', 'United States'}
 EMPIRE_3_COUNTRIES = {'China', 'Hong Kong', 'Taiwan', 'Macau'}
 
 
-def fetch_nature_index_data():
-    """Fetch data from Nature Index by submitting the form."""
-    # This is the form submission URL
-    url = "https://www.nature.com/nature-index/institution-outputs/generate/All/global/All/score"
+def fetch_nature_index_direct():
+    """Fetch the actual Nature Index rankings page directly."""
+    # Try the main rankings page
+    urls = [
+        "https://www.nature.com/nature-index/institution-outputs",
+        "https://www.nature-index.com/institution-outputs",
+        "https://www.nature.com/nature-index/annual-tables/2024/institution/all/all",
+        "https://www.nature-index.com/annual-tables/2024/institution/all/all",
+    ]
     
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'application/json, text/plain, */*',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
-        'Content-Type': 'application/json',
-        'Origin': 'https://www.nature.com',
-        'Referer': 'https://www.nature.com/nature-index/institution-outputs',
-    }
-    
-    # The JSON payload that the form expects
-    payload = {
-        "year": "2025",
-        "region": "global",
-        "subject": "All",
-        "size": 100,  # Number of institutions to fetch
-        "page": 1
+        'Accept-Encoding': 'gzip, deflate, br',
     }
     
     session = requests.Session()
     session.headers.update(headers)
     
-    try:
-        print("📡 Submitting form to Nature Index...")
-        response = session.post(url, json=payload, timeout=30)
-        print(f"   Status: {response.status_code}")
-        
-        if response.status_code == 200:
-            return response.json()  # This should be JSON data
-        else:
-            print(f"   Response: {response.text[:200]}...")
-            return None
+    for url in urls:
+        print(f"🌐 Trying URL: {url}")
+        try:
+            response = session.get(url, timeout=30)
+            print(f"   Status: {response.status_code}")
             
-    except Exception as e:
-        print(f"❌ Error fetching data: {e}")
-        return None
+            if response.status_code == 200:
+                return response.text
+                
+        except Exception as e:
+            print(f"   Error: {e}")
+    
+    return None
 
 
-def parse_json_data(json_data):
-    """Parse the JSON response from Nature Index."""
+def parse_nature_index_html(html_content):
+    """Parse the Nature Index HTML content to extract rankings."""
+    soup = BeautifulSoup(html_content, 'html.parser')
     institutions = []
     
-    print("🔍 Parsing JSON response...")
+    print("🔍 Analyzing page structure...")
     
-    try:
-        # Navigate through the JSON structure to find institutions
-        if 'data' in json_data and 'institutions' in json_data['data']:
-            institutions_data = json_data['data']['institutions']
-        elif 'institutions' in json_data:
-            institutions_data = json_data['institutions']
-        elif 'results' in json_data:
-            institutions_data = json_data['results']
-        else:
-            # Try to find any array that contains institution data
-            institutions_data = find_institutions_in_json(json_data)
-        
-        if not institutions_data:
-            print("❌ No institution data found in JSON response")
-            print(f"   JSON keys: {list(json_data.keys())}")
-            return []
-        
-        print(f"✅ Found {len(institutions_data)} institutions in JSON")
-        
-        for idx, inst_data in enumerate(institutions_data):
+    # Save the HTML for debugging
+    with open('nature_index_page.html', 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    print("💾 Saved nature_index_page.html for inspection")
+    
+    # Method 1: Look for table with rankings
+    tables = soup.find_all('table')
+    print(f"📊 Found {len(tables)} tables")
+    
+    for i, table in enumerate(tables):
+        institutions_from_table = parse_table(table)
+        if institutions_from_table:
+            print(f"✅ Table {i+1}: Found {len(institutions_from_table)} institutions")
+            institutions.extend(institutions_from_table)
+    
+    if institutions:
+        return institutions
+    
+    # Method 2: Look for script tags with JSON data
+    script_tags = soup.find_all('script')
+    print(f"📜 Found {len(script_tags)} script tags")
+    
+    for script in script_tags:
+        if script.string:
+            script_content = script.string
+            # Look for common data patterns
+            if any(keyword in script_content for keyword in ['institution', 'rank', 'ranking', 'data']):
+                json_data = extract_json_from_script(script_content)
+                if json_data:
+                    print("✅ Found JSON data in script")
+                    institutions_from_json = parse_json_data(json_data)
+                    if institutions_from_json:
+                        return institutions_from_json
+    
+    # Method 3: Look for institution elements in the page
+    institution_selectors = [
+        '[data-test="institution-row"]',
+        '.institution-row',
+        '.ranking-row',
+        '.institution-item',
+        'tr[data-rank]',
+    ]
+    
+    for selector in institution_selectors:
+        elements = soup.select(selector)
+        if elements:
+            print(f"✅ Found {len(elements)} elements with selector: {selector}")
+            institutions_from_elements = parse_institution_elements(elements)
+            if institutions_from_elements:
+                return institutions_from_elements
+    
+    # Method 4: Look for any elements containing rank and institution info
+    return find_institutions_in_text(str(soup))
+
+
+def parse_table(table):
+    """Parse institution data from HTML table."""
+    institutions = []
+    rows = table.find_all('tr')
+    
+    for row in rows:
+        # Skip header rows
+        if row.find('th'):
+            continue
+            
+        cells = row.find_all(['td', 'div'])
+        if len(cells) >= 2:
             try:
-                institution = extract_institution_info(inst_data, idx + 1)
-                if institution:
-                    institutions.append(institution)
-            except Exception as e:
-                print(f"⚠️  Error parsing institution {idx}: {e}")
-                continue
+                # Try to find rank in first cell
+                rank_cell = cells[0].get_text(strip=True)
+                rank_match = re.search(r'(\d+)', rank_cell)
+                rank = int(rank_match.group(1)) if rank_match else None
                 
-    except Exception as e:
-        print(f"❌ Error parsing JSON structure: {e}")
-        # Try alternative parsing method
-        institutions = parse_json_alternative(json_data)
+                # Look for institution name and country
+                institution_text = ' '.join(cell.get_text(strip=True) for cell in cells[1:3] if cell.get_text(strip=True))
+                
+                if rank and institution_text:
+                    # Try to split institution name and country
+                    name_country_match = re.search(r'(.+?),\s*(.+)$', institution_text)
+                    if name_country_match:
+                        name = name_country_match.group(1).strip()
+                        country = name_country_match.group(2).strip()
+                    else:
+                        # If no comma, try other patterns
+                        name = institution_text
+                        country = "Unknown"
+                    
+                    institutions.append({
+                        'rank': rank,
+                        'name': name,
+                        'country': country
+                    })
+            except Exception as e:
+                continue
     
     return institutions
 
 
-def find_institutions_in_json(data):
-    """Recursively search for institution data in JSON."""
-    if isinstance(data, list):
-        # Check if first item looks like an institution
-        if data and isinstance(data[0], dict):
-            if any(key in data[0] for key in ['name', 'institutionName', 'rank', 'country']):
-                return data
-    elif isinstance(data, dict):
-        for key, value in data.items():
-            if isinstance(value, list) and value and isinstance(value[0], dict):
-                if any(k in value[0] for k in ['name', 'institutionName', 'rank', 'country']):
-                    return value
-            # Recursive search
-            result = find_institutions_in_json(value)
-            if result:
-                return result
+def extract_json_from_script(script_content):
+    """Extract JSON data from script content."""
+    try:
+        # Look for window.__INITIAL_STATE__ or similar
+        patterns = [
+            r'window\.__INITIAL_STATE__\s*=\s*({.*?});',
+            r'window\.__NUXT__\s*=\s*({.*?});',
+            r'var\s+data\s*=\s*({.*?});',
+            r'JSON\.parse\(\'({.*?})\'\)',
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, script_content, re.DOTALL)
+            if match:
+                return json.loads(match.group(1))
+        
+        # Look for standalone JSON objects
+        json_pattern = r'{\s*"[\w\s]*"\s*:\s*\[.*?\]\s*}'
+        matches = re.findall(json_pattern, script_content, re.DOTALL)
+        for match in matches:
+            try:
+                return json.loads(match)
+            except:
+                continue
+                
+    except Exception as e:
+        print(f"❌ Error extracting JSON: {e}")
+    
     return None
 
 
-def extract_institution_info(inst_data, default_rank):
-    """Extract institution information from JSON object."""
-    institution = {}
-    
-    # Extract rank
-    if 'rank' in inst_data:
-        institution['rank'] = int(inst_data['rank'])
-    elif 'position' in inst_data:
-        institution['rank'] = int(inst_data['position'])
-    else:
-        institution['rank'] = default_rank
-    
-    # Extract name
-    if 'name' in inst_data:
-        institution['name'] = inst_data['name']
-    elif 'institutionName' in inst_data:
-        institution['name'] = inst_data['institutionName']
-    elif 'institution' in inst_data:
-        if isinstance(inst_data['institution'], dict):
-            institution['name'] = inst_data['institution'].get('name', 'Unknown')
-        else:
-            institution['name'] = str(inst_data['institution'])
-    else:
-        return None  # Skip if no name
-    
-    # Extract country
-    if 'country' in inst_data:
-        institution['country'] = inst_data['country']
-    elif 'countryName' in inst_data:
-        institution['country'] = inst_data['countryName']
-    elif 'institution' in inst_data and isinstance(inst_data['institution'], dict):
-        institution['country'] = inst_data['institution'].get('country', 'Unknown')
-    else:
-        institution['country'] = 'Unknown'
-    
-    return institution
-
-
-def parse_json_alternative(json_data):
-    """Alternative method to parse JSON data."""
+def parse_json_data(json_data):
+    """Parse institution data from JSON structure."""
     institutions = []
     
-    # Convert entire JSON to string and look for patterns
-    json_str = json.dumps(json_data)
+    def extract_from_obj(obj, path=""):
+        if isinstance(obj, list):
+            for item in obj:
+                result = extract_from_obj(item, path + "[]")
+                if result:
+                    institutions.extend(result)
+        elif isinstance(obj, dict):
+            # Check if this object looks like an institution
+            if 'name' in obj and 'rank' in obj:
+                institution = {
+                    'rank': int(obj['rank']),
+                    'name': obj['name'],
+                    'country': obj.get('country', obj.get('countryName', 'Unknown'))
+                }
+                return [institution]
+            
+            # Recursively search
+            for key, value in obj.items():
+                result = extract_from_obj(value, path + "." + key)
+                if result:
+                    institutions.extend(result)
+        return None
     
-    # Look for institution patterns in the JSON string
-    patterns = [
-        r'"rank"\s*:\s*(\d+).*?"name"\s*:\s*"([^"]+)".*?"country"\s*:\s*"([^"]+)"',
-        r'"name"\s*:\s*"([^"]+)".*?"country"\s*:\s*"([^"]+)".*?"rank"\s*:\s*(\d+)',
-    ]
+    extract_from_obj(json_data)
+    return institutions
+
+
+def parse_institution_elements(elements):
+    """Parse institution data from HTML elements."""
+    institutions = []
     
-    for pattern in patterns:
-        matches = re.findall(pattern, json_str, re.DOTALL)
-        for match in matches:
-            if len(match) == 3:
-                institutions.append({
-                    'rank': int(match[0]),
-                    'name': match[1],
-                    'country': match[2]
-                })
+    for element in elements:
+        try:
+            text = element.get_text(strip=True)
+            
+            # Look for rank pattern: "1. Harvard University, United States"
+            patterns = [
+                r'(\d+)\.?\s+(.+?),\s*(.+)',
+                r'^(\d+)\s+(.+?),\s*(.+)$',
+                r'rank["\']?\s*:\s*["\']?(\d+)["\']?.*?name["\']?\s*:\s*["\']?(.+?)["\']?.*?country["\']?\s*:\s*["\']?(.+?)["\']?',
+            ]
+            
+            for pattern in patterns:
+                match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+                if match:
+                    institutions.append({
+                        'rank': int(match.group(1)),
+                        'name': match.group(2).strip(),
+                        'country': match.group(3).strip()
+                    })
+                    break
+        except:
+            continue
+    
+    return institutions
+
+
+def find_institutions_in_text(text):
+    """Fallback: Find institutions in plain text."""
+    institutions = []
+    
+    # Common pattern in rankings
+    pattern = r'(\d+)\.?\s*([^,\n]+?),\s*([^\n\(\)]+?)(?:\s+\([^\)]*\))?\s*\n'
+    matches = re.findall(pattern, text)
+    
+    for match in matches:
+        institutions.append({
+            'rank': int(match[0]),
+            'name': match[1].strip(),
+            'country': match[2].strip()
+        })
     
     return institutions
 
@@ -210,10 +293,19 @@ def normalize_country(country):
         'Macau': 'Macau',
     }
     
-    # Check for partial matches
     for normalized, variants in country_map.items():
-        if country in variants or any(variant.lower() in country.lower() for variant in variants.split('/')):
+        if country == normalized or country in variants.split(', '):
             return normalized
+    
+    # Check for partial matches
+    if 'United States' in country:
+        return 'United States of America'
+    elif 'China' in country:
+        return 'China'
+    elif 'Hong Kong' in country:
+        return 'Hong Kong'
+    elif 'Taiwan' in country:
+        return 'Taiwan'
     
     return country
 
@@ -223,24 +315,35 @@ def categorize_by_empire(institutions):
     empire_1 = []
     empire_2 = []
     empire_3 = []
+    other = []
     
     for inst in institutions:
         country = normalize_country(inst['country'])
         
         # Check Empire 3 (China, Hong Kong, Taiwan, Macau)
-        if country in EMPIRE_3_COUNTRIES or any(c.lower() in country.lower() for c in ['china', 'hong kong', 'taiwan', 'macau']):
+        if country in EMPIRE_3_COUNTRIES:
             empire_3.append(inst)
         # Check Empire 2 (USA)
-        elif country in EMPIRE_2_COUNTRIES or any(c.lower() in country.lower() for c in ['united states', 'usa', 'us']):
+        elif country in EMPIRE_2_COUNTRIES:
             empire_2.append(inst)
         # Check Empire 1 (Commonwealth)
-        elif country in EMPIRE_1_COUNTRIES or any(c.lower() in country.lower() for c in list(EMPIRE_1_COUNTRIES)):
+        elif country in EMPIRE_1_COUNTRIES:
             empire_1.append(inst)
+        else:
+            other.append(inst)
     
     # Sort by rank and get top 10 for each empire
     empire_1.sort(key=lambda x: x['rank'])
     empire_2.sort(key=lambda x: x['rank'])
     empire_3.sort(key=lambda x: x['rank'])
+    
+    print(f"  • Empire 1 count: {len(empire_1)}")
+    print(f"  • Empire 2 count: {len(empire_2)}")
+    print(f"  • Empire 3 count: {len(empire_3)}")
+    print(f"  • Other countries: {len(other)}")
+    
+    if other:
+        print(f"  • Sample other countries: {list(set([inst['country'] for inst in other[:10]]))}")
     
     return {
         'empire_1': empire_1[:10],
@@ -296,120 +399,78 @@ def save_to_csv(empire_data, output_dir='data'):
     return filename
 
 
-def debug_response(response_data):
-    """Debug the API response."""
-    print("\n🔍 Debugging API response...")
-    
-    if isinstance(response_data, dict):
-        print(f"JSON keys: {list(response_data.keys())}")
-        
-        # Save full response for inspection
-        with open('debug_response.json', 'w', encoding='utf-8') as f:
-            json.dump(response_data, f, indent=2, ensure_ascii=False)
-        print("💾 Saved debug_response.json for inspection")
-        
-        # Look for any arrays that might contain institutions
-        def find_arrays(obj, path=""):
-            arrays = []
-            if isinstance(obj, dict):
-                for k, v in obj.items():
-                    arrays.extend(find_arrays(v, f"{path}.{k}" if path else k))
-            elif isinstance(obj, list):
-                if obj and isinstance(obj[0], dict):
-                    arrays.append((path, len(obj)))
-                    # Print first item structure
-                    if len(obj) > 0:
-                        print(f"   Array '{path}': first item keys: {list(obj[0].keys())}")
-            return arrays
-        
-        arrays = find_arrays(response_data)
-        if arrays:
-            print("📊 Found arrays in response:")
-            for path, length in arrays:
-                print(f"   {path}: {length} items")
-    
-    elif isinstance(response_data, list):
-        print(f"Response is a list with {len(response_data)} items")
-        if response_data and isinstance(response_data[0], dict):
-            print(f"First item keys: {list(response_data[0].keys())}")
-
-
 def main():
     """Main scraper function."""
     print("=" * 60)
-    print("Nature Index Empire Research Scraper - Form Handler")
+    print("Nature Index Empire Research Scraper - Direct Scraping")
     print("=" * 60)
     print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
     
-    # Fetch data via form submission
-    print("📡 Fetching data from Nature Index API...")
-    json_data = fetch_nature_index_data()
+    # Fetch the actual rankings page
+    print("📡 Fetching Nature Index rankings page...")
+    html_content = fetch_nature_index_direct()
     
-    if not json_data:
-        print("❌ Failed to fetch data. The API may have changed.")
+    if not html_content:
+        print("❌ Failed to fetch the rankings page.")
         return
     
-    # Debug the response structure
-    debug_response(json_data)
+    print(f"✓ Fetched {len(html_content)} characters")
     
-    # Parse institutions from JSON
-    print("\n📊 Parsing institution data from JSON...")
-    institutions = parse_json_data(json_data)
+    # Parse the HTML content
+    print("\n📊 Parsing page content...")
+    institutions = parse_nature_index_html(html_content)
     
     if not institutions:
-        print("❌ No institutions found in the API response.")
-        print("💡 The API structure may have changed. Check debug_response.json")
+        print("❌ No institutions found in the page.")
+        print("💡 Check nature_index_page.html to see the actual page structure.")
         return
     
-    print(f"✓ Found {len(institutions)} institutions")
+    print(f"✓ Found {len(institutions)} institutions total")
     
     # Show sample of found institutions
     print("\n📋 Sample of found institutions:")
-    for inst in institutions[:5]:
+    for inst in institutions[:10]:
         print(f"  #{inst['rank']}: {inst['name']} - {inst['country']}")
     
     # Categorize by empire
     print("\n🌍 Categorizing by empire...")
     empire_data = categorize_by_empire(institutions)
     
-    print(f"  • Empire 1 (Commonwealth): {len(empire_data['empire_1'])} institutions in top 10")
-    print(f"  • Empire 2 (USA): {len(empire_data['empire_2'])} institutions in top 10")
-    print(f"  • Empire 3 (China): {len(empire_data['empire_3'])} institutions in top 10")
+    print(f"\n🏆 Final counts for top 10:")
+    print(f"  • Empire 1 (Commonwealth): {len(empire_data['empire_1'])}")
+    print(f"  • Empire 2 (USA): {len(empire_data['empire_2'])}")
+    print(f"  • Empire 3 (China): {len(empire_data['empire_3'])}")
     
-    # Print top institutions from each empire for preview
-    print("\n🏆 Top institutions from each empire:")
+    # Print top institutions from each empire
+    print("\n🏅 Top institutions from each empire:")
     
     if empire_data['empire_1']:
         print("\n  Empire 1 (Commonwealth):")
-        for i, inst in enumerate(empire_data['empire_1'][:3], 1):
+        for i, inst in enumerate(empire_data['empire_1'][:5], 1):
             print(f"    {i}. {inst['name']} (#{inst['rank']}) - {inst['country']}")
-    else:
-        print("\n  Empire 1 (Commonwealth): No institutions found")
     
     if empire_data['empire_2']:
         print("\n  Empire 2 (USA):")
-        for i, inst in enumerate(empire_data['empire_2'][:3], 1):
+        for i, inst in enumerate(empire_data['empire_2'][:5], 1):
             print(f"    {i}. {inst['name']} (#{inst['rank']}) - {inst['country']}")
-    else:
-        print("\n  Empire 2 (USA): No institutions found")
     
     if empire_data['empire_3']:
         print("\n  Empire 3 (China):")
-        for i, inst in enumerate(empire_data['empire_3'][:3], 1):
+        for i, inst in enumerate(empire_data['empire_3'][:5], 1):
             print(f"    {i}. {inst['name']} (#{inst['rank']}) - {inst['country']}")
-    else:
-        print("\n  Empire 3 (China): No institutions found")
     
     # Save to CSV only if we have data
     if any(empire_data.values()):
         print("\n💾 Saving to CSV...")
         save_to_csv(empire_data)
+        print("✅ Success! Data has been saved.")
     else:
-        print("\n❌ No data to save - all empires are empty")
+        print("\n❌ No data to save - no institutions matched empire categories")
+        print("💡 Check the country names in the sample output above")
     
     print("\n" + "=" * 60)
-    print("✅ Scraping complete!")
+    print("Scraping complete!")
     print("=" * 60)
 
 
