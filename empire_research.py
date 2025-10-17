@@ -3,11 +3,10 @@ Empire Research Scraper
 Fetches Nature Index research leader data and categorizes by empires
 """
 import requests
-from bs4 import BeautifulSoup
 import csv
 import os
+import re
 from datetime import datetime
-import time
 
 EMPIRE_1_COUNTRIES = {
     'United Kingdom', 'Canada', 'Australia', 'New Zealand', 'South Africa',
@@ -19,7 +18,7 @@ EMPIRE_1_COUNTRIES = {
     'Brunei', 'Bangladesh', 'Sri Lanka', 'Maldives'
 }
 
-EMPIRE_2_COUNTRIES = {'United States'}
+EMPIRE_2_COUNTRIES = {'United States of America', 'USA'}
 
 EMPIRE_3_COUNTRIES = {'China', 'Hong Kong', 'Taiwan'}
 
@@ -41,42 +40,63 @@ def fetch_nature_index_data():
         return None
 
 
-def parse_institutions(html_content):
-    """Parse HTML content to extract institution rankings."""
-    soup = BeautifulSoup(html_content, 'html.parser')
+def parse_institutions(text_content):
+    """Parse text content to extract institution rankings."""
     institutions = []
     
-    # This is a placeholder parser - you'll need to adjust selectors based on actual HTML structure
-    # Nature Index pages often use JavaScript to load data, so you may need Selenium or API access
+    # Split into lines and process
+    lines = text_content.split('\n')
     
-    # Try to find table or list elements containing institution data
-    # Common selectors for Nature Index (adjust as needed):
-    rows = soup.find_all(['tr', 'div'], class_=['institution-row', 'data-row'])
-    
-    for row in rows:
-        try:
-            # Extract institution name, country, and rank
-            # These selectors are examples - adjust based on actual HTML
-            name_elem = row.find(['td', 'div'], class_=['name', 'institution-name'])
-            country_elem = row.find(['td', 'div'], class_=['country', 'location'])
-            rank_elem = row.find(['td', 'div'], class_=['rank', 'ranking'])
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        
+        # Check if line is a number (rank)
+        if line.isdigit():
+            rank = int(line)
             
-            if name_elem and country_elem:
-                institution = {
-                    'rank': len(institutions) + 1,  # Fallback ranking
-                    'name': name_elem.get_text(strip=True),
-                    'country': country_elem.get_text(strip=True)
-                }
+            # Next line should be institution name and country
+            if i + 1 < len(lines):
+                i += 1
+                name_country_line = lines[i].strip()
                 
-                if rank_elem:
-                    institution['rank'] = int(rank_elem.get_text(strip=True))
-                
-                institutions.append(institution)
-        except Exception as e:
-            print(f"Error parsing row: {e}")
-            continue
+                # Parse institution name and country
+                # Format: "Institution Name, Country" or "Institution Name (Abbr), Country"
+                if ',' in name_country_line:
+                    parts = name_country_line.rsplit(',', 1)
+                    if len(parts) == 2:
+                        name = parts[0].strip()
+                        country = parts[1].strip()
+                        
+                        # Remove parenthetical country codes like (USA), (UK)
+                        country = re.sub(r'\s*\([^)]*\)', '', country).strip()
+                        
+                        institution = {
+                            'rank': rank,
+                            'name': name,
+                            'country': country
+                        }
+                        institutions.append(institution)
+        
+        i += 1
     
     return institutions
+
+
+def normalize_country(country):
+    """Normalize country names for matching."""
+    # Map variations to standard names
+    country_map = {
+        'United States of America': 'United States of America',
+        'USA': 'United States of America',
+        'United Kingdom': 'United Kingdom',
+        'UK': 'United Kingdom',
+        'Singapore': 'Singapore',
+        'Australia': 'Australia',
+        'Canada': 'Canada',
+        'New Zealand': 'New Zealand',
+    }
+    return country_map.get(country, country)
 
 
 def categorize_by_empire(institutions):
@@ -86,14 +106,17 @@ def categorize_by_empire(institutions):
     empire_3 = []
     
     for inst in institutions:
-        country = inst['country']
+        country = normalize_country(inst['country'])
         
-        if country in EMPIRE_1_COUNTRIES:
-            empire_1.append(inst)
-        elif country in EMPIRE_2_COUNTRIES:
-            empire_2.append(inst)
-        elif country in EMPIRE_3_COUNTRIES:
+        # Check Empire 3 (China, Hong Kong, Taiwan)
+        if country in EMPIRE_3_COUNTRIES or any(c in inst['country'] for c in ['China', 'Hong Kong', 'Taiwan']):
             empire_3.append(inst)
+        # Check Empire 2 (USA)
+        elif country in EMPIRE_2_COUNTRIES or 'United States' in inst['country']:
+            empire_2.append(inst)
+        # Check Empire 1 (Commonwealth)
+        elif country in EMPIRE_1_COUNTRIES:
+            empire_1.append(inst)
     
     # Get top 10 for each empire
     return {
@@ -114,76 +137,97 @@ def save_to_csv(empire_data, output_dir='data'):
         writer = csv.writer(f)
         
         # Write header
-        writer.writerow(['Empire', 'Rank', 'Institution', 'Country', 'Global_Rank'])
+        writer.writerow(['Empire', 'Empire_Rank', 'Institution', 'Country', 'Global_Rank'])
         
         # Write Empire 1 (Commonwealth & former British territories)
-        for inst in empire_data['empire_1']:
+        for idx, inst in enumerate(empire_data['empire_1'], 1):
             writer.writerow([
                 'Empire_1_Commonwealth',
-                empire_data['empire_1'].index(inst) + 1,
+                idx,
                 inst['name'],
                 inst['country'],
                 inst['rank']
             ])
         
         # Write Empire 2 (United States)
-        for inst in empire_data['empire_2']:
+        for idx, inst in enumerate(empire_data['empire_2'], 1):
             writer.writerow([
                 'Empire_2_USA',
-                empire_data['empire_2'].index(inst) + 1,
+                idx,
                 inst['name'],
                 inst['country'],
                 inst['rank']
             ])
         
         # Write Empire 3 (China/Hong Kong/Taiwan)
-        for inst in empire_data['empire_3']:
+        for idx, inst in enumerate(empire_data['empire_3'], 1):
             writer.writerow([
                 'Empire_3_China',
-                empire_data['empire_3'].index(inst) + 1,
+                idx,
                 inst['name'],
                 inst['country'],
                 inst['rank']
             ])
     
-    print(f"Data saved to {filename}")
+    print(f"\n✓ Data saved to {filename}")
     return filename
 
 
 def main():
     """Main scraper function."""
-    print("Starting Nature Index scraper...")
-    print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("=" * 60)
+    print("Nature Index Empire Research Scraper")
+    print("=" * 60)
+    print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print()
     
     # Fetch data
+    print("📡 Fetching data from Nature Index...")
     html_content = fetch_nature_index_data()
     if not html_content:
-        print("Failed to fetch data. Exiting.")
+        print("❌ Failed to fetch data. Exiting.")
         return
     
     # Parse institutions
-    print("Parsing institution data...")
+    print("📊 Parsing institution data...")
     institutions = parse_institutions(html_content)
     
     if not institutions:
-        print("No institutions found. The page structure may have changed.")
-        print("Consider using Selenium for JavaScript-rendered content or Nature Index API.")
+        print("❌ No institutions found. The page structure may have changed.")
         return
     
-    print(f"Found {len(institutions)} institutions")
+    print(f"✓ Found {len(institutions)} institutions")
     
     # Categorize by empire
-    print("Categorizing by empire...")
+    print("\n🌍 Categorizing by empire...")
     empire_data = categorize_by_empire(institutions)
     
-    print(f"Empire 1 (Commonwealth): {len(empire_data['empire_1'])} institutions")
-    print(f"Empire 2 (USA): {len(empire_data['empire_2'])} institutions")
-    print(f"Empire 3 (China): {len(empire_data['empire_3'])} institutions")
+    print(f"  • Empire 1 (Commonwealth): {len(empire_data['empire_1'])} institutions in top 10")
+    print(f"  • Empire 2 (USA): {len(empire_data['empire_2'])} institutions in top 10")
+    print(f"  • Empire 3 (China): {len(empire_data['empire_3'])} institutions in top 10")
+    
+    # Print top 3 from each empire for preview
+    print("\n📋 Preview - Top 3 from each empire:")
+    
+    print("\n  Empire 1 (Commonwealth):")
+    for i, inst in enumerate(empire_data['empire_1'][:3], 1):
+        print(f"    {i}. {inst['name']} (Rank #{inst['rank']})")
+    
+    print("\n  Empire 2 (USA):")
+    for i, inst in enumerate(empire_data['empire_2'][:3], 1):
+        print(f"    {i}. {inst['name']} (Rank #{inst['rank']})")
+    
+    print("\n  Empire 3 (China):")
+    for i, inst in enumerate(empire_data['empire_3'][:3], 1):
+        print(f"    {i}. {inst['name']} (Rank #{inst['rank']})")
     
     # Save to CSV
+    print("\n💾 Saving to CSV...")
     save_to_csv(empire_data)
     
-    print("Scraping complete!")
+    print("\n" + "=" * 60)
+    print("✅ Scraping complete!")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
