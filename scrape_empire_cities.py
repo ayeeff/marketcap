@@ -8,9 +8,8 @@ import time
 # Empire country mappings
 EMPIRE_1_COUNTRIES = {
     'United Kingdom', 'Canada', 'Australia', 'New Zealand', 'South Africa', 
-    'Nigeria', 'Ghana', 'Kenya', 'Uganda', 'Tanzania', 'Zambia', 'Malawi', 
-    'Botswana', 'Namibia', 'Jamaica', 'Singapore', 'Malaysia', 
-    'Bangladesh', 'Sri Lanka'
+    'Ghana', 'Kenya', 'Uganda', 'Zambia', 'Malawi', 
+    'Botswana', 'Namibia', 'Jamaica', 'Singapore', 'Malaysia'
 }
 EMPIRE_2_COUNTRIES = {'United States'}
 EMPIRE_3_COUNTRIES = {'China', 'Hong Kong', 'Taiwan'}
@@ -83,21 +82,8 @@ def get_top_cities_per_empire(cities_data, n=10):
     
     return pd.concat(result, ignore_index=True)
 
-def save_to_csv(df, output_dir='data'):
-    """Save data to CSV file"""
-    os.makedirs(output_dir, exist_ok=True)
-    
-    filename = os.path.join(output_dir, 'empire_cities_population.csv')
-    
-    # Add scraped date for versioning
-    df['Scraped_Date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
-    # Reorder columns
-    df = df[['Empire', 'Rank', 'City', 'Country', 'Population', 'Scraped_Date']]
-    df.to_csv(filename, index=False)
-    
-    print(f"Data saved to {filename}")
-    return filename
+# Ensure data directory exists
+os.makedirs('data', exist_ok=True)
 
 def main():
     print("Starting city population scraper (World Population Review)...")
@@ -122,7 +108,26 @@ def main():
     print(top_cities_df.head())
     
     # Save to CSV
-    save_to_csv(top_cities_df)
+    filename = 'data/empire_cities_population.csv'
+    
+    # Add scraped date for versioning
+    top_cities_df = top_cities_df.copy()
+    top_cities_df['Scraped_Date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    # Reorder columns
+    top_cities_df = top_cities_df[['Empire', 'Rank', 'City', 'Country', 'Population', 'Scraped_Date']]
+    top_cities_df.to_csv(filename, index=False)
+    
+    print(f"Data saved to {filename}")
+    
+    # Verify save like in train scraper
+    if os.path.exists(filename):
+        saved_df = pd.read_csv(filename)
+        print(f"\nVerification: {filename} loaded successfully with {len(saved_df)} rows")
+        print("Saved data preview:")
+        print(saved_df.head())
+    else:
+        print(f"\nError: {filename} not found after save!")
     
     print("\nScraping completed successfully!")
 
