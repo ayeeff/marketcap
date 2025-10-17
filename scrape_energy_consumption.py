@@ -18,7 +18,7 @@ EMPIRE_2_COUNTRIES = {'United States'}
 EMPIRE_3_COUNTRIES = {'China', 'Hong Kong', 'Taiwan'}
 
 CSV_URL = "https://storage.googleapis.com/emb-prod-bkt-publicdata/public-downloads/monthly_full_release_long_format.csv"
-OUTPUT_PATH = Path("data/empire_energy_consumption.csv")
+DATA_DIR = Path("data")
 
 
 def download_data():
@@ -47,12 +47,12 @@ def main(local_path: str | None = None):
     # Focus on electricity demand (TWh)
     df = df[(df["Category"] == "Electricity demand") & (df["Variable"] == "Demand")]
 
-    # Parse date and keep only the latest month
+    # Parse date and keep latest month
     df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
     latest_date = df["Date"].max()
     df_latest = df[df["Date"] == latest_date].copy()
 
-    # Add numeric Empire ID
+    # Assign numeric empire ID
     df_latest["Empire"] = df_latest["Area"].apply(assign_empire)
     df_latest = df_latest.dropna(subset=["Empire"])
 
@@ -60,24 +60,31 @@ def main(local_path: str | None = None):
     df_latest = df_latest[["Empire", "Area", "Value"]]
     df_latest = df_latest.rename(columns={"Area": "Country", "Value": "Electricity_Consumption_TWh"})
 
-    # Aggregate totals per empire
+    # Aggregate empire totals
     empire_totals = (
         df_latest.groupby("Empire", as_index=False)["Electricity_Consumption_TWh"]
         .sum()
         .assign(Country="Total (Empire)")
     )
 
-    # Combine country-level + empire totals
+    # Combine both
     combined = pd.concat([df_latest, empire_totals], ignore_index=True)
     combined = combined.sort_values(["Empire", "Country"]).reset_index(drop=True)
 
-    # Save to CSV
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    combined.to_csv(OUTPUT_PATH, index=False)
-    print(f"Saved combined CSV to {OUTPUT_PATH}")
-    print(combined.head(10))
+    # Create filename by year-month
+    timestamp = latest_date.strftime("%Y-%m")
+    out_file = DATA_DIR / f"empire_energy_consumption_{timestamp}.csv"
+
+    # Save
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    combined.to_csv(out_file, index=False)
+    print(f"Saved monthly file: {out_file}")
+
+    # Also write/update a latest symlink or copy
+    latest_file = DATA_DIR / "empire_energy_consumption_latest.csv"
+    combined.to_csv(latest_file, index=False)
+    print(f"Updated latest snapshot: {latest_file}")
 
 
 if __name__ == "__main__":
-    # Local test mode
-    main("monthly_full_release_long_format.csv")
+    main("monthly_full_release_long_format.csv")  # for local testing
