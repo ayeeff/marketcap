@@ -26,93 +26,48 @@ def get_empire_number(country):
     return None
 
 def scrape_world_cities():
-    """Scrape city population data from Wikipedia"""
-    url = "https://en.wikipedia.org/wiki/List_of_largest_cities"
+    """Scrape city population data from World Population Review"""
+    url = "https://worldpopulationreview.com/cities"
     
     try:
-        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'})
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
         
+        # Find the main table
+        table = soup.find('table')
+        if not table:
+            raise ValueError("No table found on the page")
+        
         cities_data = []
+        rows = table.find_all('tr')[1:]  # Skip header
         
-        # Find the main table with city data
-        tables = soup.find_all('table', {'class': 'wikitable'})
-        
-        for table in tables[:1]:  # Usually the first table has the main data
-            rows = table.find_all('tr')[1:]  # Skip header
-            
-            for row in rows:
-                cols = row.find_all(['td', 'th'])
-                if len(cols) >= 3:
-                    try:
-                        city = cols[0].get_text(strip=True)
-                        country = cols[1].get_text(strip=True)
-                        pop_text = cols[2].get_text(strip=True)
-                        
-                        # Clean population text
-                        population = int(pop_text.replace(',', '').replace('.', ''))
-                        
-                        empire = get_empire_number(country)
-                        if empire:
-                            cities_data.append({
-                                'Empire': empire,
-                                'City': city,
-                                'Country': country,
-                                'Population': population
-                            })
-                    except (ValueError, IndexError):
-                        continue
+        for row in rows:
+            cols = row.find_all(['td', 'th'])
+            if len(cols) >= 6:  # Ensure full row with 6 columns
+                try:
+                    city = cols[1].get_text(strip=True)  # City in second column
+                    country = cols[2].get_text(strip=True)  # Country in third column
+                    pop_text = cols[3].get_text(strip=True)  # 2025 Pop in fourth column
+                    
+                    # Clean population text (remove commas)
+                    population = int(pop_text.replace(',', ''))
+                    
+                    empire = get_empire_number(country)
+                    if empire:
+                        cities_data.append({
+                            'Empire': empire,
+                            'City': city,
+                            'Country': country,
+                            'Population': population
+                        })
+                except (ValueError, IndexError):
+                    continue
         
         return cities_data
     
     except Exception as e:
         print(f"Error scraping data: {e}")
-        return []
-
-def scrape_alternative_source():
-    """Alternative scraping method using different Wikipedia page"""
-    url = "https://en.wikipedia.org/wiki/List_of_cities_proper_by_population"
-    
-    try:
-        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-        response.raise_for_status()
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        cities_data = []
-        
-        # Find the main table
-        table = soup.find('table', {'class': 'wikitable'})
-        
-        if table:
-            rows = table.find_all('tr')[1:]
-            
-            for row in rows:
-                cols = row.find_all(['td', 'th'])
-                if len(cols) >= 4:
-                    try:
-                        city = cols[1].get_text(strip=True)
-                        country = cols[2].get_text(strip=True)
-                        pop_text = cols[3].get_text(strip=True)
-                        
-                        # Clean population text
-                        population = int(''.join(filter(str.isdigit, pop_text)))
-                        
-                        empire = get_empire_number(country)
-                        if empire:
-                            cities_data.append({
-                                'Empire': empire,
-                                'City': city,
-                                'Country': country,
-                                'Population': population
-                            })
-                    except (ValueError, IndexError):
-                        continue
-        
-        return cities_data
-    
-    except Exception as e:
-        print(f"Error with alternative source: {e}")
         return []
 
 def get_top_cities_per_empire(cities_data, n=10):
@@ -144,19 +99,13 @@ def save_to_csv(df, output_dir='data'):
     return filename
 
 def main():
-    print("Starting city population scraper...")
+    print("Starting city population scraper (World Population Review)...")
     
-    # Try primary source
+    # Scrape primary source
     cities_data = scrape_world_cities()
     
-    # If primary source fails or returns insufficient data, try alternative
-    if len(cities_data) < 30:
-        print("Primary source insufficient, trying alternative...")
-        time.sleep(2)
-        cities_data = scrape_alternative_source()
-    
     if not cities_data:
-        print("Failed to scrape data from all sources")
+        print("Failed to scrape data")
         return
     
     print(f"Scraped data for {len(cities_data)} cities")
