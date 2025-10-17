@@ -19,6 +19,60 @@ EMPIRE_3_COUNTRIES = {'China', 'Hong Kong', 'Taiwan'}
 # EIA API endpoint for total energy consumption
 EIA_API_URL = "https://api.eia.gov/v2/international/data/"
 
+def test_eia_api(api_key):
+    """
+    Test the EIA API and print raw response to understand data structure
+    """
+    print("Testing EIA API connection...")
+    
+    base_url = "https://api.eia.gov/v2/international/data/"
+    
+    params = {
+        'api_key': api_key,
+        'frequency': 'annual',
+        'data[]': 'value',
+        'facets[activityId][]': '1',
+        'facets[productId][]': '44',
+        'facets[unit][]': 'QBTU',
+        'sort[0][column]': 'period',
+        'sort[0][direction]': 'desc',
+        'offset': 0,
+        'length': 10  # Just get 10 records for testing
+    }
+    
+    try:
+        response = requests.get(base_url, params=params, timeout=30)
+        print(f"API Response Status: {response.status_code}")
+        
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        print(f"\nAPI Response Keys: {data.keys()}")
+        
+        if 'response' in data:
+            print(f"Response Keys: {data['response'].keys()}")
+            
+            if 'data' in data['response']:
+                records = data['response']['data']
+                print(f"\nNumber of records: {len(records)}")
+                
+                if records:
+                    print(f"\nFirst record:")
+                    import json
+                    print(json.dumps(records[0], indent=2))
+                    
+                    print(f"\nAll keys in first record: {records[0].keys()}")
+        
+        return data
+        
+    except Exception as e:
+        print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+
 def get_eia_data(api_key=None):
     """
     Fetch energy consumption data from EIA API
@@ -92,13 +146,19 @@ def get_eia_data(api_key=None):
         records = data['response']['data']
         print(f"Retrieved {len(records)} records from EIA API")
         
-        # Debug: Print first few unique country names to see the format
+        # Debug: Print ALL unique country names to see the format
         unique_countries = set()
-        for record in records[:100]:
+        for record in records:
             country = record.get('countryName')
             if country:
                 unique_countries.add(country)
-        print(f"\nSample of country names from API: {sorted(list(unique_countries))[:10]}")
+        
+        print(f"\nTotal unique countries in API: {len(unique_countries)}")
+        print(f"All country names from API:\n{sorted(list(unique_countries))}")
+        
+        # Also print a sample record to see the structure
+        if records:
+            print(f"\nSample record structure: {records[0]}")
         
         # Get the most recent year's data for each country
         country_latest = {}
@@ -202,14 +262,26 @@ def main():
     """Main function to run the scraper"""
     print("Starting Energy Consumption Scraper...")
     
-    # Get EIA API key from environment variable (required)
-    api_key = os.environ.get('EIA_API_KEY')
+    # HARDCODED API KEY FOR TESTING
+    api_key = "vnZZ23GixkRlGThX93MlwOMdSzgF20FuO5f5bCS6"
     
-    if not api_key:
-        print("ERROR: EIA_API_KEY environment variable is not set!")
-        print("Please set it in GitHub Secrets or export it locally:")
-        print("  export EIA_API_KEY='your_api_key_here'")
-        exit(1)
+    # Also try to get from environment variable
+    env_api_key = os.environ.get('EIA_API_KEY')
+    if env_api_key:
+        print("Using API key from environment variable")
+        api_key = env_api_key
+    else:
+        print("Using hardcoded API key for testing")
+    
+    # First, test the API to see what we're getting
+    print("\n" + "="*60)
+    print("STEP 1: Testing API Connection")
+    print("="*60)
+    test_eia_api(api_key)
+    
+    print("\n" + "="*60)
+    print("STEP 2: Fetching Full Data")
+    print("="*60)
     
     # Fetch energy data
     energy_data = get_eia_data(api_key)
