@@ -27,6 +27,11 @@ jobs:
     - name: Create data directory
       run: mkdir -p data
       
+    - name: Remove old CSV files (optional cleanup)
+      run: |
+        # Remove previous month's file to ensure clean state
+        rm -f data/empire_research_*.csv || true
+      
     - name: Run scraper
       run: python empire_research.py
       
