@@ -87,13 +87,13 @@ def save_to_csv(df, output_dir='data'):
     """Save data to CSV file"""
     os.makedirs(output_dir, exist_ok=True)
     
-    date_str = datetime.now().strftime('%d-%B-%Y')
-    filename = os.path.join(output_dir, f'{date_str}/empire_cities_population.csv')
+    filename = os.path.join(output_dir, 'empire_cities_population.csv')
     
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    # Add scraped date for versioning
+    df['Scraped_Date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
     # Reorder columns
-    df = df[['Empire', 'Rank', 'City', 'Country', 'Population']]
+    df = df[['Empire', 'Rank', 'City', 'Country', 'Population', 'Scraped_Date']]
     df.to_csv(filename, index=False)
     
     print(f"Data saved to {filename}")
@@ -117,6 +117,9 @@ def main():
     # Display summary
     print("\nSummary by Empire:")
     print(top_cities_df.groupby('Empire').size())
+    
+    print("\nTop cities preview:")
+    print(top_cities_df.head())
     
     # Save to CSV
     save_to_csv(top_cities_df)
