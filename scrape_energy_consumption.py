@@ -2,81 +2,92 @@ import os
 import pandas as pd
 from datetime import datetime
 
-DATA_URL = "https://storage.googleapis.com/emb-prod-bkt-publicdata/public-downloads/monthly_full_release_long_format.csv"
+# ------------------------------------------------------------------
+# 1.  DATA
+# ------------------------------------------------------------------
+DATA_URL = ("https://storage.googleapis.com/emb-prod-bkt-publicdata/"
+            "public-downloads/monthly_full_release_long_format.csv")
 
+# ------------------------------------------------------------------
+# 2.  EMPIRE LOOKUPS  (spellings exactly as they appear in the CSV)
+# ------------------------------------------------------------------
 EMPIRE_1_COUNTRIES = {
-    'United Kingdom', 'Canada', 'Australia', 'New Zealand', 'South Africa', 'Nigeria', 'Ghana',
-    'Kenya', 'Uganda', 'Tanzania', 'Zambia', 'Malawi', 'Botswana', 'Namibia', 'Lesotho', 'Eswatini',
-    'Jamaica', 'Trinidad and Tobago', 'Barbados', 'Bahamas', 'Belize', 'Guyana', 'Saint Lucia',
-    'Grenada', 'Saint Vincent and the Grenadines', 'Antigua and Barbuda', 'Dominica',
-    'Saint Kitts and Nevis', 'Cyprus', 'Malta', 'Singapore', 'Malaysia', 'Brunei', 'Bangladesh',
+    'United Kingdom', 'Canada', 'Australia', 'New Zealand', 'South Africa',
+    'Nigeria', 'Ghana', 'Kenya', 'Uganda', 'Tanzania', 'Zambia', 'Malawi',
+    'Botswana', 'Namibia', 'Lesotho', 'Eswatini', 'Jamaica',
+    'Trinidad and Tobago', 'Barbados', 'Bahamas', 'Belize', 'Guyana',
+    'Saint Lucia', 'Grenada', 'Saint Vincent and the Grenadines',
+    'Antigua and Barbuda', 'Dominica', 'Saint Kitts and Nevis',
+    'Cyprus', 'Malta', 'Singapore', 'Malaysia', 'Brunei', 'Bangladesh',
     'Sri Lanka', 'Maldives'
 }
-EMPIRE_2_COUNTRIES = {'United States'}
-EMPIRE_3_COUNTRIES = {'China', 'Hong Kong', 'Taiwan'}
-
-def download_data() -> pd.DataFrame:
-    print(f"🌐 Downloading dataset from {DATA_URL} ...")
-    df = pd.read_csv(DATA_URL, low_memory=False)
-    print(f"✅ Loaded {len(df):,} rows, {len(df.columns)} columns.")
-    print("📊 Columns:", list(df.columns))
-    return df
+EMPIRE_2_COUNTRIES = {'United States of America'}
+EMPIRE_3_COUNTRIES = {'China', 'Hong Kong (China)', 'Taiwan'}
 
 def assign_empire(area: str) -> int | None:
     if area in EMPIRE_1_COUNTRIES:
         return 1
-    elif area in EMPIRE_2_COUNTRIES:
+    if area in EMPIRE_2_COUNTRIES:
         return 2
-    elif area in EMPIRE_3_COUNTRIES:
+    if area in EMPIRE_3_COUNTRIES:
         return 3
     return None
 
+# ------------------------------------------------------------------
+# 3.  DOWNLOAD
+# ------------------------------------------------------------------
+def download_data() -> pd.DataFrame:
+    print(f"🌐  Downloading … {DATA_URL}")
+    df = pd.read_csv(DATA_URL, low_memory=False)
+    print(f"✅  Loaded {len(df):,} rows × {len(df.columns)} columns")
+    return df
+
+# ------------------------------------------------------------------
+# 4.  MAIN PIPELINE
+# ------------------------------------------------------------------
 def main():
     df = download_data()
-    df.columns = df.columns.str.strip()
 
-    # Try to find the column describing what the data measures
-    possible_cols = [c for c in df.columns if df[c].astype(str).str.contains("Electric", case=False, na=False).any()]
-    if not possible_cols:
-        print("⚠️ No electricity-related column found automatically. Defaulting to all rows.")
-        df_elec = df.copy()
-    else:
-        chosen_col = possible_cols[0]
-        print(f"⚡ Using column '{chosen_col}' to filter electricity data.")
-        df_elec = df[df[chosen_col].astype(str).str.contains("Electric", case=False, na=False)].copy()
+    # ---- 4a.  keep only electricity-related rows -----------------
+    elec_mask = df.select_dtypes(include='object') \
+                  .apply(lambda s: s.str.contains('Electric', case=False, na=False)) \
+                  .any(axis=1)
+    df_elec = df[elec_mask].copy()
 
-    # Assign empire based on Area - use .copy() to avoid SettingWithCopyWarning
-    if "Area" not in df_elec.columns:
-        raise KeyError("❌ 'Area' column missing — cannot assign countries to empires.")
-    df_elec = df_elec.copy()  # Explicit copy to avoid the warning
-    df_elec["Empire"] = df_elec["Area"].apply(assign_empire)
-    df_elec = df_elec.dropna(subset=["Empire"])
+    # ---- 4b.  empire column (int, no decimals) -------------------
+    df_elec['Empire'] = df_elec['Area'].apply(assign_empire)
+    df_elec = df_elec.dropna(subset=['Empire'])
+    df_elec['Empire'] = df_elec['Empire'].astype('int64')
 
-    # Aggregate
-    if "Value" not in df_elec.columns:
-        raise KeyError("❌ 'Value' column missing — cannot sum consumption data.")
-    result = (
-        df_elec.groupby(["Empire", "Area"], as_index=False)["Value"]
+    # ---- 4c.  country totals -------------------------------------
+    by_country = (
+        df_elec.groupby(['Empire', 'Area'], as_index=False)['Value']
         .sum()
-        .sort_values(["Empire", "Value"], ascending=[True, False])
+        .sort_values(['Empire', 'Value'], ascending=[True, False])
     )
 
-    # Save output
-    os.makedirs("data", exist_ok=True)
-    timestamp = datetime.utcnow().strftime("%Y-%m")
-    output_path = f"data/empire_energy_consumption_{timestamp}.csv"
-    result.to_csv(output_path, index=False)
+    # ---- 4d.  empire sub-totals ----------------------------------
+    empire_totals = (
+        by_country.groupby('Empire', as_index=False)['Value']
+        .sum()
+        .assign(Area='Total')
+    )
 
-    print(f"✅ Saved empire electricity summary → {output_path}")
-    print("📋 Preview of data:")
-    print(result.head(15))
-    
-    # Also print file info to verify it was created
-    if os.path.exists(output_path):
-        file_size = os.path.getsize(output_path)
-        print(f"📁 File created successfully: {output_path} ({file_size} bytes)")
-    else:
-        print(f"❌ File was not created: {output_path}")
+    # ---- 4e.  combine countries + their total row ----------------
+    final = (
+        pd.concat([by_country, empire_totals], ignore_index=True)
+          .sort_values(['Empire', 'Value'], ascending=[True, False])
+          .reset_index(drop=True)
+    )
 
-if __name__ == "__main__":
+    # ---- 4f.  save -----------------------------------------------
+    os.makedirs('data', exist_ok=True)
+    stamp = datetime.utcnow().strftime('%Y-%m')
+    out_file = f'data/empire_energy_consumption_{stamp}.csv'
+    final.to_csv(out_file, index=False)
+    print(f'\n✅  Saved → {out_file}\n')
+    print(final)
+
+# ------------------------------------------------------------------
+if __name__ == '__main__':
     main()
