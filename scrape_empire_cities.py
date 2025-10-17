@@ -44,11 +44,12 @@ def scrape_world_cities():
         
         for row in rows:
             cols = row.find_all(['td', 'th'])
-            if len(cols) >= 6:  # Ensure full row with 6 columns
+            if len(cols) >= 7:  # Full row with 7 columns (flag, rank, city, country, 2025 pop, 2024 pop, change)
                 try:
-                    city = cols[1].get_text(strip=True)  # City in second column
-                    country = cols[2].get_text(strip=True)  # Country in third column
-                    pop_text = cols[3].get_text(strip=True)  # 2025 Pop in fourth column
+                    # cols[0]: flag, cols[1]: rank, cols[2]: city, cols[3]: country, cols[4]: 2025 pop
+                    city = cols[2].get_text(strip=True)  # City in third column (index 2)
+                    country = cols[3].get_text(strip=True)  # Country in fourth column (index 3)
+                    pop_text = cols[4].get_text(strip=True)  # 2025 Pop in fifth column (index 4)
                     
                     # Clean population text (remove commas)
                     population = int(pop_text.replace(',', ''))
