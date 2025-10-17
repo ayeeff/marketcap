@@ -41,42 +41,73 @@ def fetch_nature_index_data():
 
 
 def parse_institutions(text_content):
-    """Parse text content to extract institution rankings."""
+    """Parse text content to extract institution rankings using regex."""
     institutions = []
     
-    # Split into lines and process
-    lines = text_content.split('\n')
+    # Pattern to match: number, newline, institution name with country
+    # Example: "2\nHarvard University, United States of America (USA)"
+    pattern = r'(\d+)\s*\n\s*([^,\n]+?),\s*([^\n]+?)(?:\s+\([\w\s]+\))?\s*\n'
+    
+    matches = re.finditer(pattern, text_content, re.MULTILINE)
+    
+    for match in matches:
+        rank = int(match.group(1))
+        name = match.group(2).strip()
+        country_raw = match.group(3).strip()
+        
+        # Clean up country name - remove parenthetical codes
+        country = re.sub(r'\s*\([^)]*\)$', '', country_raw).strip()
+        
+        institutions.append({
+            'rank': rank,
+            'name': name,
+            'country': country
+        })
+    
+    # If regex doesn't work, try line-by-line parsing as backup
+    if len(institutions) < 50:
+        print("  ⚠️  Regex parsing found few results, trying line-by-line...")
+        institutions = parse_institutions_line_by_line(text_content)
+    
+    return institutions
+
+
+def parse_institutions_line_by_line(text_content):
+    """Fallback: Parse line by line."""
+    institutions = []
+    lines = [l.strip() for l in text_content.split('\n') if l.strip()]
     
     i = 0
     while i < len(lines):
-        line = lines[i].strip()
+        line = lines[i]
         
-        # Check if line is a number (rank)
-        if line.isdigit():
+        # Check if line is just a number (potential rank)
+        if line.isdigit() and len(line) <= 4:
             rank = int(line)
             
-            # Next line should be institution name and country
+            # Look ahead for institution line
             if i + 1 < len(lines):
-                i += 1
-                name_country_line = lines[i].strip()
+                next_line = lines[i + 1]
                 
-                # Parse institution name and country
-                # Format: "Institution Name, Country" or "Institution Name (Abbr), Country"
-                if ',' in name_country_line:
-                    parts = name_country_line.rsplit(',', 1)
+                # Institution line should have a comma
+                if ',' in next_line:
+                    # Split on last comma to separate name from country
+                    parts = next_line.rsplit(',', 1)
                     if len(parts) == 2:
                         name = parts[0].strip()
-                        country = parts[1].strip()
+                        country_raw = parts[1].strip()
                         
-                        # Remove parenthetical country codes like (USA), (UK)
-                        country = re.sub(r'\s*\([^)]*\)', '', country).strip()
+                        # Remove parenthetical country codes
+                        country = re.sub(r'\s*\([^)]*\)$', '', country_raw).strip()
                         
-                        institution = {
+                        institutions.append({
                             'rank': rank,
                             'name': name,
                             'country': country
-                        }
-                        institutions.append(institution)
+                        })
+                        
+                        i += 2  # Skip the institution line
+                        continue
         
         i += 1
     
@@ -85,7 +116,6 @@ def parse_institutions(text_content):
 
 def normalize_country(country):
     """Normalize country names for matching."""
-    # Map variations to standard names
     country_map = {
         'United States of America': 'United States of America',
         'USA': 'United States of America',
@@ -131,7 +161,7 @@ def save_to_csv(empire_data, output_dir='data'):
     os.makedirs(output_dir, exist_ok=True)
     
     timestamp = datetime.now().strftime('%Y-%m')
-    filename = os.path.join(output_dir, f'nature_index_empires_{timestamp}.csv')
+    filename = os.path.join(output_dir, f'empire_research_{timestamp}.csv')
     
     with open(filename, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
@@ -188,12 +218,15 @@ def main():
         print("❌ Failed to fetch data. Exiting.")
         return
     
+    print(f"✓ Fetched {len(html_content)} characters")
+    
     # Parse institutions
     print("📊 Parsing institution data...")
     institutions = parse_institutions(html_content)
     
     if not institutions:
         print("❌ No institutions found. The page structure may have changed.")
+        print("💡 Try checking the URL manually or enable debug mode.")
         return
     
     print(f"✓ Found {len(institutions)} institutions")
@@ -209,17 +242,20 @@ def main():
     # Print top 3 from each empire for preview
     print("\n📋 Preview - Top 3 from each empire:")
     
-    print("\n  Empire 1 (Commonwealth):")
-    for i, inst in enumerate(empire_data['empire_1'][:3], 1):
-        print(f"    {i}. {inst['name']} (Rank #{inst['rank']})")
+    if empire_data['empire_1']:
+        print("\n  Empire 1 (Commonwealth):")
+        for i, inst in enumerate(empire_data['empire_1'][:3], 1):
+            print(f"    {i}. {inst['name']} (#{inst['rank']})")
     
-    print("\n  Empire 2 (USA):")
-    for i, inst in enumerate(empire_data['empire_2'][:3], 1):
-        print(f"    {i}. {inst['name']} (Rank #{inst['rank']})")
+    if empire_data['empire_2']:
+        print("\n  Empire 2 (USA):")
+        for i, inst in enumerate(empire_data['empire_2'][:3], 1):
+            print(f"    {i}. {inst['name']} (#{inst['rank']})")
     
-    print("\n  Empire 3 (China):")
-    for i, inst in enumerate(empire_data['empire_3'][:3], 1):
-        print(f"    {i}. {inst['name']} (Rank #{inst['rank']})")
+    if empire_data['empire_3']:
+        print("\n  Empire 3 (China):")
+        for i, inst in enumerate(empire_data['empire_3'][:3], 1):
+            print(f"    {i}. {inst['name']} (#{inst['rank']})")
     
     # Save to CSV
     print("\n💾 Saving to CSV...")
