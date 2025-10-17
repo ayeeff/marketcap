@@ -31,6 +31,35 @@ def get_eia_data(api_key=None):
     # All countries we need data for
     all_countries = EMPIRE_1_COUNTRIES | EMPIRE_2_COUNTRIES | EMPIRE_3_COUNTRIES
     
+    # Map EIA country names to our standardized names
+    eia_country_mapping = {
+        'China, People\'s Republic of': 'China',
+        'Hong Kong Special Administrative Region': 'Hong Kong',
+        'Taiwan': 'Taiwan',
+        'United States': 'United States',
+        'United Kingdom': 'United Kingdom',
+        'Canada': 'Canada',
+        'Australia': 'Australia',
+        'New Zealand': 'New Zealand',
+        'South Africa': 'South Africa',
+        'Nigeria': 'Nigeria',
+        'Ghana': 'Ghana',
+        'Kenya': 'Kenya',
+        'Uganda': 'Uganda',
+        'Tanzania': 'Tanzania',
+        'Zambia': 'Zambia',
+        'Malawi': 'Malawi',
+        'Botswana': 'Botswana',
+        'Namibia': 'Namibia',
+        'Jamaica': 'Jamaica',
+        'Singapore': 'Singapore',
+        'Malaysia': 'Malaysia',
+        'Bangladesh': 'Bangladesh',
+        'Sri Lanka': 'Sri Lanka',
+        'Pakistan': 'Pakistan',
+        'India': 'India',
+    }
+    
     energy_data = {}
     
     # EIA API v2 endpoint
@@ -63,34 +92,47 @@ def get_eia_data(api_key=None):
         records = data['response']['data']
         print(f"Retrieved {len(records)} records from EIA API")
         
+        # Debug: Print first few unique country names to see the format
+        unique_countries = set()
+        for record in records[:100]:
+            country = record.get('countryName')
+            if country:
+                unique_countries.add(country)
+        print(f"\nSample of country names from API: {sorted(list(unique_countries))[:10]}")
+        
         # Get the most recent year's data for each country
         country_latest = {}
         for record in records:
-            country = record.get('countryName')
+            eia_country = record.get('countryName')
             year = record.get('period')
             value = record.get('value')
             
-            if country and year and value is not None:
+            if eia_country and year and value is not None:
+                # Map EIA country name to our standard name
+                standard_country = eia_country_mapping.get(eia_country, eia_country)
+                
                 # Keep only the most recent year for each country
-                if country not in country_latest or year > country_latest[country]['year']:
-                    country_latest[country] = {
+                if standard_country not in country_latest or year > country_latest[standard_country]['year']:
+                    country_latest[standard_country] = {
                         'year': year,
-                        'value': float(value)
+                        'value': float(value),
+                        'eia_name': eia_country
                     }
         
-        # Map to our country names and filter
+        # Filter for countries we need
         for country, data_point in country_latest.items():
             if country in all_countries:
                 energy_data[country] = data_point['value']
-                print(f"  {country}: {data_point['value']} QBTU ({data_point['year']})")
+                print(f"  {country}: {data_point['value']} QBTU ({data_point['year']}) [EIA: {data_point['eia_name']}]")
         
         # Check for missing countries
         missing = all_countries - set(energy_data.keys())
         if missing:
-            print(f"\nWarning: Missing data for countries: {missing}")
+            print(f"\nWarning: Missing data for countries: {sorted(missing)}")
+            print("\nTo fix this, add the correct EIA country names to the mapping in the script.")
         
         if not energy_data:
-            raise ValueError("No energy data retrieved from API")
+            raise ValueError("No energy data retrieved from API. Check country name mappings.")
         
         return energy_data
         
