@@ -1,6 +1,6 @@
 """
-Empire Research Scraper - Final Version
-Fixed empire numbering and institution/country parsing
+Empire Research Scraper - Fixed Campus Info Version
+Properly preserves campus information in institution names
 """
 import requests
 import csv
@@ -17,7 +17,7 @@ EMPIRE_1_COUNTRIES = {
     'Barbados', 'Bahamas', 'Belize', 'Guyana', 'Saint Lucia', 'Grenada',
     'Saint Vincent and the Grenadines', 'Antigua and Barbuda', 'Dominica',
     'Saint Kitts and Nevis', 'Cyprus', 'Malta', 'Singapore', 'Malaysia',
-    'Brunei', 'Bangladesh', 'Sri Lanka', 'Maldives'
+    'Brunei', 'Bangladesh', 'Sri Lanka', 'Maldives', 'India', 'Pakistan'
 }
 
 EMPIRE_2_COUNTRIES = {'United States of America', 'USA', 'United States'}
@@ -123,30 +123,47 @@ def parse_rankings_table(table):
                 # Look for institution name and country pattern
                 for text in cell_texts[1:]:
                     # Pattern: "Institution Name, Country"
-                    name_country_match = re.search(r'^(.+?),\s*(.+)$', text)
-                    if name_country_match:
-                        name = name_country_match.group(1).strip()
-                        country_raw = name_country_match.group(2).strip()
-                        
-                        # Extract clean country name
-                        country = extract_country_name(country_raw)
-                        
-                        institutions.append({
-                            'rank': rank,
-                            'name': name,  # Keep full institution name with campus
-                            'country': country  # Clean country name only
-                        })
-                        break
+                    # For University of California cases, we need to be more careful
+                    if 'University of California' in text:
+                        # Special handling for UC system
+                        name, country = parse_uc_institution(text)
                     else:
-                        # Try without comma - might be just name
-                        institutions.append({
-                            'rank': rank,
-                            'name': text,
-                            'country': 'Unknown'
-                        })
-                        break
+                        name_country_match = re.search(r'^(.+?),\s*(.+)$', text)
+                        if name_country_match:
+                            name = name_country_match.group(1).strip()
+                            country_raw = name_country_match.group(2).strip()
+                            country = extract_country_name(country_raw)
+                        else:
+                            # Try without comma
+                            name = text
+                            country = 'Unknown'
+                    
+                    institutions.append({
+                        'rank': rank,
+                        'name': name,
+                        'country': country
+                    })
+                    break
     
     return institutions
+
+
+def parse_uc_institution(text):
+    """Parse University of California institution names specifically."""
+    # Example: "University of California, Los Angeles (UCLA), United States of America (USA)"
+    # We want to keep: "University of California, Los Angeles (UCLA)" as name
+    # And extract: "United States of America" as country
+    
+    # Split by the last comma to separate institution from country
+    parts = text.rsplit(',', 1)
+    if len(parts) == 2:
+        name = parts[0].strip()
+        country_raw = parts[1].strip()
+        country = extract_country_name(country_raw)
+        return name, country
+    else:
+        # Fallback if parsing fails
+        return text, 'United States of America'
 
 
 def extract_country_name(country_raw):
@@ -181,7 +198,6 @@ def parse_institution_elements(elements):
         # Look for ranking patterns
         patterns = [
             r'^(\d+)\.?\s+(.+?),\s*(.+)$',  # "1. Harvard University, United States"
-            r'rank\s*[:\-]?\s*(\d+).*?name\s*[:\-]?\s*(.+?),\s*(.+)',  # "rank: 1 name: Harvard University, United States"
         ]
         
         for pattern in patterns:
@@ -189,11 +205,16 @@ def parse_institution_elements(elements):
             for match in matches:
                 if len(match) == 3:
                     try:
-                        country = extract_country_name(match[2].strip())
+                        if 'University of California' in match[1]:
+                            name, country = parse_uc_institution(f"{match[1]}, {match[2]}")
+                        else:
+                            name = match[1].strip()
+                            country = extract_country_name(match[2].strip())
+                        
                         institutions.append({
                             'rank': int(match[0]),
-                            'name': match[1].strip(),  # Keep full institution name
-                            'country': country  # Clean country name
+                            'name': name,
+                            'country': country
                         })
                     except:
                         continue
@@ -216,11 +237,16 @@ def extract_institutions_from_text(text):
         for match in matches:
             if len(match) == 3:
                 try:
-                    country = extract_country_name(match[2].strip())
+                    if 'University of California' in match[1]:
+                        name, country = parse_uc_institution(f"{match[1]}, {match[2]}")
+                    else:
+                        name = match[1].strip()
+                        country = extract_country_name(match[2].strip())
+                    
                     institutions.append({
                         'rank': int(match[0]),
-                        'name': match[1].strip(),  # Keep full institution name
-                        'country': country  # Clean country name
+                        'name': name,
+                        'country': country
                     })
                 except:
                     continue
@@ -303,6 +329,11 @@ def save_to_csv(empire_data, output_dir='data'):
     timestamp = datetime.now().strftime('%Y-%m')
     filename = os.path.join(output_dir, f'empire_research_{timestamp}.csv')
     
+    # Remove existing file if it exists to ensure clean overwrite
+    if os.path.exists(filename):
+        os.remove(filename)
+        print(f"♻️  Removed existing file: {filename}")
+    
     with open(filename, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         
@@ -312,30 +343,30 @@ def save_to_csv(empire_data, output_dir='data'):
         # Empire 1: Commonwealth
         for idx, inst in enumerate(empire_data['empire_1'], 1):
             writer.writerow([
-                '1',  # Changed from 'Empire_1_Commonwealth' to '1'
+                '1',
                 idx,
-                inst['name'],  # Full institution name with campus
-                inst['country'],  # Clean country name only
+                inst['name'],
+                inst['country'],
                 inst['rank']
             ])
         
         # Empire 2: USA
         for idx, inst in enumerate(empire_data['empire_2'], 1):
             writer.writerow([
-                '2',  # Changed from 'Empire_2_USA' to '2'
+                '2',
                 idx,
-                inst['name'],  # Full institution name with campus
-                inst['country'],  # Clean country name only
+                inst['name'],
+                inst['country'],
                 inst['rank']
             ])
         
         # Empire 3: China
         for idx, inst in enumerate(empire_data['empire_3'], 1):
             writer.writerow([
-                '3',  # Changed from 'Empire_3_China' to '3'
+                '3',
                 idx,
-                inst['name'],  # Full institution name with campus
-                inst['country'],  # Clean country name only
+                inst['name'],
+                inst['country'],
                 inst['rank']
             ])
     
@@ -346,7 +377,7 @@ def save_to_csv(empire_data, output_dir='data'):
 def main():
     """Main scraper function."""
     print("=" * 60)
-    print("Nature Index Empire Research Scraper - Final Version")
+    print("Nature Index Empire Research Scraper - Fixed Campus Info")
     print("=" * 60)
     print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
@@ -372,9 +403,15 @@ def main():
     
     print(f"✓ Found {len(institutions)} institutions")
     
-    # Show sample
-    print("\n📋 Sample institutions:")
-    for inst in institutions[:10]:
+    # Show sample - specifically look for UC institutions
+    print("\n📋 Sample institutions (looking for UC campuses):")
+    uc_institutions = [inst for inst in institutions if 'University of California' in inst['name']]
+    for inst in uc_institutions[:5]:
+        print(f"  #{inst['rank']}: {inst['name']} - {inst['country']}")
+    
+    # Also show general sample
+    print("\n📋 General sample:")
+    for inst in institutions[:5]:
         print(f"  #{inst['rank']}: {inst['name']} - {inst['country']}")
     
     # Categorize by empire
