@@ -1,1 +1,31 @@
 Empire,Empire_Rank,Institution,Country,Global_Rank
+Empire_1_Commonwealth,1,University of Oxford,United Kingdom (UK),18
+Empire_1_Commonwealth,2,University of Cambridge,United Kingdom (UK),26
+Empire_1_Commonwealth,3,University of Toronto (U of T),Canada,34
+Empire_1_Commonwealth,4,National University of Singapore (NUS),Singapore,44
+Empire_1_Commonwealth,5,Imperial College London (ICL),United Kingdom (UK),58
+Empire_1_Commonwealth,6,UCL,United Kingdom (UK),67
+Empire_1_Commonwealth,7,Nanyang Technological University (NTU),Singapore,72
+Empire_1_Commonwealth,8,McGill University,Canada,78
+Empire_1_Commonwealth,9,The University of British Columbia (UBC),Canada,106
+Empire_1_Commonwealth,10,Monash University,Australia,109
+Empire_2_USA,1,Harvard University,United States of America (USA),2
+Empire_2_USA,2,Stanford University,United States of America (USA),16
+Empire_2_USA,3,Massachusetts Institute of Technology (MIT),United States of America (USA),17
+Empire_2_USA,4,National Institutes of Health (NIH),United States of America (USA),24
+Empire_2_USA,5,University of Michigan (U-M),United States of America (USA),25
+Empire_2_USA,6,Yale University,United States of America (USA),31
+Empire_2_USA,7,University of Pennsylvania (Penn),United States of America (USA),32
+Empire_2_USA,8,University of California,"Los Angeles (UCLA), United States of America (USA)",35
+Empire_2_USA,9,University of California,"Berkeley (UC Berkeley), United States of America (USA)",36
+Empire_2_USA,10,Johns Hopkins University (JHU),United States of America (USA),38
+Empire_3_China,1,Chinese Academy of Sciences (CAS),China,1
+Empire_3_China,2,University of Science and Technology of China (USTC),China,3
+Empire_3_China,3,Zhejiang University (ZJU),China,4
+Empire_3_China,4,Peking University (PKU),China,5
+Empire_3_China,5,University of Chinese Academy of Sciences (UCAS),China,6
+Empire_3_China,6,Tsinghua University,China,7
+Empire_3_China,7,Nanjing University (NJU),China,8
+Empire_3_China,8,Shanghai Jiao Tong University (SJTU),China,10
+Empire_3_China,9,Sun Yat-sen University (SYSU),China,11
+Empire_3_China,10,Fudan University,China,12
