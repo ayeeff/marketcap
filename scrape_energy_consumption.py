@@ -43,11 +43,12 @@ def main():
     else:
         chosen_col = possible_cols[0]
         print(f"⚡ Using column '{chosen_col}' to filter electricity data.")
-        df_elec = df[df[chosen_col].astype(str).str.contains("Electric", case=False, na=False)]
+        df_elec = df[df[chosen_col].astype(str).str.contains("Electric", case=False, na=False)].copy()
 
-    # Assign empire based on Area
+    # Assign empire based on Area - use .copy() to avoid SettingWithCopyWarning
     if "Area" not in df_elec.columns:
         raise KeyError("❌ 'Area' column missing — cannot assign countries to empires.")
+    df_elec = df_elec.copy()  # Explicit copy to avoid the warning
     df_elec["Empire"] = df_elec["Area"].apply(assign_empire)
     df_elec = df_elec.dropna(subset=["Empire"])
 
@@ -67,7 +68,15 @@ def main():
     result.to_csv(output_path, index=False)
 
     print(f"✅ Saved empire electricity summary → {output_path}")
+    print("📋 Preview of data:")
     print(result.head(15))
+    
+    # Also print file info to verify it was created
+    if os.path.exists(output_path):
+        file_size = os.path.getsize(output_path)
+        print(f"📁 File created successfully: {output_path} ({file_size} bytes)")
+    else:
+        print(f"❌ File was not created: {output_path}")
 
 if __name__ == "__main__":
     main()
