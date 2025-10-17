@@ -1,6 +1,6 @@
 """
 Empire Research Scraper - Final Version
-Fixed empire numbering and country parsing
+Fixed empire numbering and institution/country parsing
 """
 import requests
 import csv
@@ -17,7 +17,7 @@ EMPIRE_1_COUNTRIES = {
     'Barbados', 'Bahamas', 'Belize', 'Guyana', 'Saint Lucia', 'Grenada',
     'Saint Vincent and the Grenadines', 'Antigua and Barbuda', 'Dominica',
     'Saint Kitts and Nevis', 'Cyprus', 'Malta', 'Singapore', 'Malaysia',
-    'Brunei', 'Bangladesh', 'Sri Lanka', 'Maldives', 'India', 'Pakistan'
+    'Brunei', 'Bangladesh', 'Sri Lanka', 'Maldives'
 }
 
 EMPIRE_2_COUNTRIES = {'United States of America', 'USA', 'United States'}
@@ -126,15 +126,15 @@ def parse_rankings_table(table):
                     name_country_match = re.search(r'^(.+?),\s*(.+)$', text)
                     if name_country_match:
                         name = name_country_match.group(1).strip()
-                        country = name_country_match.group(2).strip()
+                        country_raw = name_country_match.group(2).strip()
                         
-                        # Clean up country - remove extra parenthetical info
-                        country = clean_country_name(country)
+                        # Extract clean country name
+                        country = extract_country_name(country_raw)
                         
                         institutions.append({
                             'rank': rank,
-                            'name': name,
-                            'country': country
+                            'name': name,  # Keep full institution name with campus
+                            'country': country  # Clean country name only
                         })
                         break
                     else:
@@ -149,10 +149,10 @@ def parse_rankings_table(table):
     return institutions
 
 
-def clean_country_name(country):
-    """Clean and normalize country names."""
+def extract_country_name(country_raw):
+    """Extract clean country name from raw country string."""
     # Remove extra parenthetical information after country
-    country = re.sub(r'\s*\([^)]*\)$', '', country).strip()
+    country = re.sub(r'\s*\([^)]*\)$', '', country_raw).strip()
     
     # Handle specific cases
     if 'United States of America' in country:
@@ -189,11 +189,11 @@ def parse_institution_elements(elements):
             for match in matches:
                 if len(match) == 3:
                     try:
-                        country = clean_country_name(match[2].strip())
+                        country = extract_country_name(match[2].strip())
                         institutions.append({
                             'rank': int(match[0]),
-                            'name': match[1].strip(),
-                            'country': country
+                            'name': match[1].strip(),  # Keep full institution name
+                            'country': country  # Clean country name
                         })
                     except:
                         continue
@@ -216,11 +216,11 @@ def extract_institutions_from_text(text):
         for match in matches:
             if len(match) == 3:
                 try:
-                    country = clean_country_name(match[2].strip())
+                    country = extract_country_name(match[2].strip())
                     institutions.append({
                         'rank': int(match[0]),
-                        'name': match[1].strip(),
-                        'country': country
+                        'name': match[1].strip(),  # Keep full institution name
+                        'country': country  # Clean country name
                     })
                 except:
                     continue
@@ -314,8 +314,8 @@ def save_to_csv(empire_data, output_dir='data'):
             writer.writerow([
                 '1',  # Changed from 'Empire_1_Commonwealth' to '1'
                 idx,
-                inst['name'],
-                inst['country'],
+                inst['name'],  # Full institution name with campus
+                inst['country'],  # Clean country name only
                 inst['rank']
             ])
         
@@ -324,8 +324,8 @@ def save_to_csv(empire_data, output_dir='data'):
             writer.writerow([
                 '2',  # Changed from 'Empire_2_USA' to '2'
                 idx,
-                inst['name'],
-                inst['country'],
+                inst['name'],  # Full institution name with campus
+                inst['country'],  # Clean country name only
                 inst['rank']
             ])
         
@@ -334,8 +334,8 @@ def save_to_csv(empire_data, output_dir='data'):
             writer.writerow([
                 '3',  # Changed from 'Empire_3_China' to '3'
                 idx,
-                inst['name'],
-                inst['country'],
+                inst['name'],  # Full institution name with campus
+                inst['country'],  # Clean country name only
                 inst['rank']
             ])
     
