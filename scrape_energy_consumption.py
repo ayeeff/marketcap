@@ -3,13 +3,13 @@ import pandas as pd
 from datetime import datetime
 
 # ------------------------------------------------------------------
-# 1.  DATA
+# 1.  DATA  –  NEW ANNUAL FILE
 # ------------------------------------------------------------------
 DATA_URL = ("https://storage.googleapis.com/emb-prod-bkt-publicdata/"
-            "public-downloads/monthly_full_release_long_format.csv")
+            "public-downloads/yearly_full_release_long_format.csv")
 
 # ------------------------------------------------------------------
-# 2.  EMPIRE LOOKUPS  (spellings exactly as they appear in the CSV)
+# 2.  EMPIRE LOOKUPS  (unchanged)
 # ------------------------------------------------------------------
 EMPIRE_1_COUNTRIES = {
     'United Kingdom', 'Canada', 'Australia', 'New Zealand', 'South Africa',
