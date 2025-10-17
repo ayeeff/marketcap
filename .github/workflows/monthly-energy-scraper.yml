@@ -1,9 +1,9 @@
-name: Monthly Energy Scraper
+name: Monthly Energy Data Scraper
 
 on:
   schedule:
-    - cron: '0 3 1 * *'  # 3 AM UTC, on the 1st of every month
-  workflow_dispatch:      # allows manual run
+    - cron: "0 3 1 * *"  # Runs at 03:00 UTC on the 1st of each month
+  workflow_dispatch:     # Allows manual trigger
 
 jobs:
   scrape:
@@ -12,26 +12,23 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # full history for branch pushes
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install pandas requests
+        run: pip install pandas
 
       - name: Run scraper
         run: python scrape_energy_consumption.py
 
-      - name: Commit and push to data-updates branch
+      - name: Commit and push data update
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
           git checkout -B data-updates
           git add data/empire_energy_consumption_*.csv
-          git commit -m "Monthly energy update: $(date +'%Y-%m-%d')" || echo "No changes to commit"
+          git commit -m "Update empire energy data ($(date -u))" || echo "No changes to commit"
           git push origin data-updates --force
