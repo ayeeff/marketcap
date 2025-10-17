@@ -18,7 +18,7 @@ EMPIRE_1_COUNTRIES = {
     'Barbados', 'Bahamas', 'Belize', 'Guyana', 'Saint Lucia', 'Grenada',
     'Saint Vincent and the Grenadines', 'Antigua and Barbuda', 'Dominica',
     'Saint Kitts and Nevis', 'Cyprus', 'Malta', 'Singapore', 'Malaysia',
-    'Brunei', 'Bangladesh', 'Sri Lanka', 'Maldives', 'India', 'Pakistan'
+    'Brunei', 'Bangladesh', 'Sri Lanka', 'Maldives'
 }
 
 EMPIRE_2_COUNTRIES = {'United States of America', 'USA', 'United States'}
