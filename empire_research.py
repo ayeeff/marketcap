@@ -1,18 +1,14 @@
 """
-Empire Research Scraper - Selenium Version
-Uses Selenium to handle JavaScript-rendered content
+Empire Research Scraper - Direct URL Version
+Uses the Wikipedia-referenced Nature Index URL
 """
+import requests
 import csv
 import os
 import re
 import json
-import time
 from datetime import datetime
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
+from bs4 import BeautifulSoup
 
 EMPIRE_1_COUNTRIES = {
     'United Kingdom', 'Canada', 'Australia', 'New Zealand', 'South Africa',
@@ -29,182 +25,168 @@ EMPIRE_2_COUNTRIES = {'United States of America', 'USA', 'United States'}
 EMPIRE_3_COUNTRIES = {'China', 'Hong Kong', 'Taiwan', 'Macau'}
 
 
-def setup_selenium_driver():
-    """Set up Selenium WebDriver with appropriate options."""
-    chrome_options = Options()
-    chrome_options.add_argument('--headless')  # Run in background
-    chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument('--disable-dev-shm-usage')
-    chrome_options.add_argument('--disable-gpu')
-    chrome_options.add_argument('--window-size=1920,1080')
-    chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+def fetch_nature_index_direct():
+    """Fetch data from the Wikipedia-referenced Nature Index URL."""
+    url = "https://www.nature.com/nature-index/research-leaders/2025/institution/all/all/global"
     
-    driver = webdriver.Chrome(options=chrome_options)
-    return driver
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Referer': 'https://www.nature.com/',
+    }
+    
+    try:
+        print(f"🌐 Fetching: {url}")
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+        print(f"✅ Status: {response.status_code}")
+        return response.text
+    except Exception as e:
+        print(f"❌ Error fetching: {e}")
+        return None
 
 
-def fetch_with_selenium():
-    """Fetch Nature Index data using Selenium to handle JavaScript rendering."""
-    driver = setup_selenium_driver()
-    
-    urls = [
-        "https://www.nature.com/nature-index/institution-outputs",
-        "https://www.nature-index.com/institution-outputs",
-        "https://www.nature.com/nature-index/annual-tables/2024/institution/all/all",
-    ]
-    
-    for url in urls:
-        print(f"🌐 Loading: {url}")
-        try:
-            driver.get(url)
-            
-            # Wait for the page to load and for institution data to appear
-            wait = WebDriverWait(driver, 20)
-            
-            # Try different selectors for the data table
-            selectors = [
-                "table",
-                "[data-test='institution-table']",
-                ".institution-table",
-                ".ranking-table",
-                "tbody tr",
-            ]
-            
-            for selector in selectors:
-                try:
-                    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
-                    print(f"✅ Found elements with selector: {selector}")
-                    
-                    # Check if we have actual data rows
-                    rows = driver.find_elements(By.CSS_SELECTOR, f"{selector} tr")
-                    if len(rows) > 5:  # If we have more than 5 rows, likely real data
-                        print(f"✅ Found {len(rows)} rows with data")
-                        return driver.page_source
-                except:
-                    continue
-            
-            # If no table found, wait a bit and check page content
-            time.sleep(5)
-            page_source = driver.page_source
-            
-            # Check if page contains institution names we'd expect
-            if any(inst in page_source for inst in ['Harvard', 'Stanford', 'MIT', 'Cambridge', 'Oxford', 'Chinese Academy']):
-                print("✅ Page contains expected institution names")
-                return page_source
-                
-        except Exception as e:
-            print(f"❌ Error loading {url}: {e}")
-            continue
-    
-    driver.quit()
-    return None
-
-
-def parse_selenium_content(html_content):
-    """Parse the rendered HTML content from Selenium."""
-    from bs4 import BeautifulSoup
+def parse_research_leaders_page(html_content):
+    """Parse the research leaders page to extract institution rankings."""
     soup = BeautifulSoup(html_content, 'html.parser')
     institutions = []
     
-    print("🔍 Parsing rendered page content...")
+    print("🔍 Parsing page structure...")
     
-    # Save the rendered HTML for inspection
-    with open('rendered_page.html', 'w', encoding='utf-8') as f:
+    # Save HTML for debugging
+    with open('research_leaders_page.html', 'w', encoding='utf-8') as f:
         f.write(html_content)
-    print("💾 Saved rendered_page.html for inspection")
+    print("💾 Saved research_leaders_page.html")
     
-    # Method 1: Look for tables with institution data
+    # Method 1: Look for the main rankings table
     tables = soup.find_all('table')
     print(f"📊 Found {len(tables)} tables")
     
     for i, table in enumerate(tables):
-        rows = table.find_all('tr')
-        print(f"  Table {i+1}: {len(rows)} rows")
-        
-        for row in rows:
-            # Skip header rows
-            if row.find('th'):
-                continue
-                
-            cells = row.find_all(['td', 'div'])
-            cell_texts = [cell.get_text(strip=True) for cell in cells if cell.get_text(strip=True)]
-            
-            if len(cell_texts) >= 2:
-                # Try to extract rank from first cell
-                rank_text = cell_texts[0]
-                rank_match = re.search(r'(\d+)', rank_text)
-                if rank_match:
-                    rank = int(rank_match.group(1))
-                    
-                    # The institution name and country are likely in the next cells
-                    # Look for pattern: "Institution Name, Country"
-                    for text in cell_texts[1:]:
-                        name_country_match = re.search(r'(.+?),\s*(.+)', text)
-                        if name_country_match:
-                            name = name_country_match.group(1).strip()
-                            country = name_country_match.group(2).strip()
-                            
-                            institutions.append({
-                                'rank': rank,
-                                'name': name,
-                                'country': country
-                            })
-                            break
+        print(f"  Analyzing table {i+1}...")
+        institutions_from_table = parse_rankings_table(table)
+        if institutions_from_table:
+            print(f"✅ Table {i+1}: Found {len(institutions_from_table)} institutions")
+            return institutions_from_table
     
-    if institutions:
-        print(f"✅ Found {len(institutions)} institutions from tables")
-        return institutions
+    # Method 2: Look for institution cards or list items
+    institution_selectors = [
+        '[data-test="institution-card"]',
+        '.institution-card',
+        '.ranking-item',
+        '.institution-row',
+        'tr',
+        'li',
+    ]
     
-    # Method 2: Look for institution elements with specific classes
-    institution_elements = soup.find_all(lambda tag: 
-        tag.get('class') and 
-        any(cls in str(tag.get('class')).lower() for cls in ['institution', 'ranking', 'row']) and
-        tag.get_text(strip=True)
-    )
+    for selector in institution_selectors:
+        elements = soup.select(selector)
+        if len(elements) > 10:  # Likely real data if we have many elements
+            print(f"🔍 Found {len(elements)} elements with selector: {selector}")
+            institutions_from_elements = parse_institution_elements(elements)
+            if institutions_from_elements:
+                print(f"✅ Found {len(institutions_from_elements)} institutions from elements")
+                return institutions_from_elements
     
-    if institution_elements:
-        print(f"🔍 Found {len(institution_elements)} potential institution elements")
-        
-        for element in institution_elements[:20]:  # Check first 20
-            text = element.get_text(strip=True)
-            # Look for pattern: "1. Harvard University, United States"
-            pattern = r'(\d+)\.?\s+(.+?),\s*(.+)'
-            match = re.search(pattern, text)
-            if match:
-                institutions.append({
-                    'rank': int(match.group(1)),
-                    'name': match.group(2).strip(),
-                    'country': match.group(3).strip()
-                })
-    
-    if institutions:
-        print(f"✅ Found {len(institutions)} institutions from elements")
-        return institutions
-    
-    # Method 3: Extract from any visible text on page
-    body_text = soup.get_text()
-    institutions = extract_institutions_from_text(body_text)
-    
-    if institutions:
-        print(f"✅ Found {len(institutions)} institutions from text")
-        return institutions
+    # Method 3: Extract from page text using regex patterns
+    page_text = soup.get_text()
+    institutions_from_text = extract_institutions_from_text(page_text)
+    if institutions_from_text:
+        print(f"✅ Found {len(institutions_from_text)} institutions from text")
+        return institutions_from_text
     
     return []
 
 
-def extract_institutions_from_text(text):
-    """Extract institutions from page text using regex patterns."""
+def parse_rankings_table(table):
+    """Parse a rankings table to extract institution data."""
+    institutions = []
+    rows = table.find_all('tr')
+    
+    for row in rows:
+        # Skip header rows
+        if row.find('th'):
+            continue
+            
+        cells = row.find_all(['td', 'div'])
+        cell_texts = [cell.get_text(strip=True) for cell in cells if cell.get_text(strip=True)]
+        
+        if len(cell_texts) >= 2:
+            # First cell should contain rank
+            rank_text = cell_texts[0]
+            rank_match = re.search(r'(\d+)', rank_text)
+            if rank_match:
+                rank = int(rank_match.group(1))
+                
+                # Look for institution name and country pattern
+                for text in cell_texts[1:]:
+                    # Pattern: "Institution Name, Country"
+                    name_country_match = re.search(r'^(.+?),\s*(.+)$', text)
+                    if name_country_match:
+                        name = name_country_match.group(1).strip()
+                        country = name_country_match.group(2).strip()
+                        
+                        institutions.append({
+                            'rank': rank,
+                            'name': name,
+                            'country': country
+                        })
+                        break
+                    else:
+                        # Try without comma - might be just name
+                        institutions.append({
+                            'rank': rank,
+                            'name': text,
+                            'country': 'Unknown'
+                        })
+                        break
+    
+    return institutions
+
+
+def parse_institution_elements(elements):
+    """Parse institution data from various HTML elements."""
     institutions = []
     
-    # Common patterns in rankings
+    for element in elements:
+        text = element.get_text(strip=True)
+        
+        # Look for ranking patterns
+        patterns = [
+            r'^(\d+)\.?\s+(.+?),\s*(.+)$',  # "1. Harvard University, United States"
+            r'rank\s*[:\-]?\s*(\d+).*?name\s*[:\-]?\s*(.+?),\s*(.+)',  # "rank: 1 name: Harvard University, United States"
+        ]
+        
+        for pattern in patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE | re.DOTALL)
+            for match in matches:
+                if len(match) == 3:
+                    try:
+                        institutions.append({
+                            'rank': int(match[0]),
+                            'name': match[1].strip(),
+                            'country': match[2].strip()
+                        })
+                    except:
+                        continue
+    
+    return institutions
+
+
+def extract_institutions_from_text(text):
+    """Extract institutions from page text using regex."""
+    institutions = []
+    
+    # Common ranking patterns
     patterns = [
         r'(\d+)\.?\s*([^,\n]+?),\s*([^\n\(\)]+?)(?:\s+\([^\)]*\))?\s*\n',
         r'^(\d+)\s+([^,\n]+?),\s*([^\n\(\)]+?)(?:\s+\([^\)]*\))?$',
-        r'rank["\']?\s*:\s*["\']?(\d+)["\']?[^}]*?name["\']?\s*:\s*["\']?(.+?)["\']?[^}]*?country["\']?\s*:\s*["\']?(.+?)["\']?',
     ]
     
     for pattern in patterns:
-        matches = re.findall(pattern, text, re.MULTILINE | re.IGNORECASE)
+        matches = re.findall(pattern, text, re.MULTILINE)
         for match in matches:
             if len(match) == 3:
                 try:
@@ -216,84 +198,19 @@ def extract_institutions_from_text(text):
                 except:
                     continue
     
-    return institutions
-
-
-def try_alternative_approach():
-    """
-    Alternative approach: Use requests to mimic API calls or try different endpoints.
-    This is a simplified version that might work if we can find the right endpoint.
-    """
-    import requests
+    # Remove duplicates by rank
+    seen_ranks = set()
+    unique_institutions = []
+    for inst in institutions:
+        if inst['rank'] not in seen_ranks:
+            seen_ranks.add(inst['rank'])
+            unique_institutions.append(inst)
     
-    # Try the Nature Index API directly
-    api_urls = [
-        "https://www.nature.com/nature-index/api/index/2024/institution/all/all/global",
-        "https://www.nature-index.com/api/index/2024/institution/all/all/global",
-    ]
-    
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'application/json',
-    }
-    
-    for url in api_urls:
-        print(f"🔧 Trying API endpoint: {url}")
-        try:
-            response = requests.get(url, headers=headers, timeout=30)
-            if response.status_code == 200:
-                data = response.json()
-                print(f"✅ API returned data with keys: {list(data.keys())}")
-                return data
-        except Exception as e:
-            print(f"❌ API error: {e}")
-    
-    return None
-
-
-def parse_api_data(api_data):
-    """Parse institution data from API response."""
-    institutions = []
-    
-    # Navigate through common API structures
-    if 'data' in api_data and 'institutions' in api_data['data']:
-        institutions_data = api_data['data']['institutions']
-    elif 'institutions' in api_data:
-        institutions_data = api_data['institutions']
-    elif 'results' in api_data:
-        institutions_data = api_data['results']
-    else:
-        print("❌ Could not find institution data in API response")
-        return []
-    
-    print(f"📊 Processing {len(institutions_data)} institutions from API")
-    
-    for inst_data in institutions_data:
-        try:
-            # Extract information based on common field names
-            rank = inst_data.get('rank') or inst_data.get('position') or inst_data.get('ranking')
-            name = inst_data.get('name') or inst_data.get('institutionName') or inst_data.get('institution')
-            country = inst_data.get('country') or inst_data.get('countryName') or inst_data.get('location')
-            
-            if rank and name and country:
-                # Handle case where name might be a dictionary
-                if isinstance(name, dict):
-                    name = name.get('name', 'Unknown')
-                
-                institutions.append({
-                    'rank': int(rank),
-                    'name': str(name),
-                    'country': str(country)
-                })
-        except Exception as e:
-            print(f"⚠️  Error parsing institution: {e}")
-            continue
-    
-    return institutions
+    return unique_institutions
 
 
 def normalize_country(country):
-    """Normalize country names for matching."""
+    """Normalize country names for empire categorization."""
     country = str(country).strip()
     
     country_map = {
@@ -309,21 +226,14 @@ def normalize_country(country):
         'Macau': 'Macau',
     }
     
-    for normalized, variants in country_map.items():
-        if country == normalized or country in variants.split(', '):
-            return normalized
+    # Exact match
+    if country in country_map:
+        return country_map[country]
     
-    # Check for partial matches
-    if any(us in country for us in ['United States', 'USA', 'U.S.']):
-        return 'United States of America'
-    elif any(uk in country for uk in ['United Kingdom', 'UK', 'U.K.']):
-        return 'United Kingdom'
-    elif 'China' in country:
-        return 'China'
-    elif 'Hong Kong' in country:
-        return 'Hong Kong'
-    elif 'Taiwan' in country:
-        return 'Taiwan'
+    # Partial match
+    for normalized, variants in country_map.items():
+        if any(variant.lower() in country.lower() for variant in variants.split(', ')):
+            return normalized
     
     return country
 
@@ -337,17 +247,17 @@ def categorize_by_empire(institutions):
     for inst in institutions:
         country = normalize_country(inst['country'])
         
-        # Check Empire 3 (China, Hong Kong, Taiwan, Macau)
+        # Empire 3: China, Hong Kong, Taiwan, Macau
         if country in EMPIRE_3_COUNTRIES:
             empire_3.append(inst)
-        # Check Empire 2 (USA)
+        # Empire 2: USA
         elif country in EMPIRE_2_COUNTRIES:
             empire_2.append(inst)
-        # Check Empire 1 (Commonwealth)
+        # Empire 1: Commonwealth countries
         elif country in EMPIRE_1_COUNTRIES:
             empire_1.append(inst)
     
-    # Sort by rank and get top 10 for each empire
+    # Sort by global rank and take top 10
     empire_1.sort(key=lambda x: x['rank'])
     empire_2.sort(key=lambda x: x['rank'])
     empire_3.sort(key=lambda x: x['rank'])
@@ -372,7 +282,7 @@ def save_to_csv(empire_data, output_dir='data'):
         # Write header
         writer.writerow(['Empire', 'Empire_Rank', 'Institution', 'Country', 'Global_Rank'])
         
-        # Write Empire 1 (Commonwealth & former British territories)
+        # Empire 1: Commonwealth
         for idx, inst in enumerate(empire_data['empire_1'], 1):
             writer.writerow([
                 'Empire_1_Commonwealth',
@@ -382,7 +292,7 @@ def save_to_csv(empire_data, output_dir='data'):
                 inst['rank']
             ])
         
-        # Write Empire 2 (United States)
+        # Empire 2: USA
         for idx, inst in enumerate(empire_data['empire_2'], 1):
             writer.writerow([
                 'Empire_2_USA',
@@ -392,7 +302,7 @@ def save_to_csv(empire_data, output_dir='data'):
                 inst['rank']
             ])
         
-        # Write Empire 3 (China/Hong Kong/Taiwan)
+        # Empire 3: China
         for idx, inst in enumerate(empire_data['empire_3'], 1):
             writer.writerow([
                 'Empire_3_China',
@@ -409,41 +319,34 @@ def save_to_csv(empire_data, output_dir='data'):
 def main():
     """Main scraper function."""
     print("=" * 60)
-    print("Nature Index Empire Research Scraper - Selenium Version")
+    print("Nature Index Empire Research Scraper - Direct URL")
     print("=" * 60)
     print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
     
-    institutions = []
+    # Fetch data from the direct URL
+    print("📡 Fetching research leaders data...")
+    html_content = fetch_nature_index_direct()
     
-    # First try the API approach (simpler and faster)
-    print("🔧 Attempting API approach...")
-    api_data = try_alternative_approach()
-    if api_data:
-        institutions = parse_api_data(api_data)
-    
-    # If API approach failed, use Selenium
-    if not institutions:
-        print("\n🚀 API approach failed, trying Selenium...")
-        print("📡 Loading page with Selenium (this may take a moment)...")
-        html_content = fetch_with_selenium()
-        
-        if html_content:
-            print("\n📊 Parsing rendered content...")
-            institutions = parse_selenium_content(html_content)
-        else:
-            print("❌ Failed to load page with Selenium")
-            return
-    
-    if not institutions:
-        print("❌ No institutions found with any method.")
-        print("💡 Check rendered_page.html to see what was actually loaded.")
+    if not html_content:
+        print("❌ Failed to fetch data.")
         return
     
-    print(f"✅ Successfully found {len(institutions)} institutions")
+    print(f"✓ Fetched {len(html_content)} characters")
     
-    # Show sample of found institutions
-    print("\n📋 Sample of found institutions:")
+    # Parse the page
+    print("\n📊 Parsing institution data...")
+    institutions = parse_research_leaders_page(html_content)
+    
+    if not institutions:
+        print("❌ No institutions found.")
+        print("💡 Check research_leaders_page.html to see the page structure.")
+        return
+    
+    print(f"✓ Found {len(institutions)} institutions")
+    
+    # Show sample
+    print("\n📋 Sample institutions:")
     for inst in institutions[:10]:
         print(f"  #{inst['rank']}: {inst['name']} - {inst['country']}")
     
@@ -451,11 +354,11 @@ def main():
     print("\n🌍 Categorizing by empire...")
     empire_data = categorize_by_empire(institutions)
     
-    print(f"  • Empire 1 (Commonwealth): {len(empire_data['empire_1'])} institutions")
-    print(f"  • Empire 2 (USA): {len(empire_data['empire_2'])} institutions")
-    print(f"  • Empire 3 (China): {len(empire_data['empire_3'])} institutions")
+    print(f"  • Empire 1 (Commonwealth): {len(empire_data['empire_1'])}")
+    print(f"  • Empire 2 (USA): {len(empire_data['empire_2'])}")
+    print(f"  • Empire 3 (China): {len(empire_data['empire_3'])}")
     
-    # Print top institutions from each empire
+    # Show top institutions from each empire
     print("\n🏅 Top institutions from each empire:")
     
     if empire_data['empire_1']:
@@ -477,9 +380,9 @@ def main():
     if any(empire_data.values()):
         print("\n💾 Saving to CSV...")
         save_to_csv(empire_data)
-        print("✅ Success! Data has been saved.")
+        print("✅ Success! Data saved.")
     else:
-        print("\n❌ No data to save - no institutions matched empire categories")
+        print("\n❌ No data to save")
     
     print("\n" + "=" * 60)
     print("Scraping complete!")
