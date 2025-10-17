@@ -18,6 +18,8 @@ EMPIRE_3_COUNTRIES = {'China', 'Hong Kong', 'Taiwan'}
 def download_data() -> pd.DataFrame:
     print(f"🌐 Downloading dataset from {DATA_URL} ...")
     df = pd.read_csv(DATA_URL, low_memory=False)
+    print(f"✅ Loaded {len(df):,} rows, {len(df.columns)} columns.")
+    print("📊 Columns:", list(df.columns))
     return df
 
 def assign_empire(area: str) -> int | None:
@@ -31,32 +33,41 @@ def assign_empire(area: str) -> int | None:
 
 def main():
     df = download_data()
-
-    # Clean up column names for consistency
     df.columns = df.columns.str.strip()
 
-    # Filter for electricity consumption
-    df_elec = df[df["Indicator"].str.contains("Electricity", case=False, na=False)]
+    # Try to find the column describing what the data measures
+    possible_cols = [c for c in df.columns if df[c].astype(str).str.contains("Electric", case=False, na=False).any()]
+    if not possible_cols:
+        print("⚠️ No electricity-related column found automatically. Defaulting to all rows.")
+        df_elec = df.copy()
+    else:
+        chosen_col = possible_cols[0]
+        print(f"⚡ Using column '{chosen_col}' to filter electricity data.")
+        df_elec = df[df[chosen_col].astype(str).str.contains("Electric", case=False, na=False)]
 
-    # Assign empire codes
+    # Assign empire based on Area
+    if "Area" not in df_elec.columns:
+        raise KeyError("❌ 'Area' column missing — cannot assign countries to empires.")
     df_elec["Empire"] = df_elec["Area"].apply(assign_empire)
     df_elec = df_elec.dropna(subset=["Empire"])
 
-    # Aggregate total electricity consumption per country
+    # Aggregate
+    if "Value" not in df_elec.columns:
+        raise KeyError("❌ 'Value' column missing — cannot sum consumption data.")
     result = (
         df_elec.groupby(["Empire", "Area"], as_index=False)["Value"]
         .sum()
         .sort_values(["Empire", "Value"], ascending=[True, False])
     )
 
-    # Output directory
+    # Save output
     os.makedirs("data", exist_ok=True)
     timestamp = datetime.utcnow().strftime("%Y-%m")
     output_path = f"data/empire_energy_consumption_{timestamp}.csv"
     result.to_csv(output_path, index=False)
 
     print(f"✅ Saved empire electricity summary → {output_path}")
-    print(result.head(10))
+    print(result.head(15))
 
 if __name__ == "__main__":
     main()
