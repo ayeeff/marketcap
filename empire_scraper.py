@@ -120,7 +120,15 @@ def scrape_countries_data(driver):
 def get_country_slug(country_name):
     """Convert country name to URL slug"""
     import re
-    slug = country_name.lower()
+    
+    country_lower = country_name.lower().strip()
+    
+    # Special case: Hong Kong is one word without hyphen
+    if country_lower == 'hong kong':
+        return 'hongkong'
+    
+    # Standard slug conversion for all other countries
+    slug = country_lower
     slug = slug.replace(' ', '-')
     slug = slug.replace('&', 'and')
     slug = re.sub(r'[^a-z0-9\-]', '', slug)
