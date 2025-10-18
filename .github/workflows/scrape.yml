@@ -2,8 +2,9 @@ name: Scrape Market Cap Data
 
 on:
   schedule:
-    # Run every day at 9 AM UTC (adjust timezone as needed)
-    - cron: '0 9 * * *'
+    # Run monthly at 9 AM UTC on the 1st day of the month
+    - cron: '0 9 1 * *'
+
   workflow_dispatch:  # Allows manual trigger from Actions tab
  # push:
   #  branches: [ main ]  # Run on push to test
