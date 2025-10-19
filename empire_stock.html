@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empire Market Cap Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen p-8">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-2">Global Empire Market Cap Dashboard</h1>
+            <p class="text-slate-400 text-lg">Total Combined Market Capitalization: $106.0 Trillion</p>
+            <p class="text-slate-500 text-sm">As of October 18, 2025</p>
+        </div>
+
+        <!-- Leader Panel -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-2xl p-8 mb-12">
+            <h2 class="text-3xl font-bold text-white text-center mb-6">Market Cap Leaders</h2>
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Empire 2 - 1st Place -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border-4 border-yellow-400 relative">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-slate-900 px-4 py-1 rounded-full font-bold text-sm">
+                        🥇 1st Place
+                    </div>
+                    <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp2.png" 
+                         alt="Empire 2" class="w-full h-32 object-contain mb-4 mt-2">
+                    <div class="text-center">
+                        <p class="text-white font-semibold text-lg mb-1">Empire 2</p>
+                        <p class="text-yellow-300 text-2xl font-bold">$70.01 T</p>
+                        <p class="text-slate-300 text-sm mt-1">66.0% of total</p>
+                    </div>
+                </div>
+
+                <!-- Empire 3 - 2nd Place -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border-4 border-slate-300 relative">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-slate-300 text-slate-900 px-4 py-1 rounded-full font-bold text-sm">
+                        🥈 2nd Place
+                    </div>
+                    <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp3.png" 
+                         alt="Empire 3" class="w-full h-32 object-contain mb-4 mt-2">
+                    <div class="text-center">
+                        <p class="text-white font-semibold text-lg mb-1">Empire 3</p>
+                        <p class="text-slate-300 text-2xl font-bold">$23.69 T</p>
+                        <p class="text-slate-300 text-sm mt-1">22.3% of total</p>
+                    </div>
+                </div>
+
+                <!-- Empire 1 - 3rd Place -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border-4 border-amber-600 relative">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-amber-600 text-white px-4 py-1 rounded-full font-bold text-sm">
+                        🥉 3rd Place
+                    </div>
+                    <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp1.png" 
+                         alt="Empire 1" class="w-full h-32 object-contain mb-4 mt-2">
+                    <div class="text-center">
+                        <p class="text-white font-semibold text-lg mb-1">Empire 1</p>
+                        <p class="text-amber-400 text-2xl font-bold">$12.27 T</p>
+                        <p class="text-slate-300 text-sm mt-1">11.6% of total</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pie Chart -->
+        <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8 mb-12">
+            <h2 class="text-3xl font-bold text-white text-center mb-6">Market Cap Distribution</h2>
+            <div id="pieChart" class="w-full"></div>
+        </div>
+
+        <!-- Company Tables -->
+        <div class="space-y-8">
+            <!-- Empire 1 Table -->
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-3xl font-bold text-white">Empire 1 - Top 10 Companies</h2>
+                    <span class="text-amber-400 text-xl font-bold">$12.27 T Total</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="pb-4 text-slate-400 font-semibold">Rank</th>
+                                <th class="pb-4 text-slate-400 font-semibold">Company</th>
+                                <th class="pb-4 text-slate-400 font-semibold">Ticker</th>
+                                <th class="pb-4 text-slate-400 font-semibold text-right">Market Cap</th>
+                            </tr>
+                        </thead>
+                        <tbody id="empire1Table" class="text-white">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Empire 2 Table -->
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-3xl font-bold text-white">Empire 2 - Top 10 Companies</h2>
+                    <span class="text-blue-400 text-xl font-bold">$70.01 T Total</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="pb-4 text-slate-400 font-semibold">Rank</th>
+                                <th class="pb-4 text-slate-400 font-semibold">Company</th>
+                                <th class="pb-4 text-slate-400 font-semibold">Ticker</th>
+                                <th class="pb-4 text-slate-400 font-semibold text-right">Market Cap</th>
+                            </tr>
+                        </thead>
+                        <tbody id="empire2Table" class="text-white">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Empire 3 Table -->
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-3xl font-bold text-white">Empire 3 - Top 10 Companies</h2>
+                    <span class="text-red-400 text-xl font-bold">$23.69 T Total</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="pb-4 text-slate-400 font-semibold">Rank</th>
+                                <th class="pb-4 text-slate-400 font-semibold">Company</th>
+                                <th class="pb-4 text-slate-400 font-semibold">Ticker</th>
+                                <th class="pb-4 text-slate-400 font-semibold text-right">Market Cap</th>
+                            </tr>
+                        </thead>
+                        <tbody id="empire3Table" class="text-white">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Company data
+        const companies = [
+            {empire: 1, name: "AstraZeneca PLC", ticker: "AZN", marketCap: "$260.83 B"},
+            {empire: 1, name: "HSBC Holdings plc", ticker: "LON-HSBA", marketCap: "$222.54 B"},
+            {empire: 1, name: "Linde plc", ticker: "LIN", marketCap: "$211.43 B"},
+            {empire: 1, name: "SHELL PLC", ticker: "AMS-SHELL", marketCap: "$208.65 B"},
+            {empire: 1, name: "Shopify", ticker: "SHOP", marketCap: "$205.03 B"},
+            {empire: 1, name: "Royal Bank of Canada", ticker: "RY", marketCap: "$204.24 B"},
+            {empire: 1, name: "Commonwealth Bank of Australia", ticker: "ASX-CBA", marketCap: "$182.76 B"},
+            {empire: 1, name: "Arm Holdings plc", ticker: "ARM", marketCap: "$175.38 B"},
+            {empire: 1, name: "Unilever PLC", ticker: "LON-ULVR", marketCap: "$155.91 B"},
+            {empire: 1, name: "Delta Corporation Limited", ticker: "ZMSE-DLTA", marketCap: "$148.53 B"},
+            {empire: 2, name: "NVIDIA", ticker: "NVDA", marketCap: "$4.45 T"},
+            {empire: 2, name: "Microsoft", ticker: "MSFT", marketCap: "$3.82 T"},
+            {empire: 2, name: "Apple", ticker: "AAPL", marketCap: "$3.74 T"},
+            {empire: 2, name: "Alphabet (Google)", ticker: "GOOG", marketCap: "$3.07 T"},
+            {empire: 2, name: "Amazon", ticker: "AMZN", marketCap: "$2.27 T"},
+            {empire: 2, name: "Meta Platforms", ticker: "META", marketCap: "$1.8 T"},
+            {empire: 2, name: "Broadcom", ticker: "AVGO", marketCap: "$1.65 T"},
+            {empire: 2, name: "Tesla", ticker: "TSLA", marketCap: "$1.46 T"},
+            {empire: 2, name: "Berkshire Hathaway", ticker: "BRK.B", marketCap: "$1.06 T"},
+            {empire: 2, name: "Walmart", ticker: "WMT", marketCap: "$858.92 B"},
+            {empire: 3, name: "TSMC", ticker: "TSM", marketCap: "$1.23 T"},
+            {empire: 3, name: "Tencent", ticker: "HKG-0700", marketCap: "$708.2 B"},
+            {empire: 3, name: "Alibaba", ticker: "BABA", marketCap: "$373.24 B"},
+            {empire: 3, name: "Agricultural Bank of China", ticker: "SHA-601288", marketCap: "$363.41 B"},
+            {empire: 3, name: "ICBC", ticker: "SHA-601398", marketCap: "$353.14 B"},
+            {empire: 3, name: "China Construction Bank", ticker: "HKG-0939", marketCap: "$263.27 B"},
+            {empire: 3, name: "Kweichow Moutai", ticker: "SHA-600519", marketCap: "$255.63 B"},
+            {empire: 3, name: "China Mobile", ticker: "SHA-600941", marketCap: "$241.19 B"},
+            {empire: 3, name: "Contemporary Amperex", ticker: "SHE-300750", marketCap: "$230.29 B"},
+            {empire: 3, name: "Bank of China Limited", ticker: "SHA-601988", marketCap: "$224.81 B"}
+        ];
+
+        // Populate tables
+        function populateTable(empireNum) {
+            const tableBody = document.getElementById(`empire${empireNum}Table`);
+            const empireCompanies = companies.filter(c => c.empire === empireNum);
+            
+            empireCompanies.forEach((company, index) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors';
+                row.innerHTML = `
+                    <td class="py-4 text-slate-300">${index + 1}</td>
+                    <td class="py-4 font-semibold">${company.name}</td>
+                    <td class="py-4 text-slate-400">${company.ticker}</td>
+                    <td class="py-4 text-right font-mono text-green-400">${company.marketCap}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        populateTable(1);
+        populateTable(2);
+        populateTable(3);
+
+        // Create pie chart
+        const pieData = [{
+            values: [70.01, 23.69, 12.27],
+            labels: ['Empire 2', 'Empire 3', 'Empire 1'],
+            type: 'pie',
+            marker: {
+                colors: ['#3b82f6', '#ef4444', '#f59e0b']
+            },
+            textinfo: 'label+percent',
+            textposition: 'outside',
+            textfont: {
+                size: 16,
+                color: '#ffffff'
+            },
+            hovertemplate: '<b>%{label}</b><br>$%{value} T<br>%{percent}<extra></extra>'
+        }];
+
+        const pieLayout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            showlegend: true,
+            legend: {
+                font: {
+                    color: '#ffffff',
+                    size: 14
+                }
+            },
+            margin: {t: 20, b: 20, l: 20, r: 20},
+            height: 400
+        };
+
+        const config = {
+            responsive: true,
+            displayModeBar: false
+        };
+
+        Plotly.newPlot('pieChart', pieData, pieLayout, config);
+    </script>
+</body>
+</html>
