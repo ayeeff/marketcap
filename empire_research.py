@@ -1,6 +1,6 @@
 """
-Empire Research Scraper - Fixed Campus Info Version
-Properly preserves campus information in institution names
+Empire Research Scraper - With Research Share Data
+Enhanced version that includes Research Share (2024) for each institution
 """
 import requests
 import csv
@@ -49,7 +49,7 @@ def fetch_nature_index_direct():
 
 
 def parse_research_leaders_page(html_content):
-    """Parse the research leaders page to extract institution rankings."""
+    """Parse the research leaders page to extract institution rankings and research share."""
     soup = BeautifulSoup(html_content, 'html.parser')
     institutions = []
     
@@ -60,7 +60,17 @@ def parse_research_leaders_page(html_content):
         f.write(html_content)
     print("💾 Saved research_leaders_page.html")
     
-    # Method 1: Look for the main rankings table
+    # Method 1: Look for script tags containing JSON data (common in modern web apps)
+    script_tags = soup.find_all('script')
+    for script in script_tags:
+        script_content = script.string
+        if script_content and '__NEXT_DATA__' in script_content:
+            print("✅ Found Next.js data payload")
+            institutions = parse_nextjs_data(script_content)
+            if institutions:
+                return institutions
+    
+    # Method 2: Look for the main rankings table
     tables = soup.find_all('table')
     print(f"📊 Found {len(tables)} tables")
     
@@ -71,7 +81,7 @@ def parse_research_leaders_page(html_content):
             print(f"✅ Table {i+1}: Found {len(institutions_from_table)} institutions")
             return institutions_from_table
     
-    # Method 2: Look for institution cards or list items
+    # Method 3: Look for institution cards or list items
     institution_selectors = [
         '[data-test="institution-card"]',
         '.institution-card',
@@ -90,7 +100,7 @@ def parse_research_leaders_page(html_content):
                 print(f"✅ Found {len(institutions_from_elements)} institutions from elements")
                 return institutions_from_elements
     
-    # Method 3: Extract from page text using regex patterns
+    # Method 4: Extract from page text using regex patterns
     page_text = soup.get_text()
     institutions_from_text = extract_institutions_from_text(page_text)
     if institutions_from_text:
@@ -100,8 +110,82 @@ def parse_research_leaders_page(html_content):
     return []
 
 
+def parse_nextjs_data(script_content):
+    """Parse Next.js JSON data to extract institution information."""
+    try:
+        # Extract JSON data from script tag
+        json_match = re.search(r'__NEXT_DATA__\s*=\s*({.*?})', script_content)
+        if json_match:
+            json_data = json.loads(json_match.group(1))
+            
+            # Navigate through the JSON structure to find institution data
+            # This structure may vary - we need to explore the actual JSON
+            institutions = extract_from_json_structure(json_data)
+            if institutions:
+                return institutions
+            
+            # Alternative: Look for research share data in props
+            props = json_data.get('props', {})
+            page_props = props.get('pageProps', {})
+            
+            # Try different possible keys for institution data
+            possible_keys = ['institutions', 'rankings', 'data', 'results', 'items']
+            for key in possible_keys:
+                if key in page_props:
+                    print(f"🔍 Found data in key: {key}")
+                    data = page_props[key]
+                    if isinstance(data, list) and len(data) > 0:
+                        return parse_institution_list(data)
+    
+    except Exception as e:
+        print(f"❌ Error parsing Next.js data: {e}")
+    
+    return []
+
+
+def extract_from_json_structure(json_data, path=[]):
+    """Recursively search JSON structure for institution data."""
+    institutions = []
+    
+    if isinstance(json_data, dict):
+        # Check if this looks like institution data
+        if all(key in json_data for key in ['rank', 'name', 'country']):
+            institutions.append(parse_institution_from_json(json_data))
+        
+        # Recursively search deeper
+        for key, value in json_data.items():
+            institutions.extend(extract_from_json_structure(value, path + [key]))
+    
+    elif isinstance(json_data, list):
+        for item in json_data:
+            institutions.extend(extract_from_json_structure(item, path))
+    
+    return institutions
+
+
+def parse_institution_from_json(inst_data):
+    """Parse institution data from JSON object."""
+    return {
+        'rank': inst_data.get('rank'),
+        'name': inst_data.get('name', ''),
+        'country': inst_data.get('country', ''),
+        'research_share': inst_data.get('share', inst_data.get('research_share', 0))
+    }
+
+
+def parse_institution_list(data_list):
+    """Parse a list of institution data."""
+    institutions = []
+    for item in data_list:
+        if isinstance(item, dict):
+            institution = parse_institution_from_json(item)
+            if institution['name']:  # Only add if we have a name
+                institutions.append(institution)
+    return institutions
+
+
 def parse_rankings_table(table):
-    """Parse a rankings table to extract institution data."""
+    """Parse a rankings table to extract institution data including research share."""
     institutions = []
     rows = table.find_all('tr')
     
@@ -113,37 +197,52 @@ def parse_rankings_table(table):
         cells = row.find_all(['td', 'div'])
         cell_texts = [cell.get_text(strip=True) for cell in cells if cell.get_text(strip=True)]
         
-        if len(cell_texts) >= 2:
-            # First cell should contain rank
-            rank_text = cell_texts[0]
-            rank_match = re.search(r'(\d+)', rank_text)
-            if rank_match:
-                rank = int(rank_match.group(1))
-                
-                # Look for institution name and country pattern
-                for text in cell_texts[1:]:
-                    # Pattern: "Institution Name, Country"
-                    # For University of California cases, we need to be more careful
-                    if 'University of California' in text:
-                        # Special handling for UC system
-                        name, country = parse_uc_institution(text)
-                    else:
-                        name_country_match = re.search(r'^(.+?),\s*(.+)$', text)
-                        if name_country_match:
-                            name = name_country_match.group(1).strip()
-                            country_raw = name_country_match.group(2).strip()
-                            country = extract_country_name(country_raw)
-                        else:
-                            # Try without comma
-                            name = text
-                            country = 'Unknown'
+        if len(cell_texts) >= 3:
+            try:
+                # First cell should contain rank
+                rank_text = cell_texts[0]
+                rank_match = re.search(r'(\d+)', rank_text)
+                if rank_match:
+                    rank = int(rank_match.group(1))
                     
-                    institutions.append({
-                        'rank': rank,
-                        'name': name,
-                        'country': country
-                    })
-                    break
+                    # Look for research share (usually a decimal number)
+                    research_share = 0
+                    for text in cell_texts:
+                        share_match = re.search(r'(\d+\.\d+)', text)
+                        if share_match:
+                            research_share = float(share_match.group(1))
+                            break
+                    
+                    # Look for institution name and country pattern
+                    for text in cell_texts[1:]:
+                        # Skip numeric-only cells (likely research share)
+                        if re.match(r'^\d+\.?\d*$', text):
+                            continue
+                            
+                        # Pattern: "Institution Name, Country"
+                        if 'University of California' in text:
+                            name, country = parse_uc_institution(text)
+                        else:
+                            name_country_match = re.search(r'^(.+?),\s*(.+)$', text)
+                            if name_country_match:
+                                name = name_country_match.group(1).strip()
+                                country_raw = name_country_match.group(2).strip()
+                                country = extract_country_name(country_raw)
+                            else:
+                                # Try without comma
+                                name = text
+                                country = 'Unknown'
+                        
+                        institutions.append({
+                            'rank': rank,
+                            'name': name,
+                            'country': country,
+                            'research_share': research_share
+                        })
+                        break
+            except Exception as e:
+                print(f"⚠️ Error parsing row: {e}")
+                continue
     
     return institutions
 
@@ -195,15 +294,15 @@ def parse_institution_elements(elements):
     for element in elements:
         text = element.get_text(strip=True)
         
-        # Look for ranking patterns
+        # Look for ranking patterns with research share
         patterns = [
-            r'^(\d+)\.?\s+(.+?),\s*(.+)$',  # "1. Harvard University, United States"
+            r'^(\d+)\.?\s+(.+?),\s*(.+?)\s+(\d+\.\d+)$',  # "1. Harvard University, United States 123.45"
         ]
         
         for pattern in patterns:
             matches = re.findall(pattern, text, re.IGNORECASE | re.DOTALL)
             for match in matches:
-                if len(match) == 3:
+                if len(match) == 4:
                     try:
                         if 'University of California' in match[1]:
                             name, country = parse_uc_institution(f"{match[1]}, {match[2]}")
@@ -214,7 +313,8 @@ def parse_institution_elements(elements):
                         institutions.append({
                             'rank': int(match[0]),
                             'name': name,
-                            'country': country
+                            'country': country,
+                            'research_share': float(match[3])
                         })
                     except:
                         continue
@@ -226,16 +326,16 @@ def extract_institutions_from_text(text):
     """Extract institutions from page text using regex."""
     institutions = []
     
-    # Common ranking patterns
+    # Common ranking patterns with research share
     patterns = [
-        r'(\d+)\.?\s*([^,\n]+?),\s*([^\n\(\)]+?)(?:\s+\([^\)]*\))?\s*\n',
-        r'^(\d+)\s+([^,\n]+?),\s*([^\n\(\)]+?)(?:\s+\([^\)]*\))?$',
+        r'(\d+)\.?\s*([^,\n]+?),\s*([^\n\(\)]+?)\s+(\d+\.\d+)(?:\s+\([^\)]*\))?\s*\n',
+        r'^(\d+)\s+([^,\n]+?),\s*([^\n\(\)]+?)\s+(\d+\.\d+)(?:\s+\([^\)]*\))?$',
     ]
     
     for pattern in patterns:
         matches = re.findall(pattern, text, re.MULTILINE)
         for match in matches:
-            if len(match) == 3:
+            if len(match) == 4:
                 try:
                     if 'University of California' in match[1]:
                         name, country = parse_uc_institution(f"{match[1]}, {match[2]}")
@@ -246,7 +346,8 @@ def extract_institutions_from_text(text):
                     institutions.append({
                         'rank': int(match[0]),
                         'name': name,
-                        'country': country
+                        'country': country,
+                        'research_share': float(match[3])
                     })
                 except:
                     continue
@@ -323,7 +424,7 @@ def categorize_by_empire(institutions):
 
 
 def save_to_csv(empire_data, output_dir='data'):
-    """Save empire rankings to CSV file."""
+    """Save empire rankings to CSV file with Research Share column."""
     os.makedirs(output_dir, exist_ok=True)
     
     filename = os.path.join(output_dir, 'empire_research.csv')  
@@ -336,8 +437,8 @@ def save_to_csv(empire_data, output_dir='data'):
     with open(filename, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         
-        # Write header
-        writer.writerow(['Empire', 'Empire_Rank', 'Institution', 'Country', 'Global_Rank'])
+        # Write header with Research Share column
+        writer.writerow(['Empire', 'Empire_Rank', 'Institution', 'Country', 'Research Share', 'Global_Rank'])
         
         # Empire 1: Commonwealth
         for idx, inst in enumerate(empire_data['empire_1'], 1):
@@ -346,6 +447,7 @@ def save_to_csv(empire_data, output_dir='data'):
                 idx,
                 inst['name'],
                 inst['country'],
+                inst.get('research_share', 'N/A'),
                 inst['rank']
             ])
         
@@ -356,6 +458,7 @@ def save_to_csv(empire_data, output_dir='data'):
                 idx,
                 inst['name'],
                 inst['country'],
+                inst.get('research_share', 'N/A'),
                 inst['rank']
             ])
         
@@ -366,6 +469,7 @@ def save_to_csv(empire_data, output_dir='data'):
                 idx,
                 inst['name'],
                 inst['country'],
+                inst.get('research_share', 'N/A'),
                 inst['rank']
             ])
     
@@ -376,7 +480,7 @@ def save_to_csv(empire_data, output_dir='data'):
 def main():
     """Main scraper function."""
     print("=" * 60)
-    print("Nature Index Empire Research Scraper - Fixed Campus Info")
+    print("Nature Index Empire Research Scraper - With Research Share")
     print("=" * 60)
     print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
@@ -402,16 +506,19 @@ def main():
     
     print(f"✓ Found {len(institutions)} institutions")
     
-    # Show sample - specifically look for UC institutions
-    print("\n📋 Sample institutions (looking for UC campuses):")
-    uc_institutions = [inst for inst in institutions if 'University of California' in inst['name']]
-    for inst in uc_institutions[:5]:
-        print(f"  #{inst['rank']}: {inst['name']} - {inst['country']}")
-    
-    # Also show general sample
-    print("\n📋 General sample:")
+    # Show sample with research share data
+    print("\n📋 Sample institutions with Research Share:")
     for inst in institutions[:5]:
-        print(f"  #{inst['rank']}: {inst['name']} - {inst['country']}")
+        research_share = inst.get('research_share', 'N/A')
+        print(f"  #{inst['rank']}: {inst['name']} - {inst['country']} - Share: {research_share}")
+    
+    # Check for UC institutions specifically
+    uc_institutions = [inst for inst in institutions if 'University of California' in inst['name']]
+    if uc_institutions:
+        print("\n📋 UC Institutions found:")
+        for inst in uc_institutions[:3]:
+            research_share = inst.get('research_share', 'N/A')
+            print(f"  #{inst['rank']}: {inst['name']} - Share: {research_share}")
     
     # Categorize by empire
     print("\n🌍 Categorizing by empire...")
@@ -421,29 +528,36 @@ def main():
     print(f"  • Empire 2 (USA): {len(empire_data['empire_2'])}")
     print(f"  • Empire 3 (China): {len(empire_data['empire_3'])}")
     
-    # Show top institutions from each empire
+    # Show top institutions from each empire with research share
     print("\n🏅 Top institutions from each empire:")
     
     if empire_data['empire_1']:
         print("\n  Empire 1 (Commonwealth):")
-        for i, inst in enumerate(empire_data['empire_1'][:5], 1):
-            print(f"    {i}. {inst['name']} (#{inst['rank']}) - {inst['country']}")
+        for i, inst in enumerate(empire_data['empire_1'][:3], 1):
+            research_share = inst.get('research_share', 'N/A')
+            print(f"    {i}. {inst['name']} - Share: {research_share} (#{inst['rank']})")
     
     if empire_data['empire_2']:
         print("\n  Empire 2 (USA):")
-        for i, inst in enumerate(empire_data['empire_2'][:5], 1):
-            print(f"    {i}. {inst['name']} (#{inst['rank']}) - {inst['country']}")
+        for i, inst in enumerate(empire_data['empire_2'][:3], 1):
+            research_share = inst.get('research_share', 'N/A')
+            print(f"    {i}. {inst['name']} - Share: {research_share} (#{inst['rank']})")
     
     if empire_data['empire_3']:
         print("\n  Empire 3 (China):")
-        for i, inst in enumerate(empire_data['empire_3'][:5], 1):
-            print(f"    {i}. {inst['name']} (#{inst['rank']}) - {inst['country']}")
+        for i, inst in enumerate(empire_data['empire_3'][:3], 1):
+            research_share = inst.get('research_share', 'N/A')
+            print(f"    {i}. {inst['name']} - Share: {research_share} (#{inst['rank']})")
     
     # Save to CSV
     if any(empire_data.values()):
         print("\n💾 Saving to CSV...")
-        save_to_csv(empire_data)
+        filename = save_to_csv(empire_data)
         print("✅ Success! Data saved.")
+        
+        # Show file info
+        file_size = os.path.getsize(filename)
+        print(f"📁 File: {filename} ({file_size} bytes)")
     else:
         print("\n❌ No data to save")
     
