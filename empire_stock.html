@@ -434,17 +434,22 @@
             const pieDiv = document.getElementById(containerId);
             const gridParent = pieDiv.parentElement;
             
-            // Create info card container
+            // Remove the existing pie chart container from the grid
+            pieDiv.remove();
+            
+            // Create a new container for the info card and pie chart
+            const newContainer = document.createElement('div');
+            newContainer.className = 'grid grid-cols-2 gap-6';
+            
+            // Create info card
             const infoDiv = document.createElement('div');
             infoDiv.className = 'card-glow rounded-2xl p-6 flex flex-col justify-start';
             
-            // Create header
             const header = document.createElement('h3');
             header.className = 'text-slate-300 font-bold mb-4';
             header.textContent = sectionTitle;
             infoDiv.appendChild(header);
 
-            // Create table
             const table = document.createElement('table');
             table.className = 'w-full text-sm text-left text-white';
             table.innerHTML = `
@@ -459,9 +464,6 @@
             `;
             infoDiv.appendChild(table);
             
-            // Insert the info card before the pie chart
-            gridParent.insertBefore(infoDiv, pieDiv);
-            
             // Populate table with data
             const tbody = document.getElementById(`${containerId}-table-body`);
             data.forEach(item => {
@@ -474,6 +476,15 @@
                 `;
                 tbody.appendChild(tr);
             });
+            
+            // Add info card and pie chart to the new container
+            newContainer.appendChild(infoDiv);
+            newContainer.appendChild(pieDiv);
+            
+            // Replace the original grid parent with our new container
+            gridParent.parentNode.replaceChild(newContainer, gridParent);
+            
+            return newContainer;
         }
 
         function initDashboard() {
@@ -496,19 +507,19 @@
             });
 
             // Create info cards with dynamic data
-            createInfoCard('marketCapPie', 'Market Share by Empire', marketCapTotals.map(item => ({
+            const marketCapContainer = createInfoCard('marketCapPie', 'Market Share by Empire', marketCapTotals.map(item => ({
                 name: `Empire ${item.empire}.0`,
                 value: item.total,
                 percent: item.share ? item.share.replace('%', '') : '0.0'
             })), 'green');
 
-            createInfoCard('rdPie', 'Research Share by Empire', rdExpenditures.map(item => ({
+            const rdContainer = createInfoCard('rdPie', 'Research Share by Empire', rdExpenditures.map(item => ({
                 name: `Empire ${item.empire}.0`,
                 value: `$${item.share?.toLocaleString?.() || item.share} B`,
                 percent: item.percent.toFixed(1)
             })), 'purple');
 
-            createInfoCard('gdpPie', 'GDP Share by Empire', gdpData.map(item => ({
+            const gdpContainer = createInfoCard('gdpPie', 'GDP Share by Empire', gdpData.map(item => ({
                 name: `Empire ${item.empire}.0`,
                 value: `$${item.total?.toLocaleString?.() || item.total} B`,
                 percent: item.percent.toFixed(1)
@@ -566,9 +577,10 @@
             };
             const config = { responsive: true, displayModeBar: false };
             
-            Plotly.newPlot('marketCapPie', marketCapData, layout, config);
-            Plotly.newPlot('rdPie', rdData, layout, config);
-            Plotly.newPlot('gdpPie', gdpDataChart, layout, config);
+            // Plot the charts in their new containers
+            Plotly.newPlot(marketCapContainer.querySelector('#marketCapPie'), marketCapData, layout, config);
+            Plotly.newPlot(rdContainer.querySelector('#rdPie'), rdData, layout, config);
+            Plotly.newPlot(gdpContainer.querySelector('#gdpPie'), gdpDataChart, layout, config);
         }
 
         // Start loading data
