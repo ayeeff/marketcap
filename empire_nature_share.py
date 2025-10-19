@@ -118,17 +118,20 @@ def parse_rankings_table(table):
     header_row = table.find('tr')
     headers = []
     share_col_idx = -1
+    country_col_idx = -1
     
     if header_row:
         header_cells = header_row.find_all(['th', 'td'])
         headers = [cell.get_text(strip=True) for cell in header_cells]
         
-        # Find Share 2024 column
+        # Find Share 2024 column and Country column
         for idx, header in enumerate(headers):
             if 'share' in header.lower() and '2024' in header:
                 share_col_idx = idx
                 print(f"  Found 'Share 2024' column at index {idx}")
-                break
+            if 'country' in header.lower() or 'region' in header.lower():
+                country_col_idx = idx
+                print(f"  Found 'Country/Region' column at index {idx}")
     
     # Parse data rows
     rows = table.find_all('tr')
@@ -139,31 +142,725 @@ def parse_rankings_table(table):
             continue
             
         cells = row.find_all(['td'])
-        if len(cells) < 2:
+        if len(cells) < 3:
             continue
         
         cell_texts = [cell.get_text(strip=True) for cell in cells]
         
-        # Try to extract country name (usually first or second column after rank)
         country_name = None
         share_value = 0.0
         
-        # Skip rank column (usually first)
-        for idx, text in enumerate(cell_texts):
-            if idx == 0 and re.match(r'^\d+$', text):
-                continue
+        # Extract country and share based on column indices
+        if country_col_idx >= 0 and country_col_idx < len(cell_texts):
+            country_name = cell_texts[country_col_idx]
+        
+        if share_col_idx >= 0 and share_col_idx < len(cell_texts):
+            share_value = parse_share_value(cell_texts[share_col_idx])
+        
+        # Fallback: if we didn't find via column index, try pattern matching
+        if not country_name or share_value == 0:
+            # Look for country name (not a pure number, not a rank)
+            for idx, text in enumerate(cell_texts):
+                # Skip rank column (first column, pure number)
+                if idx == 0 and re.match(r'^\d+
+
+
+def parse_country_elements(elements):
+    """Parse country data from various HTML elements."""
+    countries = []
+    
+    for element in elements:
+        text = element.get_text(strip=True)
+        
+        # Look for patterns like "United States 12345.67"
+        # Country names can have spaces, numbers are the share value
+        parts = text.split()
+        
+        if len(parts) >= 2:
+            # Last part should be the number
+            potential_share = parts[-1]
+            share_value = parse_share_value(potential_share)
             
-            # This should be country name
-            if not country_name and text and not re.match(r'^[\d.,]+$', text):
-                country_name = text
-                continue
+            if share_value > 0:
+                # Everything before the last part is the country name
+                country_name = ' '.join(parts[:-1])
+                # Remove rank if present at the start
+                country_name = re.sub(r'^\d+\.?\s*', '', country_name)
+                
+                if country_name:
+                    countries.append({
+                        'country': country_name,
+                        'share_2024': share_value
+                    })
+    
+    return countries
+
+
+def normalize_country(country):
+    """Normalize country names for empire categorization."""
+    country = str(country).strip()
+    
+    # Exact matches
+    country_map = {
+        'United States of America': 'United States of America',
+        'United States': 'United States of America',
+        'USA': 'United States of America',
+        'US': 'United States of America',
+        'Hong Kong': 'Hong Kong (China)',
+        'Hong Kong (China)': 'Hong Kong (China)',
+        'Taiwan': 'Taiwan',
+        'China': 'China',
+    }
+    
+    if country in country_map:
+        return country_map[country]
+    
+    return country
+
+
+def categorize_by_empire(countries):
+    """Categorize countries by empire and sum their Share 2024 values."""
+    empire_1_total = 0.0
+    empire_2_total = 0.0
+    empire_3_total = 0.0
+    
+    empire_1_countries = []
+    empire_2_countries = []
+    empire_3_countries = []
+    
+    for country_data in countries:
+        country = normalize_country(country_data['country'])
+        share = country_data['share_2024']
+        
+        # Empire 3: China, Hong Kong, Taiwan
+        if country in EMPIRE_3_COUNTRIES:
+            empire_3_total += share
+            empire_3_countries.append((country, share))
+        # Empire 2: USA
+        elif country in EMPIRE_2_COUNTRIES:
+            empire_2_total += share
+            empire_2_countries.append((country, share))
+        # Empire 1: Commonwealth countries
+        elif country in EMPIRE_1_COUNTRIES:
+            empire_1_total += share
+            empire_1_countries.append((country, share))
+    
+    total_all_empires = empire_1_total + empire_2_total + empire_3_total
+    
+    return {
+        'empire_1': {
+            'total': empire_1_total,
+            'percent': (empire_1_total / total_all_empires * 100) if total_all_empires > 0 else 0,
+            'countries': empire_1_countries
+        },
+        'empire_2': {
+            'total': empire_2_total,
+            'percent': (empire_2_total / total_all_empires * 100) if total_all_empires > 0 else 0,
+            'countries': empire_2_countries
+        },
+        'empire_3': {
+            'total': empire_3_total,
+            'percent': (empire_3_total / total_all_empires * 100) if total_all_empires > 0 else 0,
+            'countries': empire_3_countries
+        },
+        'total': total_all_empires
+    }
+
+
+def save_to_csv(empire_data, output_dir='data'):
+    """Save empire nature share data to CSV file."""
+    os.makedirs(output_dir, exist_ok=True)
+    
+    filename = os.path.join(output_dir, 'empire_nature_share.csv')
+    
+    # Remove existing file if it exists
+    if os.path.exists(filename):
+        os.remove(filename)
+        print(f"♻️  Removed existing file: {filename}")
+    
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    
+    with open(filename, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        
+        # Write header
+        writer.writerow(['empire', 'share_2024', 'percent', 'date'])
+        
+        # Empire 1
+        writer.writerow([
+            '1',
+            f"{empire_data['empire_1']['total']:.2f}",
+            f"{empire_data['empire_1']['percent']:.1f}",
+            current_date
+        ])
+        
+        # Empire 2
+        writer.writerow([
+            '2',
+            f"{empire_data['empire_2']['total']:.2f}",
+            f"{empire_data['empire_2']['percent']:.1f}",
+            current_date
+        ])
+        
+        # Empire 3
+        writer.writerow([
+            '3',
+            f"{empire_data['empire_3']['total']:.2f}",
+            f"{empire_data['empire_3']['percent']:.1f}",
+            current_date
+        ])
+    
+    print(f"✓ Data saved to {filename}")
+    return filename
+
+
+def main():
+    """Main scraper function."""
+    print("=" * 60)
+    print("Nature Index Empire Share Scraper")
+    print("=" * 60)
+    print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print()
+    
+    # Fetch data
+    print("📡 Fetching country rankings data...")
+    html_content = fetch_nature_index_countries()
+    
+    if not html_content:
+        print("❌ Failed to fetch data.")
+        return
+    
+    print(f"✓ Fetched {len(html_content)} characters")
+    
+    # Parse the page
+    print("\n📊 Parsing country data...")
+    countries = parse_country_rankings_page(html_content)
+    
+    if not countries:
+        print("❌ No countries found.")
+        print("💡 Check country_rankings_page.html to see the page structure.")
+        return
+    
+    print(f"✓ Found {len(countries)} countries")
+    
+    # Show sample
+    print("\n📋 Sample countries:")
+    for country in countries[:5]:
+        print(f"  {country['country']}: {country['share_2024']}")
+    
+    # Categorize by empire
+    print("\n🌍 Categorizing by empire...")
+    empire_data = categorize_by_empire(countries)
+    
+    print(f"\n📊 Empire Totals (Share 2024):")
+    print(f"  • Empire 1 (Commonwealth): {empire_data['empire_1']['total']:.2f} ({empire_data['empire_1']['percent']:.1f}%)")
+    print(f"  • Empire 2 (USA): {empire_data['empire_2']['total']:.2f} ({empire_data['empire_2']['percent']:.1f}%)")
+    print(f"  • Empire 3 (China): {empire_data['empire_3']['total']:.2f} ({empire_data['empire_3']['percent']:.1f}%)")
+    print(f"  • Total: {empire_data['total']:.2f}")
+    
+    # Show contributing countries
+    print("\n🏅 Contributing countries:")
+    
+    if empire_data['empire_1']['countries']:
+        print("\n  Empire 1 (Commonwealth):")
+        for country, share in sorted(empire_data['empire_1']['countries'], key=lambda x: x[1], reverse=True)[:5]:
+            print(f"    {country}: {share:.2f}")
+    
+    if empire_data['empire_2']['countries']:
+        print("\n  Empire 2 (USA):")
+        for country, share in empire_data['empire_2']['countries']:
+            print(f"    {country}: {share:.2f}")
+    
+    if empire_data['empire_3']['countries']:
+        print("\n  Empire 3 (China):")
+        for country, share in empire_data['empire_3']['countries']:
+            print(f"    {country}: {share:.2f}")
+    
+    # Save to CSV
+    if empire_data['total'] > 0:
+        print("\n💾 Saving to CSV...")
+        save_to_csv(empire_data)
+        print("✅ Success! Data saved.")
+    else:
+        print("\n❌ No data to save")
+    
+    print("\n" + "=" * 60)
+    print("Scraping complete!")
+    print("=" * 60)
+
+
+if __name__ == "__main__":
+    main()
+, text):
+                    continue
+                
+                # Country name should contain letters
+                if not country_name and re.search(r'[A-Za-z]', text) and not re.match(r'^[\d.,%-]+
+
+
+def parse_country_elements(elements):
+    """Parse country data from various HTML elements."""
+    countries = []
+    
+    for element in elements:
+        text = element.get_text(strip=True)
+        
+        # Look for patterns like "United States 12345.67"
+        # Country names can have spaces, numbers are the share value
+        parts = text.split()
+        
+        if len(parts) >= 2:
+            # Last part should be the number
+            potential_share = parts[-1]
+            share_value = parse_share_value(potential_share)
             
-            # Look for share value
-            if share_col_idx > 0 and idx == share_col_idx:
-                share_value = parse_share_value(text)
-            elif not country_name and re.match(r'^[\d.,]+$', text):
-                # If we haven't found country yet and this looks like a number
-                share_value = parse_share_value(text)
+            if share_value > 0:
+                # Everything before the last part is the country name
+                country_name = ' '.join(parts[:-1])
+                # Remove rank if present at the start
+                country_name = re.sub(r'^\d+\.?\s*', '', country_name)
+                
+                if country_name:
+                    countries.append({
+                        'country': country_name,
+                        'share_2024': share_value
+                    })
+    
+    return countries
+
+
+def normalize_country(country):
+    """Normalize country names for empire categorization."""
+    country = str(country).strip()
+    
+    # Exact matches
+    country_map = {
+        'United States of America': 'United States of America',
+        'United States': 'United States of America',
+        'USA': 'United States of America',
+        'US': 'United States of America',
+        'Hong Kong': 'Hong Kong (China)',
+        'Hong Kong (China)': 'Hong Kong (China)',
+        'Taiwan': 'Taiwan',
+        'China': 'China',
+    }
+    
+    if country in country_map:
+        return country_map[country]
+    
+    return country
+
+
+def categorize_by_empire(countries):
+    """Categorize countries by empire and sum their Share 2024 values."""
+    empire_1_total = 0.0
+    empire_2_total = 0.0
+    empire_3_total = 0.0
+    
+    empire_1_countries = []
+    empire_2_countries = []
+    empire_3_countries = []
+    
+    for country_data in countries:
+        country = normalize_country(country_data['country'])
+        share = country_data['share_2024']
+        
+        # Empire 3: China, Hong Kong, Taiwan
+        if country in EMPIRE_3_COUNTRIES:
+            empire_3_total += share
+            empire_3_countries.append((country, share))
+        # Empire 2: USA
+        elif country in EMPIRE_2_COUNTRIES:
+            empire_2_total += share
+            empire_2_countries.append((country, share))
+        # Empire 1: Commonwealth countries
+        elif country in EMPIRE_1_COUNTRIES:
+            empire_1_total += share
+            empire_1_countries.append((country, share))
+    
+    total_all_empires = empire_1_total + empire_2_total + empire_3_total
+    
+    return {
+        'empire_1': {
+            'total': empire_1_total,
+            'percent': (empire_1_total / total_all_empires * 100) if total_all_empires > 0 else 0,
+            'countries': empire_1_countries
+        },
+        'empire_2': {
+            'total': empire_2_total,
+            'percent': (empire_2_total / total_all_empires * 100) if total_all_empires > 0 else 0,
+            'countries': empire_2_countries
+        },
+        'empire_3': {
+            'total': empire_3_total,
+            'percent': (empire_3_total / total_all_empires * 100) if total_all_empires > 0 else 0,
+            'countries': empire_3_countries
+        },
+        'total': total_all_empires
+    }
+
+
+def save_to_csv(empire_data, output_dir='data'):
+    """Save empire nature share data to CSV file."""
+    os.makedirs(output_dir, exist_ok=True)
+    
+    filename = os.path.join(output_dir, 'empire_nature_share.csv')
+    
+    # Remove existing file if it exists
+    if os.path.exists(filename):
+        os.remove(filename)
+        print(f"♻️  Removed existing file: {filename}")
+    
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    
+    with open(filename, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        
+        # Write header
+        writer.writerow(['empire', 'share_2024', 'percent', 'date'])
+        
+        # Empire 1
+        writer.writerow([
+            '1',
+            f"{empire_data['empire_1']['total']:.2f}",
+            f"{empire_data['empire_1']['percent']:.1f}",
+            current_date
+        ])
+        
+        # Empire 2
+        writer.writerow([
+            '2',
+            f"{empire_data['empire_2']['total']:.2f}",
+            f"{empire_data['empire_2']['percent']:.1f}",
+            current_date
+        ])
+        
+        # Empire 3
+        writer.writerow([
+            '3',
+            f"{empire_data['empire_3']['total']:.2f}",
+            f"{empire_data['empire_3']['percent']:.1f}",
+            current_date
+        ])
+    
+    print(f"✓ Data saved to {filename}")
+    return filename
+
+
+def main():
+    """Main scraper function."""
+    print("=" * 60)
+    print("Nature Index Empire Share Scraper")
+    print("=" * 60)
+    print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print()
+    
+    # Fetch data
+    print("📡 Fetching country rankings data...")
+    html_content = fetch_nature_index_countries()
+    
+    if not html_content:
+        print("❌ Failed to fetch data.")
+        return
+    
+    print(f"✓ Fetched {len(html_content)} characters")
+    
+    # Parse the page
+    print("\n📊 Parsing country data...")
+    countries = parse_country_rankings_page(html_content)
+    
+    if not countries:
+        print("❌ No countries found.")
+        print("💡 Check country_rankings_page.html to see the page structure.")
+        return
+    
+    print(f"✓ Found {len(countries)} countries")
+    
+    # Show sample
+    print("\n📋 Sample countries:")
+    for country in countries[:5]:
+        print(f"  {country['country']}: {country['share_2024']}")
+    
+    # Categorize by empire
+    print("\n🌍 Categorizing by empire...")
+    empire_data = categorize_by_empire(countries)
+    
+    print(f"\n📊 Empire Totals (Share 2024):")
+    print(f"  • Empire 1 (Commonwealth): {empire_data['empire_1']['total']:.2f} ({empire_data['empire_1']['percent']:.1f}%)")
+    print(f"  • Empire 2 (USA): {empire_data['empire_2']['total']:.2f} ({empire_data['empire_2']['percent']:.1f}%)")
+    print(f"  • Empire 3 (China): {empire_data['empire_3']['total']:.2f} ({empire_data['empire_3']['percent']:.1f}%)")
+    print(f"  • Total: {empire_data['total']:.2f}")
+    
+    # Show contributing countries
+    print("\n🏅 Contributing countries:")
+    
+    if empire_data['empire_1']['countries']:
+        print("\n  Empire 1 (Commonwealth):")
+        for country, share in sorted(empire_data['empire_1']['countries'], key=lambda x: x[1], reverse=True)[:5]:
+            print(f"    {country}: {share:.2f}")
+    
+    if empire_data['empire_2']['countries']:
+        print("\n  Empire 2 (USA):")
+        for country, share in empire_data['empire_2']['countries']:
+            print(f"    {country}: {share:.2f}")
+    
+    if empire_data['empire_3']['countries']:
+        print("\n  Empire 3 (China):")
+        for country, share in empire_data['empire_3']['countries']:
+            print(f"    {country}: {share:.2f}")
+    
+    # Save to CSV
+    if empire_data['total'] > 0:
+        print("\n💾 Saving to CSV...")
+        save_to_csv(empire_data)
+        print("✅ Success! Data saved.")
+    else:
+        print("\n❌ No data to save")
+    
+    print("\n" + "=" * 60)
+    print("Scraping complete!")
+    print("=" * 60)
+
+
+if __name__ == "__main__":
+    main()
+, text):
+                    country_name = text
+                    continue
+                
+                # Share value should be a number (after we found country)
+                if country_name and share_value == 0 and re.match(r'^[\d.,]+
+
+
+def parse_country_elements(elements):
+    """Parse country data from various HTML elements."""
+    countries = []
+    
+    for element in elements:
+        text = element.get_text(strip=True)
+        
+        # Look for patterns like "United States 12345.67"
+        # Country names can have spaces, numbers are the share value
+        parts = text.split()
+        
+        if len(parts) >= 2:
+            # Last part should be the number
+            potential_share = parts[-1]
+            share_value = parse_share_value(potential_share)
+            
+            if share_value > 0:
+                # Everything before the last part is the country name
+                country_name = ' '.join(parts[:-1])
+                # Remove rank if present at the start
+                country_name = re.sub(r'^\d+\.?\s*', '', country_name)
+                
+                if country_name:
+                    countries.append({
+                        'country': country_name,
+                        'share_2024': share_value
+                    })
+    
+    return countries
+
+
+def normalize_country(country):
+    """Normalize country names for empire categorization."""
+    country = str(country).strip()
+    
+    # Exact matches
+    country_map = {
+        'United States of America': 'United States of America',
+        'United States': 'United States of America',
+        'USA': 'United States of America',
+        'US': 'United States of America',
+        'Hong Kong': 'Hong Kong (China)',
+        'Hong Kong (China)': 'Hong Kong (China)',
+        'Taiwan': 'Taiwan',
+        'China': 'China',
+    }
+    
+    if country in country_map:
+        return country_map[country]
+    
+    return country
+
+
+def categorize_by_empire(countries):
+    """Categorize countries by empire and sum their Share 2024 values."""
+    empire_1_total = 0.0
+    empire_2_total = 0.0
+    empire_3_total = 0.0
+    
+    empire_1_countries = []
+    empire_2_countries = []
+    empire_3_countries = []
+    
+    for country_data in countries:
+        country = normalize_country(country_data['country'])
+        share = country_data['share_2024']
+        
+        # Empire 3: China, Hong Kong, Taiwan
+        if country in EMPIRE_3_COUNTRIES:
+            empire_3_total += share
+            empire_3_countries.append((country, share))
+        # Empire 2: USA
+        elif country in EMPIRE_2_COUNTRIES:
+            empire_2_total += share
+            empire_2_countries.append((country, share))
+        # Empire 1: Commonwealth countries
+        elif country in EMPIRE_1_COUNTRIES:
+            empire_1_total += share
+            empire_1_countries.append((country, share))
+    
+    total_all_empires = empire_1_total + empire_2_total + empire_3_total
+    
+    return {
+        'empire_1': {
+            'total': empire_1_total,
+            'percent': (empire_1_total / total_all_empires * 100) if total_all_empires > 0 else 0,
+            'countries': empire_1_countries
+        },
+        'empire_2': {
+            'total': empire_2_total,
+            'percent': (empire_2_total / total_all_empires * 100) if total_all_empires > 0 else 0,
+            'countries': empire_2_countries
+        },
+        'empire_3': {
+            'total': empire_3_total,
+            'percent': (empire_3_total / total_all_empires * 100) if total_all_empires > 0 else 0,
+            'countries': empire_3_countries
+        },
+        'total': total_all_empires
+    }
+
+
+def save_to_csv(empire_data, output_dir='data'):
+    """Save empire nature share data to CSV file."""
+    os.makedirs(output_dir, exist_ok=True)
+    
+    filename = os.path.join(output_dir, 'empire_nature_share.csv')
+    
+    # Remove existing file if it exists
+    if os.path.exists(filename):
+        os.remove(filename)
+        print(f"♻️  Removed existing file: {filename}")
+    
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    
+    with open(filename, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        
+        # Write header
+        writer.writerow(['empire', 'share_2024', 'percent', 'date'])
+        
+        # Empire 1
+        writer.writerow([
+            '1',
+            f"{empire_data['empire_1']['total']:.2f}",
+            f"{empire_data['empire_1']['percent']:.1f}",
+            current_date
+        ])
+        
+        # Empire 2
+        writer.writerow([
+            '2',
+            f"{empire_data['empire_2']['total']:.2f}",
+            f"{empire_data['empire_2']['percent']:.1f}",
+            current_date
+        ])
+        
+        # Empire 3
+        writer.writerow([
+            '3',
+            f"{empire_data['empire_3']['total']:.2f}",
+            f"{empire_data['empire_3']['percent']:.1f}",
+            current_date
+        ])
+    
+    print(f"✓ Data saved to {filename}")
+    return filename
+
+
+def main():
+    """Main scraper function."""
+    print("=" * 60)
+    print("Nature Index Empire Share Scraper")
+    print("=" * 60)
+    print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print()
+    
+    # Fetch data
+    print("📡 Fetching country rankings data...")
+    html_content = fetch_nature_index_countries()
+    
+    if not html_content:
+        print("❌ Failed to fetch data.")
+        return
+    
+    print(f"✓ Fetched {len(html_content)} characters")
+    
+    # Parse the page
+    print("\n📊 Parsing country data...")
+    countries = parse_country_rankings_page(html_content)
+    
+    if not countries:
+        print("❌ No countries found.")
+        print("💡 Check country_rankings_page.html to see the page structure.")
+        return
+    
+    print(f"✓ Found {len(countries)} countries")
+    
+    # Show sample
+    print("\n📋 Sample countries:")
+    for country in countries[:5]:
+        print(f"  {country['country']}: {country['share_2024']}")
+    
+    # Categorize by empire
+    print("\n🌍 Categorizing by empire...")
+    empire_data = categorize_by_empire(countries)
+    
+    print(f"\n📊 Empire Totals (Share 2024):")
+    print(f"  • Empire 1 (Commonwealth): {empire_data['empire_1']['total']:.2f} ({empire_data['empire_1']['percent']:.1f}%)")
+    print(f"  • Empire 2 (USA): {empire_data['empire_2']['total']:.2f} ({empire_data['empire_2']['percent']:.1f}%)")
+    print(f"  • Empire 3 (China): {empire_data['empire_3']['total']:.2f} ({empire_data['empire_3']['percent']:.1f}%)")
+    print(f"  • Total: {empire_data['total']:.2f}")
+    
+    # Show contributing countries
+    print("\n🏅 Contributing countries:")
+    
+    if empire_data['empire_1']['countries']:
+        print("\n  Empire 1 (Commonwealth):")
+        for country, share in sorted(empire_data['empire_1']['countries'], key=lambda x: x[1], reverse=True)[:5]:
+            print(f"    {country}: {share:.2f}")
+    
+    if empire_data['empire_2']['countries']:
+        print("\n  Empire 2 (USA):")
+        for country, share in empire_data['empire_2']['countries']:
+            print(f"    {country}: {share:.2f}")
+    
+    if empire_data['empire_3']['countries']:
+        print("\n  Empire 3 (China):")
+        for country, share in empire_data['empire_3']['countries']:
+            print(f"    {country}: {share:.2f}")
+    
+    # Save to CSV
+    if empire_data['total'] > 0:
+        print("\n💾 Saving to CSV...")
+        save_to_csv(empire_data)
+        print("✅ Success! Data saved.")
+    else:
+        print("\n❌ No data to save")
+    
+    print("\n" + "=" * 60)
+    print("Scraping complete!")
+    print("=" * 60)
+
+
+if __name__ == "__main__":
+    main()
+, text):
+                    share_value = parse_share_value(text)
+                    break
         
         if country_name and share_value > 0:
             countries.append({
