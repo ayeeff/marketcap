@@ -301,7 +301,7 @@
                 });
                 
                 // Load research institutions CSV
-                const researchResponse = await fetch(GITHUB_BASE + 'empire_research_2025-10.csv');
+                const researchResponse = await fetch(GITHUB_BASE + 'empire_research.csv');
                 const researchData = await researchResponse.text();
                 const researchParsed = Papa.parse(researchData, {
                     header: true,
