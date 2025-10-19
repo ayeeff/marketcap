@@ -70,6 +70,10 @@ def format_market_cap(value):
         return f"${value / 1_000_000:.2f} M"
     return f"${value:.2f}"
 
+def format_share_percentage(share):
+    """Format share percentage with one decimal place"""
+    return f"{share:.1f}%"
+
 def scrape_countries_data(driver):
     print(f"Loading page: {COUNTRIES_URL}")
     driver.get(COUNTRIES_URL)
@@ -191,31 +195,64 @@ def main():
         empire_1_normalized = [c.strip().lower() for c in EMPIRE_1_COUNTRIES]
         empire_1_df = df_countries[df_countries['CountryNormalized'].isin(empire_1_normalized)]
         empire_1_total = empire_1_df['MarketCapNumeric'].sum()
-        print(f"\nEmpire 1 (Commonwealth): {format_market_cap(empire_1_total)}")
-        print(f"  Countries found: {len(empire_1_df)}")
-        empire_data.append({'Empire': 1, 'Total Market Cap': format_market_cap(empire_1_total), 'Date': today})
         
         # Empire 2
         empire_2_normalized = [c.strip().lower() for c in EMPIRE_2_COUNTRIES]
         empire_2_df = df_countries[df_countries['CountryNormalized'].isin(empire_2_normalized)]
         empire_2_total = empire_2_df['MarketCapNumeric'].sum()
-        print(f"\nEmpire 2 (USA): {format_market_cap(empire_2_total)}")
-        print(f"  Countries found: {len(empire_2_df)}")
-        empire_data.append({'Empire': 2, 'Total Market Cap': format_market_cap(empire_2_total), 'Date': today})
         
         # Empire 3
         empire_3_normalized = [c.strip().lower() for c in EMPIRE_3_COUNTRIES]
         empire_3_df = df_countries[df_countries['CountryNormalized'].isin(empire_3_normalized)]
         empire_3_total = empire_3_df['MarketCapNumeric'].sum()
-        print(f"\nEmpire 3 (China+HK+TW): {format_market_cap(empire_3_total)}")
+        
+        # Calculate total market cap across all empires
+        total_market_cap = empire_1_total + empire_2_total + empire_3_total
+        
+        # Calculate shares and format data
+        empire_1_share = (empire_1_total / total_market_cap) * 100
+        empire_2_share = (empire_2_total / total_market_cap) * 100
+        empire_3_share = (empire_3_total / total_market_cap) * 100
+        
+        print(f"\nEmpire 1 (Commonwealth): {format_market_cap(empire_1_total)} ({format_share_percentage(empire_1_share)})")
+        print(f"  Countries found: {len(empire_1_df)}")
+        
+        print(f"\nEmpire 2 (USA): {format_market_cap(empire_2_total)} ({format_share_percentage(empire_2_share)})")
+        print(f"  Countries found: {len(empire_2_df)}")
+        
+        print(f"\nEmpire 3 (China+HK+TW): {format_market_cap(empire_3_total)} ({format_share_percentage(empire_3_share)})")
         print(f"  Countries found: {len(empire_3_df)}")
-        empire_data.append({'Empire': 3, 'Total Market Cap': format_market_cap(empire_3_total), 'Date': today})
+        
+        print(f"\nTotal Market Cap (All Empires): {format_market_cap(total_market_cap)}")
+        
+        # Prepare empire data with shares
+        empire_data.append({
+            'Empire': 1, 
+            'Total Market Cap': format_market_cap(empire_1_total), 
+            'Share': format_share_percentage(empire_1_share),
+            'Date': today
+        })
+        
+        empire_data.append({
+            'Empire': 2, 
+            'Total Market Cap': format_market_cap(empire_2_total), 
+            'Share': format_share_percentage(empire_2_share),
+            'Date': today
+        })
+        
+        empire_data.append({
+            'Empire': 3, 
+            'Total Market Cap': format_market_cap(empire_3_total), 
+            'Share': format_share_percentage(empire_3_share),
+            'Date': today
+        })
         
         # Save empire totals CSV
         df_empire_totals = pd.DataFrame(empire_data)
         empire_totals_file = 'data/empire_totals.csv'
         df_empire_totals.to_csv(empire_totals_file, index=False)
         print(f"\n✓ Saved empire totals to {empire_totals_file}")
+        print(f"  Columns: {list(df_empire_totals.columns)}")
         
         # Scrape top 10 companies for each empire
         print("\n" + "="*80)
