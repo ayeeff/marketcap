@@ -147,7 +147,7 @@
 <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Rank</th>
 </tr>
 </thead>
-<tbody class="text-white" id="researchEmpire2Table"></tbody>
+<tbody class="text-white" id="researchEmpire3Table"></tbody>
 </table>
 </div>
 </div>
@@ -373,7 +373,11 @@
                 const flag = makeFlagImg(company.country);
                 const row = document.createElement('tr');
                 row.className = 'table-row border-b border-slate-700/50';
-                row.innerHTML = `\n                    <td class="py-1 text-slate-300 text-xs">${index + 1}</td>\n                    <td class="py-1 text-xs break-words max-w-32"><span class=\"name-with-flag\">${flag}${company.name}</span></td>\n                    <td class="py-1 text-right font-mono text-green-400 text-xs">${company.marketCap}</td>\n                `;
+                row.innerHTML = `
+                    <td class="py-1 text-slate-300 text-xs">${index + 1}</td>
+                    <td class="py-1 text-xs break-words max-w-32"><span class="name-with-flag">${flag}${company.name}</span></td>
+                    <td class="py-1 text-right font-mono text-green-400 text-xs">${company.marketCap}</td>
+                `;
                 tableBody.appendChild(row);
             });
         }
@@ -386,7 +390,11 @@
                 const flag = makeFlagImg(inst.country);
                 const row = document.createElement('tr');
                 row.className = 'table-row border-b border-slate-700/50';
-                row.innerHTML = `\n                    <td class="py-1 text-slate-300 text-xs">${inst.rank}</td>\n                    <td class="py-1 text-xs break-words max-w-32"><span class=\"name-with-flag\">${flag}${inst.name}</span></td>\n                    <td class="py-1 text-right font-mono text-purple-400 text-xs">#${inst.globalRank || '—'}</td>\n                `;
+                row.innerHTML = `
+                    <td class="py-1 text-slate-300 text-xs">${inst.rank}</td>
+                    <td class="py-1 text-xs break-words max-w-32"><span class="name-with-flag">${flag}${inst.name}</span></td>
+                    <td class="py-1 text-right font-mono text-purple-400 text-xs">#${inst.globalRank || '—'}</td>
+                `;
                 tableBody.appendChild(row);
             });
         }
@@ -399,41 +407,15 @@
                 const flag = makeFlagImg(city.country);
                 const row = document.createElement('tr');
                 row.className = 'table-row border-b border-slate-700/50';
-                row.innerHTML = `\n                    <td class="py-1 text-slate-300 text-xs">${city.rank}</td>\n                    <td class="py-1 text-xs break-words max-w-32"><span class=\"name-with-flag\">${flag}${city.city}</span></td>\n                    <td class="py-1 text-right font-mono text-yellow-400 text-xs">${city.population.toLocaleString()}</td>\n                `;
+                row.innerHTML = `
+                    <td class="py-1 text-slate-300 text-xs">${city.rank}</td>
+                    <td class="py-1 text-xs break-words max-w-32"><span class="name-with-flag">${flag}${city.city}</span></td>
+                    <td class="py-1 text-right font-mono text-yellow-400 text-xs">${city.population.toLocaleString()}</td>
+                `;
                 tableBody.appendChild(row);
             });
         }
 
-        function initDashboard() {
-            const marketCapRanking = [...marketCapTotals].sort((a,b)=>{
-                const aValue = parseFloat(String(a.total).replace(/[^0-9.-]+/g, '')) || 0;
-                const bValue = parseFloat(String(b.total).replace(/[^0-9.-]+/g, '')) || 0;
-                return bValue - aValue;
-            });
-            const researchRanking = [...rdExpenditures].sort((a,b)=>b.percent - a.percent);
-            const gdpRanking = [...gdpData].sort((a,b)=>b.percent - a.percent);
-
-            createLeaderPanel('marketCapLeaderPanel', marketCapRanking);
-            createLeaderPanel('researchLeaderPanel', researchRanking);
-            createLeaderPanel('gdpLeaderPanel', gdpRanking);
-
-            [1,2,3].forEach(empire=>{ populateMarketTable(empire); populateResearchTable(empire); populateCitiesTable(empire); });
-
-            // Pie charts with updated empireShortNames
-            const marketCapData = [{ values: marketCapRanking.map(item=>parseFloat(String(item.total).replace(/[^0-9.-]+/g, '')) || 0), labels: marketCapRanking.map(item=>`${empireShortNames[item.empire]}\n${item.total}`), type: 'pie', marker: { colors: marketCapRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), line: { color: '#1e293b', width: 2 } }, textinfo: 'none', textposition: 'inside', textfont: { size: 13, color: '#ffffff', family: 'sans-serif' }, hovertemplate: '<b>%{label}</b><br>%{percent}<extra></extra>' }];
-            const rdData = [{ values: researchRanking.map(item=>item.share), labels: researchRanking.map(item=>`${empireShortNames[item.empire]}\n$${item.share?.toLocaleString?.()||item.share}B (${item.percent}%)`), type: 'pie', marker: { colors: researchRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), line: { color: '#1e293b', width: 2 } }, textinfo: 'none', textposition: 'inside', textfont: { size: 12, color: '#ffffff', family: 'sans-serif' }, hovertemplate: '<b>%{label}</b><extra></extra>' }];
-            const gdpDataChart = [{ values: gdpRanking.map(item=>item.total), labels: gdpRanking.map(item=>`${empireShortNames[item.empire]}\n$${item.total?.toLocaleString?.()||item.total}B (${item.percent}%)`), type: 'pie', marker: { colors: gdpRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), line: { color: '#1e293b', width: 2 } }, textinfo: 'none', textposition: 'inside', textfont: { size: 12, color: '#ffffff', family: 'sans-serif' }, hovertemplate: '<b>%{label}</b><extra></extra>' }];
-
-            const layout = { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', showlegend: false, margin: {t:10,b:10,l:10,r:10}, height: 280 };
-            const config = { responsive: true, displayModeBar: false };
-            Plotly.newPlot('marketCapPie', marketCapData, layout, config);
-            Plotly.newPlot('rdPie', rdData, layout, config);
-            Plotly.newPlot('gdpPie', gdpDataChart, layout, config);
-        }
-
-        // start
-        loadData();
-    
         function createInfoCard(containerId, sectionTitle, data, color) {
             const pieDiv = document.getElementById(containerId);
             const gridParent = pieDiv.parentElement;
@@ -463,24 +445,58 @@
             gridParent.appendChild(infoDiv);
         }
 
-        // Build info cards beside each pie
-        createInfoCard('marketCapPie', 'Market Share by Empire', marketCapTotals.map(item => ({
-            name: empireShortNames[item.empire],
-            value: item.total,
-            percent: (100 * parseFloat(String(item.total).replace(/[^0-9.-]+/g, '')) / marketCapTotals.reduce((s,x)=>s+(parseFloat(String(x.total).replace(/[^0-9.-]+/g, ''))||0),0)).toFixed(1)
-        })), 'green');
+        function initDashboard() {
+            const marketCapRanking = [...marketCapTotals].sort((a,b)=>{
+                const aValue = parseFloat(String(a.total).replace(/[^0-9.-]+/g, '')) || 0;
+                const bValue = parseFloat(String(b.total).replace(/[^0-9.-]+/g, '')) || 0;
+                return bValue - aValue;
+            });
+            const researchRanking = [...rdExpenditures].sort((a,b)=>b.percent - a.percent);
+            const gdpRanking = [...gdpData].sort((a,b)=>b.percent - a.percent);
 
-        createInfoCard('rdPie', 'Research Share by Empire', rdExpenditures.map(item => ({
-            name: empireShortNames[item.empire],
-            value: '$' + (item.share?.toLocaleString?.()||item.share),
-            percent: item.percent.toFixed(1)
-        })), 'purple');
+            createLeaderPanel('marketCapLeaderPanel', marketCapRanking);
+            createLeaderPanel('researchLeaderPanel', researchRanking);
+            createLeaderPanel('gdpLeaderPanel', gdpRanking);
 
-        createInfoCard('gdpPie', 'GDP Share by Empire', gdpData.map(item => ({
-            name: empireShortNames[item.empire],
-            value: '$' + (item.total?.toLocaleString?.()||item.total),
-            percent: item.percent.toFixed(1)
-        })), 'green');
+            [1,2,3].forEach(empire=>{ populateMarketTable(empire); populateResearchTable(empire); populateCitiesTable(empire); });
+
+            // Pie charts with updated empireShortNames
+            const marketCapData = [{ values: marketCapRanking.map(item=>parseFloat(String(item.total).replace(/[^0-9.-]+/g, '')) || 0), labels: marketCapRanking.map(item=>`${empireShortNames[item.empire]}\n${item.total}`), type: 'pie', marker: { colors: marketCapRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), line: { color: '#1e293b', width: 2 } }, textinfo: 'none', textposition: 'inside', textfont: { size: 13, color: '#ffffff', family: 'sans-serif' }, hovertemplate: '<b>%{label}</b><br>%{percent}<extra></extra>' }];
+            const rdData = [{ values: researchRanking.map(item=>item.share), labels: researchRanking.map(item=>`${empireShortNames[item.empire]}\n${item.share?.toLocaleString?.()||item.share}B (${item.percent}%)`), type: 'pie', marker: { colors: researchRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), line: { color: '#1e293b', width: 2 } }, textinfo: 'none', textposition: 'inside', textfont: { size: 12, color: '#ffffff', family: 'sans-serif' }, hovertemplate: '<b>%{label}</b><extra></extra>' }];
+            const gdpDataChart = [{ values: gdpRanking.map(item=>item.total), labels: gdpRanking.map(item=>`${empireShortNames[item.empire]}\n${item.total?.toLocaleString?.()||item.total}B (${item.percent}%)`), type: 'pie', marker: { colors: gdpRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), line: { color: '#1e293b', width: 2 } }, textinfo: 'none', textposition: 'inside', textfont: { size: 12, color: '#ffffff', family: 'sans-serif' }, hovertemplate: '<b>%{label}</b><extra></extra>' }];
+
+            const layout = { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', showlegend: false, margin: {t:10,b:10,l:10,r:10}, height: 280 };
+            const config = { responsive: true, displayModeBar: false };
+            Plotly.newPlot('marketCapPie', marketCapData, layout, config);
+            Plotly.newPlot('rdPie', rdData, layout, config);
+            Plotly.newPlot('gdpPie', gdpDataChart, layout, config);
+
+            // Build info cards beside each pie dynamically from CSV data
+            createInfoCard('marketCapPie', 'Market Share by Empire', marketCapRanking.map(item => {
+                const numericTotal = parseFloat(String(item.total).replace(/[^0-9.-]+/g, '')) || 0;
+                const sumTotal = marketCapTotals.reduce((s,x)=>s+(parseFloat(String(x.total).replace(/[^0-9.-]+/g, ''))||0),0);
+                return {
+                    name: empireShortNames[item.empire],
+                    value: item.total,
+                    percent: (100 * numericTotal / sumTotal).toFixed(1)
+                };
+            }), 'green');
+
+            createInfoCard('rdPie', 'Research Share by Empire', researchRanking.map(item => ({
+                name: empireShortNames[item.empire],
+                value: ' + (item.share?.toLocaleString?.()||item.share),
+                percent: item.percent.toFixed(1)
+            })), 'purple');
+
+            createInfoCard('gdpPie', 'GDP Share by Empire', gdpRanking.map(item => ({
+                name: empireShortNames[item.empire],
+                value: ' + (item.total?.toLocaleString?.()||item.total),
+                percent: item.percent.toFixed(1)
+            })), 'green');
+        }
+
+        // start
+        loadData();
     </script>
 </body>
 </html>
