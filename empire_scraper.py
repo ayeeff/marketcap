@@ -34,7 +34,6 @@ EMPIRE_2_COUNTRIES = ['United States', 'United States of America', 'USA']
 EMPIRE_3_COUNTRIES = ['China', 'Hong Kong', 'Taiwan']
 
 def setup_driver():
-    """Setup Chrome driver with headless options"""
     chrome_options = Options()
     chrome_options.add_argument('--headless=new')
     chrome_options.add_argument('--no-sandbox')
@@ -47,13 +46,10 @@ def setup_driver():
     return webdriver.Chrome(service=service, options=chrome_options)
 
 def parse_market_cap(value):
-    """Convert market cap string to numeric value"""
     if pd.isna(value) or value == '' or value == '-':
         return 0
-    
     value = str(value).replace('$', '').replace(',', '').replace(' ', '').strip()
     multiplier = 1
-    
     if 'T' in value.upper():
         multiplier = 1_000_000_000_000
         value = value.upper().replace('T', '').strip()
@@ -63,14 +59,12 @@ def parse_market_cap(value):
     elif 'M' in value.upper():
         multiplier = 1_000_000
         value = value.upper().replace('M', '').strip()
-    
     try:
         return float(value) * multiplier
     except (ValueError, AttributeError):
         return 0
 
 def format_market_cap(value):
-    """Format numeric value as market cap string"""
     if value >= 1_000_000_000_000:
         return f"${value / 1_000_000_000_000:.2f} T"
     elif value >= 1_000_000_000:
@@ -80,12 +74,10 @@ def format_market_cap(value):
     return f"${value:.2f}"
 
 def scrape_countries_data(driver):
-    """Scrape all countries market cap data"""
     print(f"Loading page: {COUNTRIES_URL}")
     driver.get(COUNTRIES_URL)
     time.sleep(5)
     
-    # Find table
     tables = driver.find_elements(By.TAG_NAME, "table")
     if not tables:
         raise ValueError("No tables found on page")
@@ -99,7 +91,6 @@ def scrape_countries_data(driver):
         cells_td = row.find_elements(By.TAG_NAME, "td")
         all_cells = cells_th + cells_td
         cells = [cell.text.strip() for cell in all_cells]
-        
         if cells and any(cell for cell in cells):
             data.append(cells)
     
@@ -109,7 +100,6 @@ def scrape_countries_data(driver):
     columns = data[0]
     df = pd.DataFrame(data[1:], columns=columns)
     
-    # Clean up commas from numeric columns
     for col in df.columns:
         if df[col].dtype == 'object':
             df[col] = df[col].apply(lambda x: str(x).replace(',', '') if isinstance(x, str) and any(c.isdigit() for c in str(x)) else x)
@@ -118,59 +108,41 @@ def scrape_countries_data(driver):
     return df
 
 def get_country_slug(country_name):
-    """Convert country name to URL slug"""
     import re
-    
     country_lower = country_name.lower().strip()
-    
-    # Special case: Hong Kong is one word without hyphen
     if country_lower == 'hong kong':
         return 'hongkong'
-    
-    # Standard slug conversion for all other countries
-    slug = country_lower
-    slug = slug.replace(' ', '-')
-    slug = slug.replace('&', 'and')
+    slug = country_lower.replace(' ', '-').replace('&', 'and')
     slug = re.sub(r'[^a-z0-9\-]', '', slug)
     return slug
 
 def scrape_top_companies(driver, country_name):
-    """Scrape top 10 companies for a given country"""
     country_slug = get_country_slug(country_name)
     url = f"{BASE_URL}/{country_slug}/largest-companies-in-{country_slug}/"
     
     print(f"  Scraping {country_name} companies from {url}")
-    
     try:
         driver.get(url)
         time.sleep(3)
-        
         tables = driver.find_elements(By.TAG_NAME, "table")
         if not tables:
             print(f"  ⚠️ No table found for {country_name}")
             return []
-        
         table = tables[0]
         rows = table.find_elements(By.TAG_NAME, "tr")
-        
         companies = []
-        for idx, row in enumerate(rows[1:11]):  # Top 10 companies
+        for idx, row in enumerate(rows[1:11]):  # Top 10
             cells = row.find_elements(By.TAG_NAME, "td")
-            
             if len(cells) >= 3:
                 try:
-                    # Extract company name
                     company_name = cells[1].text.strip()
                     market_cap = cells[2].text.strip()
-                    
-                    # Try to extract logo URL from img tag
                     logo_url = ""
                     try:
                         img_element = cells[1].find_element(By.TAG_NAME, "img")
                         logo_url = img_element.get_attribute("src")
                     except:
                         pass
-                    
                     companies.append({
                         'Company': company_name,
                         'Logo': logo_url,
@@ -178,11 +150,8 @@ def scrape_top_companies(driver, country_name):
                     })
                 except Exception as e:
                     print(f"  ⚠️ Error parsing row {idx}: {e}")
-                    continue
-        
         print(f"  ✓ Found {len(companies)} companies")
         return companies
-        
     except Exception as e:
         print(f"  ❌ Error scraping {country_name}: {e}")
         return []
@@ -198,71 +167,52 @@ def main():
     today = datetime.utcnow().strftime('%Y-%m-%d')
     
     try:
-        # 1. Scrape all countries data
+        # Scrape all countries data
         df_countries = scrape_countries_data(driver)
         
-        # Find market cap column
         market_cap_col = None
         country_col = None
-        
         for col in df_countries.columns:
             if 'market' in col.lower() and 'cap' in col.lower():
                 market_cap_col = col
             if 'country' in col.lower():
                 country_col = col
-        
         if not market_cap_col or not country_col:
             raise ValueError(f"Required columns not found. Available: {list(df_countries.columns)}")
         
-        # Parse market caps
         df_countries['MarketCapNumeric'] = df_countries[market_cap_col].apply(parse_market_cap)
         df_countries['CountryNormalized'] = df_countries[country_col].str.strip().str.lower()
         
-        # 2. Calculate empire totals
+        # Calculate empire totals
         print("\n" + "="*80)
         print("CALCULATING EMPIRE TOTALS")
         print("="*80)
         
         empire_data = []
         
-        # Empire 1: Commonwealth
+        # Empire 1
         empire_1_normalized = [c.strip().lower() for c in EMPIRE_1_COUNTRIES]
         empire_1_df = df_countries[df_countries['CountryNormalized'].isin(empire_1_normalized)]
         empire_1_total = empire_1_df['MarketCapNumeric'].sum()
         print(f"\nEmpire 1 (Commonwealth): {format_market_cap(empire_1_total)}")
         print(f"  Countries found: {len(empire_1_df)}")
+        empire_data.append({'Empire': 1, 'Total Market Cap': format_market_cap(empire_1_total), 'Date': today})
         
-        empire_data.append({
-            'Empire': 1,
-            'Total Market Cap': format_market_cap(empire_1_total),
-            'Date': today
-        })
-        
-        # Empire 2: USA
+        # Empire 2
         empire_2_normalized = [c.strip().lower() for c in EMPIRE_2_COUNTRIES]
         empire_2_df = df_countries[df_countries['CountryNormalized'].isin(empire_2_normalized)]
         empire_2_total = empire_2_df['MarketCapNumeric'].sum()
         print(f"\nEmpire 2 (USA): {format_market_cap(empire_2_total)}")
         print(f"  Countries found: {len(empire_2_df)}")
+        empire_data.append({'Empire': 2, 'Total Market Cap': format_market_cap(empire_2_total), 'Date': today})
         
-        empire_data.append({
-            'Empire': 2,
-            'Total Market Cap': format_market_cap(empire_2_total),
-            'Date': today
-        })
-        
-        # Empire 3: China + HK + Taiwan
+        # Empire 3
         empire_3_normalized = [c.strip().lower() for c in EMPIRE_3_COUNTRIES]
         empire_3_df = df_countries[df_countries['CountryNormalized'].isin(empire_3_normalized)]
         empire_3_total = empire_3_df['MarketCapNumeric'].sum()
         print(f"\nEmpire 3 (China+HK+TW): {format_market_cap(empire_3_total)}")
         print(f"  Countries found: {len(empire_3_df)}")
-        
-        empire_data.append({
-            'Empire': 3,
-            'Total Market Cap': format_market_cap(empire_3_total),
-            'Date': today
-        })
+        empire_data.append({'Empire': 3, 'Total Market Cap': format_market_cap(empire_3_total), 'Date': today})
         
         # Save empire totals CSV
         df_empire_totals = pd.DataFrame(empire_data)
@@ -270,50 +220,34 @@ def main():
         df_empire_totals.to_csv(empire_totals_file, index=False)
         print(f"\n✓ Saved empire totals to {empire_totals_file}")
         
-        # 3. Scrape top 10 companies for each empire
+        # Scrape top 10 companies for each empire
         print("\n" + "="*80)
         print("SCRAPING TOP COMPANIES FOR EACH EMPIRE")
         print("="*80)
         
         all_companies = []
+
+        def scrape_empire_companies(empire_df, empire_num, empire_name):
+            print(f"\n[Empire {empire_num}: {empire_name}]")
+            for _, row in empire_df.iterrows():
+                country = row[country_col]
+                companies = scrape_top_companies(driver, country)
+                for company in companies:
+                    company['Empire'] = empire_num
+                    company['Country'] = country  # Add country of origin
+                    all_companies.append(company)
+                time.sleep(1)
         
-        # Empire 1 companies
-        print("\n[Empire 1: Commonwealth]")
-        for _, row in empire_1_df.iterrows():
-            country = row[country_col]
-            companies = scrape_top_companies(driver, country)
-            for company in companies:
-                company['Empire'] = 1
-                all_companies.append(company)
-            time.sleep(1)  # Rate limiting
+        scrape_empire_companies(empire_1_df, 1, "Commonwealth")
+        scrape_empire_companies(empire_2_df, 2, "USA")
+        scrape_empire_companies(empire_3_df, 3, "China+HK+TW")
         
-        # Empire 2 companies
-        print("\n[Empire 2: USA]")
-        for _, row in empire_2_df.iterrows():
-            country = row[country_col]
-            companies = scrape_top_companies(driver, country)
-            for company in companies:
-                company['Empire'] = 2
-                all_companies.append(company)
-            time.sleep(1)
-        
-        # Empire 3 companies
-        print("\n[Empire 3: China+HK+TW]")
-        for _, row in empire_3_df.iterrows():
-            country = row[country_col]
-            companies = scrape_top_companies(driver, country)
-            for company in companies:
-                company['Empire'] = 3
-                all_companies.append(company)
-            time.sleep(1)
-        
-        # Create companies dataframe and get top 10 per empire
         df_all_companies = pd.DataFrame(all_companies)
         
         if len(df_all_companies) > 0:
             df_all_companies['MarketCapNumeric'] = df_all_companies['Market Cap'].apply(parse_market_cap)
             
-            # Get top 10 per empire
+            # Top 10 per empire
             top_companies = []
             for empire_num in [1, 2, 3]:
                 empire_companies = df_all_companies[df_all_companies['Empire'] == empire_num]
@@ -321,9 +255,8 @@ def main():
                 top_companies.append(top_10)
             
             df_top_companies = pd.concat(top_companies, ignore_index=True)
-            df_top_companies = df_top_companies[['Empire', 'Company', 'Logo', 'Market Cap']]
+            df_top_companies = df_top_companies[['Empire', 'Company', 'Country', 'Logo', 'Market Cap']]
             
-            # Save top companies CSV
             companies_file = 'data/empire_top_companies.csv'
             df_top_companies.to_csv(companies_file, index=False)
             print(f"\n✓ Saved top companies to {companies_file}")
@@ -331,12 +264,11 @@ def main():
         else:
             print("\n⚠️ No companies data collected")
         
-        # 4. Upload to GitHub
+        # Upload to GitHub
         if GITHUB_TOKEN:
             print("\n" + "="*80)
             print("UPLOADING TO GITHUB")
             print("="*80)
-            
             auth = Auth.Token(GITHUB_TOKEN)
             g = Github(auth=auth)
             repo = g.get_repo(REPO_NAME)
@@ -351,9 +283,7 @@ def main():
                 if os.path.exists(local_path):
                     with open(local_path, 'r', encoding='utf-8') as f:
                         content = f.read()
-                    
                     commit_msg = f"Update {os.path.basename(github_path)} - {timestamp}"
-                    
                     try:
                         file_obj = repo.get_contents(github_path)
                         repo.update_file(github_path, commit_msg, content, file_obj.sha)
@@ -361,9 +291,7 @@ def main():
                     except:
                         repo.create_file(github_path, commit_msg, content)
                         print(f"✓ Created {github_path}")
-                    
                     os.remove(local_path)
-            
             print("\n✅ All files uploaded successfully!")
         else:
             print("\n⚠️ No GitHub token found, skipping upload")
@@ -377,7 +305,6 @@ def main():
         import traceback
         traceback.print_exc()
         raise
-        
     finally:
         driver.quit()
         print("\n✓ Driver closed")
