@@ -104,13 +104,13 @@
             <div class="grid grid-cols-2 gap-6 mb-12">
                 <!-- Market Cap Leader Panel - Images Only -->
                 <div class="card-glow rounded-2xl p-6">
-                    <div class="flex items-center justify-center space-x-4">
+                    <div class="flex items-center justify-center space-x-0">
                         <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp2.png" 
-                             alt="Empire 2" class="empire-img w-32 h-32 object-contain">
+                             alt="Empire 2" class="empire-img w-40 h-40 object-contain -mr-4">
                         <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp3.png" 
-                             alt="Empire 3" class="empire-img w-32 h-32 object-contain">
+                             alt="Empire 3" class="empire-img w-40 h-40 object-contain -mr-4">
                         <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp1.png" 
-                             alt="Empire 1" class="empire-img w-32 h-32 object-contain">
+                             alt="Empire 1" class="empire-img w-40 h-40 object-contain">
                     </div>
                 </div>
 
@@ -184,19 +184,19 @@
         <!-- R&D Expenditure Section -->
         <div class="mb-16">
             <h2 class="text-3xl font-bold text-white mb-6 text-center">
-                <span class="text-purple-400">🔬</span> Research & Development Investment
+                <span class="text-purple-400">🔬</span> 2025 Research Leaders: Leading Countries/Institutions via Nature Index
             </h2>
             
             <div class="grid grid-cols-2 gap-6 mb-12">
                 <!-- R&D Leader Panel - Images Only -->
                 <div class="card-glow rounded-2xl p-6">
-                    <div class="flex items-center justify-center space-x-4">
+                    <div class="flex items-center justify-center space-x-0">
                         <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp1.png" 
-                             alt="Empire 1" class="empire-img w-32 h-32 object-contain">
+                             alt="Empire 1" class="empire-img w-40 h-40 object-contain -mr-4">
                         <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp2.png" 
-                             alt="Empire 2" class="empire-img w-32 h-32 object-contain">
+                             alt="Empire 2" class="empire-img w-40 h-40 object-contain -mr-4">
                         <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp3.png" 
-                             alt="Empire 3" class="empire-img w-32 h-32 object-contain">
+                             alt="Empire 3" class="empire-img w-40 h-40 object-contain">
                     </div>
                 </div>
 
@@ -332,19 +332,22 @@
                 }));
                 
                 // Load R&D expenditure CSV
-                const rdResponse = await fetch(GITHUB_BASE + 'empire_rd_expenditure_latest.csv');
+                const rdResponse = await fetch(GITHUB_BASE + 'empire_nature_share.csv');
                 const rdData = await rdResponse.text();
                 const rdParsed = Papa.parse(rdData, {
                     header: true,
                     skipEmptyLines: true,
                     dynamicTyping: true
                 });
-                
+
                 rdExpenditures = rdParsed.data.map(row => ({
-                    empire: parseInt(row['empire#']),
-                    total: parseFloat(row.total),
-                    percent: parseFloat(row['%'])
+                    empire: parseInt(row.empire),
+                    share: parseFloat(row.share_2024),
+                    percent: parseFloat(row.percent)
                 }));
+
+                // Sort by percent in descending order for ranking
+                rdExpenditures.sort((a, b) => b.percent - a.percent);
                 
                 // Initialize dashboard
                 initDashboard();
@@ -426,13 +429,21 @@
             height: 280
         };
 
-        // R&D Pie Chart
+        // R&D Pie Chart - Updated to use nature share data
         const rdData = [{
-            values: [954.2, 806.0, 787.0],
-            labels: ['Empire 1<br>$954.2B (37.5%)', 'Empire 2<br>$806.0B (31.6%)', 'Empire 3<br>$787.0B (30.9%)'],
+            values: rdExpenditures.map(item => item.share),
+            labels: rdExpenditures.map(item => `Empire ${item.empire}<br>$${item.share.toLocaleString()}B (${item.percent}%)`),
             type: 'pie',
             marker: {
-                colors: ['#f59e0b', '#3b82f6', '#ef4444'],
+                colors: rdExpenditures.map(item => {
+                    // Assign colors based on empire number
+                    switch(item.empire) {
+                        case 1: return '#f59e0b'; // amber
+                        case 2: return '#3b82f6'; // blue
+                        case 3: return '#ef4444'; // red
+                        default: return '#6b7280'; // gray fallback
+                    }
+                }),
                 line: {
                     color: '#1e293b',
                     width: 2
