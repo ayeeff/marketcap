@@ -259,7 +259,7 @@
 
         // Minimal country name -> ISO2 lookup for common countries. Expand as needed.
         const countryNameToIso = {
-            'united states': 'us', 'usa': 'us', 'united kingdom': 'gb', 'uk': 'gb', 'china': 'cn', 'peoples republic of china': 'cn', 'jp': 'jp', 'japan': 'jp', 'germany': 'de', 'france': 'fr', 'australia': 'au', 'canada': 'ca', 'india': 'in', 'russia': 'ru', 'brazil': 'br', 'south korea': 'kr', 'korea, south': 'kr', 'italy': 'it', 'spain': 'es', 'netherlands': 'nl', 'saudi arabia': 'sa', 'uae': 'ae', 'united arab emirates': 'ae', 'singapore': 'sg', 'sweden': 'se', 'switzerland': 'ch', 'norway': 'no', 'mexico': 'mx', 'indonesia': 'id', 'turkey': 'tr', 'argentina': 'ar', 'south africa': 'za', 'poland': 'pl', 'belgium': 'be', 'ireland': 'ie', 'israel': 'il', 'hong kong': 'hk', 'taiwan': 'tw', 'vietnam': 'vn', 'malaysia': 'my'
+            'united states': 'us', 'usa': 'us', 'united kingdom': 'gb', 'uk': 'gb', 'china': 'cn', 'peoples republic of china': 'cn', 'jp': 'jp', 'japan': 'jp', 'germany': 'de', 'france': 'fr', 'australia': 'au', 'canada': 'ca', 'india': 'in', 'russia': 'ru', 'brazil': 'br', 'south korea': 'kr', 'korea, south': 'kr', 'italy': 'it', 'spain': 'es', 'netherlands': 'nl', 'saudi arabia': 'sa', 'uae': 'ae', 'united arab emirates': 'ae', 'singapore': 'sg', 'sweden': 'se', 'switzerland': 'ch', 'norway': 'no', 'mexico': 'mx', 'indonesia': 'id', 'turkey': 'tr', 'argentina': 'ar', 'south africa': 'za', 'poland': 'pl', 'belgium': 'be', 'ireland': 'ie', 'israel': 'il', 'hong kong': 'hk', 'taiwan': 'tw', 'vietnam': 'vn', 'malaysia': 'my', 'america': 'us', 'united states of america': 'us', 'united states': 'us'
         };
 
         function getIsoFromCountry(countryRaw) {
@@ -434,39 +434,49 @@
         // start
         loadData();
     
-        function createInfoCard(containerId, data, color) {
+        function createInfoCard(containerId, sectionTitle, data, color) {
             const pieDiv = document.getElementById(containerId);
-            const parentGrid = pieDiv.parentElement;
+            const gridParent = pieDiv.parentElement;
+            gridParent.classList.add('grid', 'grid-cols-2', 'gap-6');
+
             const infoDiv = document.createElement('div');
-            infoDiv.className = 'card-glow rounded-2xl p-6';
-            let table = '<table class="w-full text-sm text-left text-white">';
-            table += '<thead><tr><th class="text-slate-400 font-semibold pb-2">Empire</th><th class="text-slate-400 font-semibold pb-2 text-right">Value</th><th class="text-slate-400 font-semibold pb-2 text-right">Share</th></tr></thead><tbody>';
+            infoDiv.className = 'card-glow rounded-2xl p-6 flex flex-col justify-start';
+            const header = document.createElement('h3');
+            header.className = 'text-slate-300 font-bold mb-4';
+            header.textContent = sectionTitle;
+            infoDiv.appendChild(header);
+
+            const table = document.createElement('table');
+            table.className = 'w-full text-sm text-left text-white';
+            table.innerHTML = '<thead><tr><th class="text-slate-400 font-semibold pb-2">Empire</th><th class="text-slate-400 font-semibold pb-2 text-right">Value</th><th class="text-slate-400 font-semibold pb-2 text-right">Share</th></tr></thead>';
+            const tbody = document.createElement('tbody');
             data.forEach(row => {
-                table += `<tr class="border-b border-slate-700/50">
-                    <td class="py-1">${row.name}</td>
-                    <td class="py-1 text-right text-${color}-400 font-mono">${row.value}</td>
-                    <td class="py-1 text-right text-slate-300">${row.percent}%</td>
-                </tr>`;
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-slate-700/50';
+                tr.innerHTML = `<td class="py-1">${row.name}</td>
+                                <td class="py-1 text-right text-${color}-400 font-mono">${row.value}</td>
+                                <td class="py-1 text-right text-slate-300">${row.percent}%</td>`;
+                tbody.appendChild(tr);
             });
-            table += '</tbody></table>';
-            infoDiv.innerHTML = table;
-            parentGrid.appendChild(infoDiv);
+            table.appendChild(tbody);
+            infoDiv.appendChild(table);
+            gridParent.appendChild(infoDiv);
         }
 
-        // Create info cards beside all pie charts
-        createInfoCard('marketCapPie', marketCapRanking.map(item => ({
+        // Build info cards beside each pie
+        createInfoCard('marketCapPie', 'Market Share by Empire', marketCapTotals.map(item => ({
             name: empireShortNames[item.empire],
             value: item.total,
-            percent: (100 * parseFloat(String(item.total).replace(/[^0-9.-]+/g, '')) / marketCapRanking.reduce((s,x)=>s+(parseFloat(String(x.total).replace(/[^0-9.-]+/g, ''))||0),0)).toFixed(1)
+            percent: (100 * parseFloat(String(item.total).replace(/[^0-9.-]+/g, '')) / marketCapTotals.reduce((s,x)=>s+(parseFloat(String(x.total).replace(/[^0-9.-]+/g, ''))||0),0)).toFixed(1)
         })), 'green');
 
-        createInfoCard('rdPie', researchRanking.map(item => ({
+        createInfoCard('rdPie', 'Research Share by Empire', rdExpenditures.map(item => ({
             name: empireShortNames[item.empire],
             value: '$' + (item.share?.toLocaleString?.()||item.share),
             percent: item.percent.toFixed(1)
         })), 'purple');
 
-        createInfoCard('gdpPie', gdpRanking.map(item => ({
+        createInfoCard('gdpPie', 'GDP Share by Empire', gdpData.map(item => ({
             name: empireShortNames[item.empire],
             value: '$' + (item.total?.toLocaleString?.()||item.total),
             percent: item.percent.toFixed(1)
