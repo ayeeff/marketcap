@@ -16,76 +16,78 @@
             <p class="text-slate-500 text-sm">As of October 18, 2025</p>
         </div>
 
-        <!-- Leader Panel -->
-        <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-2xl p-8 mb-12">
-            <h2 class="text-3xl font-bold text-white text-center mb-6">Market Cap Leaders</h2>
-            <div class="grid grid-cols-3 gap-6">
-                <!-- Empire 2 - 1st Place -->
-                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border-4 border-yellow-400 relative">
-                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-slate-900 px-4 py-1 rounded-full font-bold text-sm">
-                        🥇 1st Place
+        <!-- Leader Panel and Pie Chart Row -->
+        <div class="grid grid-cols-2 gap-6 mb-12">
+            <!-- Leader Panel -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-2xl p-6">
+                <h2 class="text-2xl font-bold text-white text-center mb-4">Market Cap Leaders</h2>
+                <div class="flex items-stretch justify-center -space-x-1">
+                    <!-- Empire 2 - 1st Place -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border-4 border-yellow-400 relative flex-1">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-slate-900 px-3 py-0.5 rounded-full font-bold text-xs z-10">
+                            🥇 1st
+                        </div>
+                        <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp2.png" 
+                             alt="Empire 2" class="w-full h-20 object-contain mb-2 mt-1">
+                        <div class="text-center">
+                            <p class="text-white font-semibold text-sm mb-1">Empire 2</p>
+                            <p class="text-yellow-300 text-lg font-bold">$70.01 T</p>
+                            <p class="text-slate-300 text-xs">66.0%</p>
+                        </div>
                     </div>
-                    <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp2.png" 
-                         alt="Empire 2" class="w-full h-32 object-contain mb-4 mt-2">
-                    <div class="text-center">
-                        <p class="text-white font-semibold text-lg mb-1">Empire 2</p>
-                        <p class="text-yellow-300 text-2xl font-bold">$70.01 T</p>
-                        <p class="text-slate-300 text-sm mt-1">66.0% of total</p>
-                    </div>
-                </div>
 
-                <!-- Empire 3 - 2nd Place -->
-                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border-4 border-slate-300 relative">
-                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-slate-300 text-slate-900 px-4 py-1 rounded-full font-bold text-sm">
-                        🥈 2nd Place
+                    <!-- Empire 3 - 2nd Place -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border-4 border-slate-300 relative flex-1">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-slate-300 text-slate-900 px-3 py-0.5 rounded-full font-bold text-xs z-10">
+                            🥈 2nd
+                        </div>
+                        <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp3.png" 
+                             alt="Empire 3" class="w-full h-20 object-contain mb-2 mt-1">
+                        <div class="text-center">
+                            <p class="text-white font-semibold text-sm mb-1">Empire 3</p>
+                            <p class="text-slate-300 text-lg font-bold">$23.69 T</p>
+                            <p class="text-slate-300 text-xs">22.3%</p>
+                        </div>
                     </div>
-                    <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp3.png" 
-                         alt="Empire 3" class="w-full h-32 object-contain mb-4 mt-2">
-                    <div class="text-center">
-                        <p class="text-white font-semibold text-lg mb-1">Empire 3</p>
-                        <p class="text-slate-300 text-2xl font-bold">$23.69 T</p>
-                        <p class="text-slate-300 text-sm mt-1">22.3% of total</p>
-                    </div>
-                </div>
 
-                <!-- Empire 1 - 3rd Place -->
-                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border-4 border-amber-600 relative">
-                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-amber-600 text-white px-4 py-1 rounded-full font-bold text-sm">
-                        🥉 3rd Place
-                    </div>
-                    <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp1.png" 
-                         alt="Empire 1" class="w-full h-32 object-contain mb-4 mt-2">
-                    <div class="text-center">
-                        <p class="text-white font-semibold text-lg mb-1">Empire 1</p>
-                        <p class="text-amber-400 text-2xl font-bold">$12.27 T</p>
-                        <p class="text-slate-300 text-sm mt-1">11.6% of total</p>
+                    <!-- Empire 1 - 3rd Place -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border-4 border-amber-600 relative flex-1">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-600 text-white px-3 py-0.5 rounded-full font-bold text-xs z-10">
+                            🥉 3rd
+                        </div>
+                        <img src="https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp1.png" 
+                             alt="Empire 1" class="w-full h-20 object-contain mb-2 mt-1">
+                        <div class="text-center">
+                            <p class="text-white font-semibold text-sm mb-1">Empire 1</p>
+                            <p class="text-amber-400 text-lg font-bold">$12.27 T</p>
+                            <p class="text-slate-300 text-xs">11.6%</p>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Pie Chart -->
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-6">
+                <h2 class="text-2xl font-bold text-white text-center mb-4">Market Cap Distribution</h2>
+                <div id="pieChart" class="w-full"></div>
+            </div>
         </div>
 
-        <!-- Pie Chart -->
-        <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8 mb-12">
-            <h2 class="text-3xl font-bold text-white text-center mb-6">Market Cap Distribution</h2>
-            <div id="pieChart" class="w-full"></div>
-        </div>
-
-        <!-- Company Tables -->
-        <div class="space-y-8">
+        <!-- Company Tables - Three Columns -->
+        <div class="grid grid-cols-3 gap-6">
             <!-- Empire 1 Table -->
-            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-3xl font-bold text-white">Empire 1 - Top 10 Companies</h2>
-                    <span class="text-amber-400 text-xl font-bold">$12.27 T Total</span>
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-6">
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold text-white mb-1">Empire 1</h2>
+                    <span class="text-amber-400 text-sm font-bold">$12.27 T Total</span>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left">
+                    <table class="w-full text-left text-sm">
                         <thead>
                             <tr class="border-b border-slate-700">
-                                <th class="pb-4 text-slate-400 font-semibold">Rank</th>
-                                <th class="pb-4 text-slate-400 font-semibold">Company</th>
-                                <th class="pb-4 text-slate-400 font-semibold">Ticker</th>
-                                <th class="pb-4 text-slate-400 font-semibold text-right">Market Cap</th>
+                                <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+                                <th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
+                                <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Market Cap</th>
                             </tr>
                         </thead>
                         <tbody id="empire1Table" class="text-white">
@@ -95,19 +97,18 @@
             </div>
 
             <!-- Empire 2 Table -->
-            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-3xl font-bold text-white">Empire 2 - Top 10 Companies</h2>
-                    <span class="text-blue-400 text-xl font-bold">$70.01 T Total</span>
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-6">
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold text-white mb-1">Empire 2</h2>
+                    <span class="text-blue-400 text-sm font-bold">$70.01 T Total</span>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left">
+                    <table class="w-full text-left text-sm">
                         <thead>
                             <tr class="border-b border-slate-700">
-                                <th class="pb-4 text-slate-400 font-semibold">Rank</th>
-                                <th class="pb-4 text-slate-400 font-semibold">Company</th>
-                                <th class="pb-4 text-slate-400 font-semibold">Ticker</th>
-                                <th class="pb-4 text-slate-400 font-semibold text-right">Market Cap</th>
+                                <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+                                <th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
+                                <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Market Cap</th>
                             </tr>
                         </thead>
                         <tbody id="empire2Table" class="text-white">
@@ -117,19 +118,18 @@
             </div>
 
             <!-- Empire 3 Table -->
-            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-3xl font-bold text-white">Empire 3 - Top 10 Companies</h2>
-                    <span class="text-red-400 text-xl font-bold">$23.69 T Total</span>
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-6">
+                <div class="mb-4">
+                    <h2 class="text-xl font-bold text-white mb-1">Empire 3</h2>
+                    <span class="text-red-400 text-sm font-bold">$23.69 T Total</span>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left">
+                    <table class="w-full text-left text-sm">
                         <thead>
                             <tr class="border-b border-slate-700">
-                                <th class="pb-4 text-slate-400 font-semibold">Rank</th>
-                                <th class="pb-4 text-slate-400 font-semibold">Company</th>
-                                <th class="pb-4 text-slate-400 font-semibold">Ticker</th>
-                                <th class="pb-4 text-slate-400 font-semibold text-right">Market Cap</th>
+                                <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+                                <th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
+                                <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Market Cap</th>
                             </tr>
                         </thead>
                         <tbody id="empire3Table" class="text-white">
@@ -184,10 +184,9 @@
                 const row = document.createElement('tr');
                 row.className = 'border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors';
                 row.innerHTML = `
-                    <td class="py-4 text-slate-300">${index + 1}</td>
-                    <td class="py-4 font-semibold">${company.name}</td>
-                    <td class="py-4 text-slate-400">${company.ticker}</td>
-                    <td class="py-4 text-right font-mono text-green-400">${company.marketCap}</td>
+                    <td class="py-2 text-slate-300 text-xs">${index + 1}</td>
+                    <td class="py-2 text-xs">${company.name}</td>
+                    <td class="py-2 text-right font-mono text-green-400 text-xs">${company.marketCap}</td>
                 `;
                 tableBody.appendChild(row);
             });
