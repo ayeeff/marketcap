@@ -10,26 +10,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # 2️⃣ Set up Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: pip install pandas
 
+      # 4️⃣ Run scraper
       - name: Run scraper
         run: python scrape_energy_consumption.py
 
+      # 5️⃣ Commit and push updated CSV (safe if file missing)
       - name: Commit and push data update
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/empire_energy_consumption_*.csv
-          git commit -m "Update empire energy data ($(date -u '+%Y-%m-%d'))" || echo "No changes to commit"
-          git push
+          if [ -f data/empire_energy_consumption.csv ]; then
+            git add data/empire_energy_consumption.csv
+            git commit -m "Update empire energy data ($(date -u '+%Y-%m-%d'))" || echo "No changes to commit"
+            git push
+          else
+            echo "No CSV file found — skipping commit"
+          fi
