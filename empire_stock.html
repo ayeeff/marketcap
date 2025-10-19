@@ -275,11 +275,15 @@
         let marketCapTotals = [];
         let rdExpenditures = [];
         
+        // GitHub raw file URLs
+        const GITHUB_BASE = 'https://raw.githubusercontent.com/ayeeff/marketcap/main/data/';
+        
         // Load CSV data
         async function loadData() {
             try {
                 // Load companies CSV
-                const companiesData = await window.fs.readFile('data/empire_top_companies.csv', { encoding: 'utf8' });
+                const companiesResponse = await fetch(GITHUB_BASE + 'empire_top_companies.csv');
+                const companiesData = await companiesResponse.text();
                 const companiesParsed = Papa.parse(companiesData, {
                     header: true,
                     skipEmptyLines: true,
@@ -297,7 +301,8 @@
                 });
                 
                 // Load research institutions CSV
-                const researchData = await window.fs.readFile('data/empire_research.csv', { encoding: 'utf8' });
+                const researchResponse = await fetch(GITHUB_BASE + 'empire_research_2025-10.csv');
+                const researchData = await researchResponse.text();
                 const researchParsed = Papa.parse(researchData, {
                     header: true,
                     skipEmptyLines: true,
@@ -312,7 +317,8 @@
                 }));
                 
                 // Load market cap totals CSV
-                const marketCapData = await window.fs.readFile('data/empire_totals.csv', { encoding: 'utf8' });
+                const marketCapResponse = await fetch(GITHUB_BASE + 'empire_totals.csv');
+                const marketCapData = await marketCapResponse.text();
                 const marketCapParsed = Papa.parse(marketCapData, {
                     header: true,
                     skipEmptyLines: true,
@@ -326,7 +332,8 @@
                 }));
                 
                 // Load R&D expenditure CSV
-                const rdData = await window.fs.readFile('data/empire_rd_expenditure_latest.csv', { encoding: 'utf8' });
+                const rdResponse = await fetch(GITHUB_BASE + 'empire_rd_expenditure_latest.csv');
+                const rdData = await rdResponse.text();
                 const rdParsed = Papa.parse(rdData, {
                     header: true,
                     skipEmptyLines: true,
@@ -343,6 +350,7 @@
                 initDashboard();
             } catch (error) {
                 console.error('Error loading data:', error);
+                document.body.innerHTML += `<div style="color: red; text-align: center; padding: 20px;">Error loading data: ${error.message}</div>`;
             }
         }
 
