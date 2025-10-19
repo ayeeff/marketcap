@@ -534,6 +534,8 @@
         }
 
         // start
+        console.log('Script loaded, starting data fetch...');
+        document.body.innerHTML += '<div id="loadingIndicator" style="position: fixed; top: 20px; right: 20px; background: #3b82f6; color: white; padding: 10px 20px; border-radius: 8px; z-index: 9999;">Loading data...</div>';
         loadData();
     </script>
 </body>
