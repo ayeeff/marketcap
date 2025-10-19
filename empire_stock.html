@@ -91,12 +91,23 @@
         }
 
         .empire-wrapper {
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 8px;
             border-radius: 12px;
             margin-right: -20px;
+        }
+
+        .rank-number {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 3rem;
+            font-weight: bold;
+            color: #000;
+            z-index: 10;
         }
 
         .gold-bg {
@@ -147,7 +158,7 @@
             <div class="grid grid-cols-3 gap-6">
                 <div class="card-glow rounded-2xl p-6">
                     <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Steam & Colonies</h3>
+                        <h3 class="text-xl font-bold text-white mb-1">Empire 1.0: Steam & Colonies</h3>
                         <span class="text-amber-400 text-sm font-bold">Top Companies</span>
                     </div>
                     <div class="overflow-x-auto">
@@ -166,7 +177,7 @@
 
                 <div class="card-glow rounded-2xl p-6">
                     <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Oil & Silicon</h3>
+                        <h3 class="text-xl font-bold text-white mb-1">Empire 2.0: Oil & Silicon</h3>
                         <span class="text-blue-400 text-sm font-bold">Top Companies</span>
                     </div>
                     <div class="overflow-x-auto">
@@ -185,7 +196,7 @@
 
                 <div class="card-glow rounded-2xl p-6">
                     <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Rare Earths, Renewables & Robotics</h3>
+                        <h3 class="text-xl font-bold text-white mb-1">Empire 3.0: Rare Earths, Renewables & Robotics</h3>
                         <span class="text-red-400 text-sm font-bold">Top Companies</span>
                     </div>
                     <div class="overflow-x-auto">
@@ -228,7 +239,7 @@
             <div class="grid grid-cols-3 gap-6">
                 <div class="card-glow rounded-2xl p-6">
                     <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Steam & Colonies</h3>
+                        <h3 class="text-xl font-bold text-white mb-1">Empire 1.0: Steam & Colonies</h3>
                         <span class="text-amber-400 text-sm font-bold">Top Institutions</span>
                     </div>
                     <div class="overflow-x-auto">
@@ -247,7 +258,7 @@
 
                 <div class="card-glow rounded-2xl p-6">
                     <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Oil & Silicon</h3>
+                        <h3 class="text-xl font-bold text-white mb-1">Empire 2.0: Oil & Silicon</h3>
                         <span class="text-blue-400 text-sm font-bold">Top Institutions</span>
                     </div>
                     <div class="overflow-x-auto">
@@ -266,7 +277,7 @@
 
                 <div class="card-glow rounded-2xl p-6">
                     <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Rare Earths, Renewables & Robotics</h3>
+                        <h3 class="text-xl font-bold text-white mb-1">Empire 3.0: Rare Earths, Renewables & Robotics</h3>
                         <span class="text-red-400 text-sm font-bold">Top Institutions</span>
                     </div>
                     <div class="overflow-x-auto">
@@ -315,7 +326,7 @@
             <div class="grid grid-cols-3 gap-6">
                 <div class="card-glow rounded-2xl p-6">
                     <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Steam & Colonies</h3>
+                        <h3 class="text-xl font-bold text-white mb-1">Empire 1.0: Steam & Colonies</h3>
                         <span class="text-amber-400 text-sm font-bold">Top Cities</span>
                     </div>
                     <div class="overflow-x-auto">
@@ -334,7 +345,7 @@
 
                 <div class="card-glow rounded-2xl p-6">
                     <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Oil & Silicon</h3>
+                        <h3 class="text-xl font-bold text-white mb-1">Empire 2.0: Oil & Silicon</h3>
                         <span class="text-blue-400 text-sm font-bold">Top Cities</span>
                     </div>
                     <div class="overflow-x-auto">
@@ -353,7 +364,7 @@
 
                 <div class="card-glow rounded-2xl p-6">
                     <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Rare Earths, Renewables & Robotics</h3>
+                        <h3 class="text-xl font-bold text-white mb-1">Empire 3.0: Rare Earths, Renewables & Robotics</h3>
                         <span class="text-red-400 text-sm font-bold">Top Cities</span>
                     </div>
                     <div class="overflow-x-auto">
@@ -383,9 +394,15 @@
         let citiesData = [];
         
         const empireNames = {
-            1: 'Empire of Steam & Colonies',
-            2: 'Empire of Oil & Silicon',
-            3: 'Empire of Rare Earths, Renewables & Robotics'
+            1: 'Empire 1.0: Steam & Colonies',
+            2: 'Empire 2.0: Oil & Silicon',
+            3: 'Empire 3.0: Rare Earths, Renewables & Robotics'
+        };
+
+        const empireShortNames = {
+            1: 'Empire 1.0',
+            2: 'Empire 2.0',
+            3: 'Empire 3.0'
         };
         
         // GitHub raw file URLs
@@ -508,14 +525,22 @@
             sortedData.forEach((item, index) => {
                 const wrapper = document.createElement('div');
                 wrapper.className = `empire-wrapper ${index === 0 ? 'gold-bg' : index === 1 ? 'silver-bg' : 'bronze-bg'}`;
+                
+                const rankDiv = document.createElement('div');
+                rankDiv.className = 'rank-number';
+                rankDiv.textContent = index + 1;
+                wrapper.appendChild(rankDiv);
+                
                 const img = document.createElement('img');
                 img.src = `https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp${item.empire}.png`;
                 img.alt = `${empireNames[item.empire]}`;
                 img.className = 'empire-img w-72 h-72 object-contain';
                 wrapper.appendChild(img);
+                
                 if (index < sortedData.length - 1) {
                     wrapper.style.marginRight = '-20px';
                 }
+                
                 container.appendChild(wrapper);
             });
         }
@@ -529,9 +554,9 @@
                 const row = document.createElement('tr');
                 row.className = 'table-row border-b border-slate-700/50';
                 row.innerHTML = `
-                    <td class="py-2 text-slate-300 text-xs">${index + 1}</td>
-                    <td class="py-2 text-xs">${company.name}</td>
-                    <td class="py-2 text-right font-mono text-green-400 text-xs">${company.marketCap}</td>
+                    <td class="py-1 text-slate-300 text-xs">${index + 1}</td>
+                    <td class="py-1 text-xs break-words max-w-32">${company.name}</td>
+                    <td class="py-1 text-right font-mono text-green-400 text-xs">${company.marketCap}</td>
                 `;
                 tableBody.appendChild(row);
             });
@@ -546,9 +571,9 @@
                 const row = document.createElement('tr');
                 row.className = 'table-row border-b border-slate-700/50';
                 row.innerHTML = `
-                    <td class="py-2 text-slate-300 text-xs">${inst.rank}</td>
-                    <td class="py-2 text-xs">${inst.name}</td>
-                    <td class="py-2 text-right font-mono text-purple-400 text-xs">#${inst.globalRank}</td>
+                    <td class="py-1 text-slate-300 text-xs">${inst.rank}</td>
+                    <td class="py-1 text-xs break-words max-w-32">${inst.name}</td>
+                    <td class="py-1 text-right font-mono text-purple-400 text-xs">#${inst.globalRank}</td>
                 `;
                 tableBody.appendChild(row);
             });
@@ -566,9 +591,9 @@
                 const row = document.createElement('tr');
                 row.className = 'table-row border-b border-slate-700/50';
                 row.innerHTML = `
-                    <td class="py-2 text-slate-300 text-xs">${city.rank}</td>
-                    <td class="py-2 text-xs">${city.city}</td>
-                    <td class="py-2 text-right font-mono text-yellow-400 text-xs">${city.population.toLocaleString()}</td>
+                    <td class="py-1 text-slate-300 text-xs">${city.rank}</td>
+                    <td class="py-1 text-xs break-words max-w-32">${city.city}</td>
+                    <td class="py-1 text-right font-mono text-yellow-400 text-xs">${city.population.toLocaleString()}</td>
                 `;
                 tableBody.appendChild(row);
             });
@@ -600,7 +625,7 @@
             // Market Cap Pie Chart
             const marketCapData = [{
                 values: marketCapRanking.map(item => parseFloat(item.total.replace('$', '').replace('T', ''))),
-                labels: marketCapRanking.map(item => `${empireNames[item.empire]}<br>${item.total}`),
+                labels: marketCapRanking.map(item => `${empireShortNames[item.empire]}<br>${item.total}`),
                 type: 'pie',
                 marker: {
                     colors: marketCapRanking.map(item => {
@@ -637,7 +662,7 @@
             // R&D Pie Chart
             const rdData = [{
                 values: researchRanking.map(item => item.share),
-                labels: researchRanking.map(item => `${empireNames[item.empire]}<br>$${item.share.toLocaleString()}B (${item.percent}%)`),
+                labels: researchRanking.map(item => `${empireShortNames[item.empire]}<br>$${item.share.toLocaleString()}B (${item.percent}%)`),
                 type: 'pie',
                 marker: {
                     colors: researchRanking.map(item => {
@@ -674,7 +699,7 @@
             // GDP Pie Chart
             const gdpDataChart = [{
                 values: gdpRanking.map(item => item.total),
-                labels: gdpRanking.map(item => `${empireNames[item.empire]}<br>$${item.total.toLocaleString()}B (${item.percent}%)`),
+                labels: gdpRanking.map(item => `${empireShortNames[item.empire]}<br>$${item.total.toLocaleString()}B (${item.percent}%)`),
                 type: 'pie',
                 marker: {
                     colors: gdpRanking.map(item => {
