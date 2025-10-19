@@ -23,10 +23,7 @@ EMPIRE_1_COUNTRIES = [
     'Canada', 'Australia', 'Singapore',
     'New Zealand', 'South Africa', 'Malaysia',
     'Nigeria', 'Kenya', 'Ghana', 'Jamaica',
-    'Uganda', 'Tanzania', 'Zambia', 'Malawi',
-    'Cyprus', 'Malta', 'Mauritius', 'Botswana',
-    'Namibia', 'Zimbabwe', 'Barbados',
-    'Trinidad and Tobago', 'Fiji', 'Papua New Guinea'
+    'Uganda', 'Tanzania', 'Zambia', 'Malawi'
 ]
 
 EMPIRE_2_COUNTRIES = ['United States', 'United States of America', 'USA']
