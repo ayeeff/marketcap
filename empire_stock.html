@@ -434,42 +434,43 @@
         // start
         loadData();
     
-            function createInfoTable(containerId, data, titleColor) {
-                const container = document.getElementById(containerId).parentElement;
-                const infoCard = document.createElement('div');
-                infoCard.className = 'card-glow rounded-2xl p-4 mt-4';
-                const table = document.createElement('table');
-                table.className = 'w-full text-sm text-left text-white';
-                table.innerHTML = '<thead><tr><th class="text-slate-400 font-semibold pb-2">Empire</th><th class="text-slate-400 font-semibold pb-2 text-right">Value</th><th class="text-slate-400 font-semibold pb-2 text-right">Share</th></tr></thead>';
-                const tbody = document.createElement('tbody');
-                data.forEach(row => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'border-b border-slate-700/50';
-                    tr.innerHTML = `<td class="py-1">${row.name}</td><td class="py-1 text-right text-${titleColor}-400 font-mono">${row.value}</td><td class="py-1 text-right text-slate-300">${row.percent}%</td>`;
-                    tbody.appendChild(tr);
-                });
-                table.appendChild(tbody);
-                infoCard.appendChild(table);
-                container.appendChild(infoCard);
-            }
-            
-            createInfoTable('marketCapPie', marketCapRanking.map(item => ({
-                name: empireShortNames[item.empire],
-                value: item.total,
-                percent: (100 * parseFloat(String(item.total).replace(/[^0-9.-]+/g, '')) / marketCapRanking.reduce((s,x)=>s+(parseFloat(String(x.total).replace(/[^0-9.-]+/g, ''))||0),0)).toFixed(1)
-            })), 'green');
+        function createInfoCard(containerId, data, color) {
+            const pieDiv = document.getElementById(containerId);
+            const parentGrid = pieDiv.parentElement;
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'card-glow rounded-2xl p-6';
+            let table = '<table class="w-full text-sm text-left text-white">';
+            table += '<thead><tr><th class="text-slate-400 font-semibold pb-2">Empire</th><th class="text-slate-400 font-semibold pb-2 text-right">Value</th><th class="text-slate-400 font-semibold pb-2 text-right">Share</th></tr></thead><tbody>';
+            data.forEach(row => {
+                table += `<tr class="border-b border-slate-700/50">
+                    <td class="py-1">${row.name}</td>
+                    <td class="py-1 text-right text-${color}-400 font-mono">${row.value}</td>
+                    <td class="py-1 text-right text-slate-300">${row.percent}%</td>
+                </tr>`;
+            });
+            table += '</tbody></table>';
+            infoDiv.innerHTML = table;
+            parentGrid.appendChild(infoDiv);
+        }
 
-            createInfoTable('rdPie', researchRanking.map(item => ({
-                name: empireShortNames[item.empire],
-                value: item.share,
-                percent: item.percent.toFixed(1)
-            })), 'purple');
+        // Create info cards beside all pie charts
+        createInfoCard('marketCapPie', marketCapRanking.map(item => ({
+            name: empireShortNames[item.empire],
+            value: item.total,
+            percent: (100 * parseFloat(String(item.total).replace(/[^0-9.-]+/g, '')) / marketCapRanking.reduce((s,x)=>s+(parseFloat(String(x.total).replace(/[^0-9.-]+/g, ''))||0),0)).toFixed(1)
+        })), 'green');
 
-            createInfoTable('gdpPie', gdpRanking.map(item => ({
-                name: empireShortNames[item.empire],
-                value: '$' + item.total.toLocaleString(),
-                percent: item.percent.toFixed(1)
-            })), 'green');
+        createInfoCard('rdPie', researchRanking.map(item => ({
+            name: empireShortNames[item.empire],
+            value: '$' + (item.share?.toLocaleString?.()||item.share),
+            percent: item.percent.toFixed(1)
+        })), 'purple');
+
+        createInfoCard('gdpPie', gdpRanking.map(item => ({
+            name: empireShortNames[item.empire],
+            value: '$' + (item.total?.toLocaleString?.()||item.total),
+            percent: item.percent.toFixed(1)
+        })), 'green');
     </script>
 </body>
 </html>
