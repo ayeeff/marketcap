@@ -82,6 +82,13 @@
             background: linear-gradient(rgba(30, 41, 59, 0.8), rgba(30, 41, 59, 0.8)) padding-box,
                         linear-gradient(45deg, #3b82f6, #8b5cf6, #3b82f6) border-box;
         }
+
+        .leader-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+        }
     </style>
 </head>
 <body class="min-h-screen p-8">
@@ -104,7 +111,7 @@
             <div class="grid grid-cols-2 gap-6 mb-12">
                 <!-- Market Cap Leader Panel - Images Only -->
                 <div class="card-glow rounded-2xl p-6">
-                    <div class="flex items-center justify-center" id="marketCapLeaderPanel">
+                    <div class="leader-panel" id="marketCapLeaderPanel">
                         <!-- Dynamically generated based on market cap ranking -->
                     </div>
                 </div>
@@ -185,7 +192,7 @@
             <div class="grid grid-cols-2 gap-6 mb-12">
                 <!-- R&D Leader Panel - Images Only -->
                 <div class="card-glow rounded-2xl p-6">
-                    <div class="flex items-center justify-center" id="researchLeaderPanel">
+                    <div class="leader-panel" id="researchLeaderPanel">
                         <!-- Dynamically generated based on research ranking -->
                     </div>
                 </div>
@@ -266,7 +273,7 @@
             <div class="grid grid-cols-2 gap-6 mb-12">
                 <!-- GDP Leader Panel - Images Only -->
                 <div class="card-glow rounded-2xl p-6">
-                    <div class="flex items-center justify-center" id="gdpLeaderPanel">
+                    <div class="leader-panel" id="gdpLeaderPanel">
                         <!-- Dynamically generated based on GDP ranking -->
                     </div>
                 </div>
@@ -475,11 +482,11 @@
                 const img = document.createElement('img');
                 img.src = `https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp${item.empire}.png`;
                 img.alt = `Empire ${item.empire}`;
-                img.className = 'empire-img w-52 h-52 object-contain';
+                img.className = 'empire-img w-72 h-72 object-contain';
                 
-                // Add negative margin to make images touch except for the last one
+                // Add negative margin to make images touch without space
                 if (index < sortedData.length - 1) {
-                    img.classList.add('-mr-8');
+                    img.style.marginRight = '-48px';
                 }
                 
                 container.appendChild(img);
