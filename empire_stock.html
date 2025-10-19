@@ -123,9 +123,9 @@
 <table class="w-full text-left text-sm">
 <thead>
 <tr class="border-b border-slate-700">
-<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs">Global Rank</th>
 <th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Rank</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Research Share</th>
 </tr>
 </thead>
 <tbody class="text-white" id="researchEmpire1Table"></tbody>
@@ -141,9 +141,9 @@
 <table class="w-full text-left text-sm">
 <thead>
 <tr class="border-b border-slate-700">
-<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs">Global Rank</th>
 <th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Rank</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Research Share</th>
 </tr>
 </thead>
 <tbody class="text-white" id="researchEmpire2Table"></tbody>
@@ -159,9 +159,9 @@
 <table class="w-full text-left text-sm">
 <thead>
 <tr class="border-b border-slate-700">
-<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs">Global Rank</th>
 <th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Rank</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Research Share</th>
 </tr>
 </thead>
 <tbody class="text-white" id="researchEmpire3Table"></tbody>
@@ -310,6 +310,7 @@
                     rank: parseInt(row.Empire_Rank),
                     name: row.Institution,
                     globalRank: parseInt(row.Global_Rank) || null,
+                    researchShare: parseFloat(row['Research Share']) || 0,
                     country: row.Country || row.country || row.CountryCode || row.Country_Code || ''
                 }));
 
@@ -407,12 +408,12 @@
         function populateResearchTable(empireNum) {
             const tableBody = document.getElementById(`researchEmpire${empireNum}Table`);
             tableBody.innerHTML = '';
-            const empireInstitutions = institutions.filter(i => i.empire === empireNum);
+            const empireInstitutions = institutions.filter(i => i.empire === empireNum).sort((a, b) => a.globalRank - b.globalRank);
             empireInstitutions.forEach((inst) => {
                 const flag = makeFlagImg(inst.country);
                 const row = document.createElement('tr');
                 row.className = 'table-row border-b border-slate-700/50';
-                row.innerHTML = `\n                    <td class="py-1 text-slate-300 text-xs">${inst.rank}</td>\n                    <td class="py-1 text-xs break-words max-w-32"><span class=\"name-with-flag\">${flag}${inst.name}</span></td>\n                    <td class="py-1 text-right font-mono text-purple-400 text-xs">#${inst.globalRank || '—'}</td>\n                `;
+                row.innerHTML = `\n                    <td class="py-1 text-slate-300 text-xs">${inst.globalRank || '—'}</td>\n                    <td class="py-1 text-xs break-words max-w-32"><span class=\"name-with-flag\">${flag}${inst.name}</span></td>\n                    <td class="py-1 text-right font-mono text-purple-400 text-xs">${inst.researchShare}</td>\n                `;
                 tableBody.appendChild(row);
             });
         }
@@ -520,7 +521,7 @@
 
             const rdContainer = createInfoCard('rdPie', 'Research Share by Empire', rdExpenditures.map(item => ({
                 name: `Empire ${item.empire}.0`,
-                value: `$${item.share?.toLocaleString?.() || item.share} B`,
+                value: `${item.share?.toLocaleString?.() || item.share} high-quality research outputs`,
                 percent: item.percent.toFixed(1)
             })), 'purple');
 
@@ -547,7 +548,7 @@
             
             const rdData = [{ 
                 values: researchRanking.map(item=>item.share), 
-                labels: researchRanking.map(item=>`${empireShortNames[item.empire]}\n$${item.share?.toLocaleString?.()||item.share}B (${item.percent}%)`), 
+                labels: researchRanking.map(item=>`${empireShortNames[item.empire]}\n${item.share?.toLocaleString?.()||item.share} outputs (${item.percent}%)`), 
                 type: 'pie', 
                 marker: { 
                     colors: researchRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), 
