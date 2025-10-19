@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Empire Dashboard — Flags</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Empire Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
         @keyframes gradientShift {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -31,233 +32,220 @@
     </style>
 </head>
 <body class="min-h-screen p-8">
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <div class="max-w-7xl mx-auto">
-        <div class="text-center mb-12">
-            <h1 class="text-6xl font-bold shimmer-text mb-2">Global Empire Dashboard</h1>
-            <p class="text-blue-400 text-lg">Real-time Market Intelligence & Research Analytics</p>
-            <p class="text-slate-500 text-sm mt-2">Last Updated: October 19, 2025</p>
-        </div>
-
-        <!-- Market Cap Section -->
-        <div class="mb-16">
-            <h2 class="text-3xl font-bold text-white mb-6 text-center">
-                <span class="text-blue-400">💹</span> Market Capitalization
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-12">
+<h1 class="text-6xl font-bold shimmer-text mb-2">Global Empire Dashboard</h1>
+<p class="text-blue-400 text-lg">Real-time Market Intelligence &amp; Research Analytics</p>
+<p class="text-slate-500 text-sm mt-2">Last Updated: October 19, 2025</p>
+</div>
+<!-- Market Cap Section -->
+<div class="mb-16">
+<h2 class="text-3xl font-bold text-white mb-6 text-center">
+<span class="text-blue-400">💹</span> Market Capitalization
             </h2>
-            <div class="grid grid-cols-2 gap-6 mb-12">
-                <div class="card-glow rounded-2xl p-6"><div class="leader-panel" id="marketCapLeaderPanel"></div></div>
-                <div class="card-glow rounded-2xl p-6"><div id="marketCapPie" class="w-full"></div></div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-6">
-                <div class="card-glow rounded-2xl p-6">
-                    <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Steam</h3>
-                        <span class="text-amber-400 text-sm font-bold">Top Companies</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="border-b border-slate-700">
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Cap</th>
-                                </tr>
-                            </thead>
-                            <tbody id="marketEmpire1Table" class="text-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card-glow rounded-2xl p-6">
-                    <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Oil</h3>
-                        <span class="text-blue-400 text-sm font-bold">Top Companies</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="border-b border-slate-700">
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Cap</th>
-                                </tr>
-                            </thead>
-                            <tbody id="marketEmpire2Table" class="text-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card-glow rounded-2xl p-6">
-                    <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire 3.0</h3>
-                        <span class="text-red-400 text-sm font-bold">Top Companies</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="border-b border-slate-700">
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Cap</th>
-                                </tr>
-                            </thead>
-                            <tbody id="marketEmpire3Table" class="text-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- R&D Section -->
-        <div class="mb-16">
-            <h2 class="text-3xl font-bold text-white mb-6 text-center">
-                <span class="text-purple-400">🔬</span> 2025 Research Leaders: Leading Countries/Institutions via Nature Index
+<div class="grid grid-cols-2 gap-6 mb-12">
+<div class="card-glow rounded-2xl p-6"><div class="leader-panel" id="marketCapLeaderPanel"></div></div>
+<div class="card-glow rounded-2xl p-6"><div class="w-full" id="marketCapPie"></div></div>
+</div>
+<div class="grid grid-cols-3 gap-6">
+<div class="card-glow rounded-2xl p-6">
+<div class="mb-4 border-b border-slate-700 pb-3">
+<h3 class="text-xl font-bold text-white mb-1">Empire 1.0: Steam &amp; Colonies</h3>
+<span class="text-amber-400 text-sm font-bold">Top Companies</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead>
+<tr class="border-b border-slate-700">
+<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Cap</th>
+</tr>
+</thead>
+<tbody class="text-white" id="marketEmpire1Table"></tbody>
+</table>
+</div>
+</div>
+<div class="card-glow rounded-2xl p-6">
+<div class="mb-4 border-b border-slate-700 pb-3">
+<h3 class="text-xl font-bold text-white mb-1">Empire 2.0: Oil &amp; Silicon</h3>
+<span class="text-blue-400 text-sm font-bold">Top Companies</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead>
+<tr class="border-b border-slate-700">
+<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Cap</th>
+</tr>
+</thead>
+<tbody class="text-white" id="marketEmpire2Table"></tbody>
+</table>
+</div>
+</div>
+<div class="card-glow rounded-2xl p-6">
+<div class="mb-4 border-b border-slate-700 pb-3">
+<h3 class="text-xl font-bold text-white mb-1">Empire 3.0: Rare Earths, Renewables &amp; Robotics</h3>
+<span class="text-red-400 text-sm font-bold">Top Companies</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead>
+<tr class="border-b border-slate-700">
+<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Cap</th>
+</tr>
+</thead>
+<tbody class="text-white" id="marketEmpire3Table"></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<!-- R&D Section -->
+<div class="mb-16">
+<h2 class="text-3xl font-bold text-white mb-6 text-center">
+<span class="text-purple-400">🔬</span> 2025 Research Leaders: Leading Countries/Institutions via Nature Index
             </h2>
-            <div class="grid grid-cols-2 gap-6 mb-12">
-                <div class="card-glow rounded-2xl p-6"><div class="leader-panel" id="researchLeaderPanel"></div></div>
-                <div class="card-glow rounded-2xl p-6"><div id="rdPie" class="w-full"></div></div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-6">
-                <div class="card-glow rounded-2xl p-6">
-                    <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Steam</h3>
-                        <span class="text-amber-400 text-sm font-bold">Top Institutions</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="border-b border-slate-700">
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Rank</th>
-                                </tr>
-                            </thead>
-                            <tbody id="researchEmpire1Table" class="text-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card-glow rounded-2xl p-6">
-                    <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Oil</h3>
-                        <span class="text-blue-400 text-sm font-bold">Top Institutions</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="border-b border-slate-700">
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Rank</th>
-                                </tr>
-                            </thead>
-                            <tbody id="researchEmpire2Table" class="text-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card-glow rounded-2xl p-6">
-                    <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire 3.0</h3>
-                        <span class="text-red-400 text-sm font-bold">Top Institutions</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="border-b border-slate-700">
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Rank</th>
-                                </tr>
-                            </thead>
-                            <tbody id="researchEmpire3Table" class="text-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- GDP Section (kept simple) -->
-        <div class="mb-16">
-            <h2 class="text-3xl font-bold text-white mb-6 text-center">
-                <span class="text-green-400">🌍</span> GDP PPP (2025)
+<div class="grid grid-cols-2 gap-6 mb-12">
+<div class="card-glow rounded-2xl p-6"><div class="leader-panel" id="researchLeaderPanel"></div></div>
+<div class="card-glow rounded-2xl p-6"><div class="w-full" id="rdPie"></div></div>
+</div>
+<div class="grid grid-cols-3 gap-6">
+<div class="card-glow rounded-2xl p-6">
+<div class="mb-4 border-b border-slate-700 pb-3">
+<h3 class="text-xl font-bold text-white mb-1">Empire 1.0: Steam &amp; Colonies</h3>
+<span class="text-amber-400 text-sm font-bold">Top Institutions</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead>
+<tr class="border-b border-slate-700">
+<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Rank</th>
+</tr>
+</thead>
+<tbody class="text-white" id="researchEmpire1Table"></tbody>
+</table>
+</div>
+</div>
+<div class="card-glow rounded-2xl p-6">
+<div class="mb-4 border-b border-slate-700 pb-3">
+<h3 class="text-xl font-bold text-white mb-1">Empire 2.0: Oil &amp; Silicon</h3>
+<span class="text-blue-400 text-sm font-bold">Top Institutions</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead>
+<tr class="border-b border-slate-700">
+<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Rank</th>
+</tr>
+</thead>
+<tbody class="text-white" id="researchEmpire2Table"></tbody>
+</table>
+</div>
+</div>
+<div class="card-glow rounded-2xl p-6">
+<div class="mb-4 border-b border-slate-700 pb-3">
+<h3 class="text-xl font-bold text-white mb-1">Empire 3.0: Rare Earths, Renewables &amp; Robotics</h3>
+<span class="text-red-400 text-sm font-bold">Top Institutions</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead>
+<tr class="border-b border-slate-700">
+<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Rank</th>
+</tr>
+</thead>
+<tbody class="text-white" id="researchEmpire3Table"></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<!-- GDP Section (kept simple) -->
+<div class="mb-16">
+<h2 class="text-3xl font-bold text-white mb-6 text-center">
+<span class="text-green-400">🌍</span> GDP PPP (2025)
             </h2>
-            <div class="grid grid-cols-2 gap-6 mb-12">
-                <div class="card-glow rounded-2xl p-6"><div class="leader-panel" id="gdpLeaderPanel"></div></div>
-                <div class="card-glow rounded-2xl p-6"><div id="gdpPie" class="w-full"></div></div>
-            </div>
-        </div>
-
-        <!-- Population Section -->
-        <div class="mb-16">
-            <h2 class="text-3xl font-bold text-white mb-6 text-center">
-                <span class="text-yellow-400">🏙️</span> Top Cities by Population
+<div class="grid grid-cols-2 gap-6 mb-12">
+<div class="card-glow rounded-2xl p-6"><div class="leader-panel" id="gdpLeaderPanel"></div></div>
+<div class="card-glow rounded-2xl p-6"><div class="w-full" id="gdpPie"></div></div>
+</div>
+</div>
+<!-- Population Section -->
+<div class="mb-16">
+<h2 class="text-3xl font-bold text-white mb-6 text-center">
+<span class="text-yellow-400">🏙️</span> Top Cities by Population
             </h2>
-            <div class="grid grid-cols-3 gap-6">
-                <div class="card-glow rounded-2xl p-6">
-                    <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Steam</h3>
-                        <span class="text-amber-400 text-sm font-bold">Top Cities</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="border-b border-slate-700">
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">City</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Population</th>
-                                </tr>
-                            </thead>
-                            <tbody id="citiesEmpire1Table" class="text-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card-glow rounded-2xl p-6">
-                    <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire of Oil</h3>
-                        <span class="text-blue-400 text-sm font-bold">Top Cities</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="border-b border-slate-700">
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">City</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Population</th>
-                                </tr>
-                            </thead>
-                            <tbody id="citiesEmpire2Table" class="text-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card-glow rounded-2xl p-6">
-                    <div class="mb-4 border-b border-slate-700 pb-3">
-                        <h3 class="text-xl font-bold text-white mb-1">Empire 3.0</h3>
-                        <span class="text-red-400 text-sm font-bold">Top Cities</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="border-b border-slate-700">
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs">City</th>
-                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Population</th>
-                                </tr>
-                            </thead>
-                            <tbody id="citiesEmpire3Table" class="text-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script>
+<div class="grid grid-cols-3 gap-6">
+<div class="card-glow rounded-2xl p-6">
+<div class="mb-4 border-b border-slate-700 pb-3">
+<h3 class="text-xl font-bold text-white mb-1">Empire 1.0: Steam &amp; Colonies</h3>
+<span class="text-amber-400 text-sm font-bold">Top Cities</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead>
+<tr class="border-b border-slate-700">
+<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs">City</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Population</th>
+</tr>
+</thead>
+<tbody class="text-white" id="citiesEmpire1Table"></tbody>
+</table>
+</div>
+</div>
+<div class="card-glow rounded-2xl p-6">
+<div class="mb-4 border-b border-slate-700 pb-3">
+<h3 class="text-xl font-bold text-white mb-1">Empire 2.0: Oil &amp; Silicon</h3>
+<span class="text-blue-400 text-sm font-bold">Top Cities</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead>
+<tr class="border-b border-slate-700">
+<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs">City</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Population</th>
+</tr>
+</thead>
+<tbody class="text-white" id="citiesEmpire2Table"></tbody>
+</table>
+</div>
+</div>
+<div class="card-glow rounded-2xl p-6">
+<div class="mb-4 border-b border-slate-700 pb-3">
+<h3 class="text-xl font-bold text-white mb-1">Empire 3.0: Rare Earths, Renewables &amp; Robotics</h3>
+<span class="text-red-400 text-sm font-bold">Top Cities</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead>
+<tr class="border-b border-slate-700">
+<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs">City</th>
+<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Population</th>
+</tr>
+</thead>
+<tbody class="text-white" id="citiesEmpire3Table"></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+<script>
         let companies = [];
         let institutions = [];
         let marketCapTotals = [];
@@ -265,13 +253,13 @@
         let gdpData = [];
         let citiesData = [];
 
-        const empireShortNames = { 1: 'Empire of Steam', 2: 'Empire of Oil', 3: 'Empire 3.0' };
+        const empireShortNames = { 1: 'Empire 1.0: Steam & Colonies', 2: 'Empire 2.0: Oil & Silicon', 3: 'Empire 3.0: Rare Earths, Renewables & Robotics' };
 
         const GITHUB_BASE = 'https://raw.githubusercontent.com/ayeeff/marketcap/main/data/';
 
         // Minimal country name -> ISO2 lookup for common countries. Expand as needed.
         const countryNameToIso = {
-            'united states': 'us', 'usa': 'us', 'united kingdom': 'gb', 'uk': 'gb', 'china': 'cn', 'peoples republic of china': 'cn', 'jp': 'jp', 'japan': 'jp', 'germany': 'de', 'france': 'fr', 'australia': 'au', 'canada': 'ca', 'india': 'in', 'russia': 'ru', 'brazil': 'br', 'south korea': 'kr', 'korea, south': 'kr', 'italy': 'it', 'spain': 'es', 'netherlands': 'nl', 'saudi arabia': 'sa', 'uae': 'ae', 'united arab emirates': 'ae', 'singapore': 'sg', 'sweden': 'se', 'switzerland': 'ch', 'norway': 'no', 'mexico': 'mx', 'indonesia': 'id', 'turkey': 'tr', 'argentina': 'ar', 'south africa': 'za', 'poland': 'pl', 'belgium': 'be', 'ireland': 'ie', 'israel': 'il', 'hong kong': 'hk', 'taiwan': 'tw', 'vietnam': 'vn'
+            'united states': 'us', 'usa': 'us', 'united kingdom': 'gb', 'uk': 'gb', 'china': 'cn', 'peoples republic of china': 'cn', 'jp': 'jp', 'japan': 'jp', 'germany': 'de', 'france': 'fr', 'australia': 'au', 'canada': 'ca', 'india': 'in', 'russia': 'ru', 'brazil': 'br', 'south korea': 'kr', 'korea, south': 'kr', 'italy': 'it', 'spain': 'es', 'netherlands': 'nl', 'saudi arabia': 'sa', 'uae': 'ae', 'united arab emirates': 'ae', 'singapore': 'sg', 'sweden': 'se', 'switzerland': 'ch', 'norway': 'no', 'mexico': 'mx', 'indonesia': 'id', 'turkey': 'tr', 'argentina': 'ar', 'south africa': 'za', 'poland': 'pl', 'belgium': 'be', 'ireland': 'ie', 'israel': 'il', 'hong kong': 'hk', 'taiwan': 'tw', 'vietnam': 'vn', 'malaysia': 'my'
         };
 
         function getIsoFromCountry(countryRaw) {
@@ -432,9 +420,9 @@
             [1,2,3].forEach(empire=>{ populateMarketTable(empire); populateResearchTable(empire); populateCitiesTable(empire); });
 
             // Pie charts with updated empireShortNames
-            const marketCapData = [{ values: marketCapRanking.map(item=>parseFloat(String(item.total).replace(/[^0-9.-]+/g, '')) || 0), labels: marketCapRanking.map(item=>`${empireShortNames[item.empire]}\n${item.total}`), type: 'pie', marker: { colors: marketCapRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), line: { color: '#1e293b', width: 2 } }, textinfo: 'label+percent', textposition: 'inside', textfont: { size: 13, color: '#ffffff', family: 'sans-serif' }, hovertemplate: '<b>%{label}</b><br>%{percent}<extra></extra>' }];
-            const rdData = [{ values: researchRanking.map(item=>item.share), labels: researchRanking.map(item=>`${empireShortNames[item.empire]}\n$${item.share?.toLocaleString?.()||item.share}B (${item.percent}%)`), type: 'pie', marker: { colors: researchRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), line: { color: '#1e293b', width: 2 } }, textinfo: 'label', textposition: 'inside', textfont: { size: 12, color: '#ffffff', family: 'sans-serif' }, hovertemplate: '<b>%{label}</b><extra></extra>' }];
-            const gdpDataChart = [{ values: gdpRanking.map(item=>item.total), labels: gdpRanking.map(item=>`${empireShortNames[item.empire]}\n$${item.total?.toLocaleString?.()||item.total}B (${item.percent}%)`), type: 'pie', marker: { colors: gdpRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), line: { color: '#1e293b', width: 2 } }, textinfo: 'label', textposition: 'inside', textfont: { size: 12, color: '#ffffff', family: 'sans-serif' }, hovertemplate: '<b>%{label}</b><extra></extra>' }];
+            const marketCapData = [{ values: marketCapRanking.map(item=>parseFloat(String(item.total).replace(/[^0-9.-]+/g, '')) || 0), labels: marketCapRanking.map(item=>`${empireShortNames[item.empire]}\n${item.total}`), type: 'pie', marker: { colors: marketCapRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), line: { color: '#1e293b', width: 2 } }, textinfo: 'none', textposition: 'inside', textfont: { size: 13, color: '#ffffff', family: 'sans-serif' }, hovertemplate: '<b>%{label}</b><br>%{percent}<extra></extra>' }];
+            const rdData = [{ values: researchRanking.map(item=>item.share), labels: researchRanking.map(item=>`${empireShortNames[item.empire]}\n$${item.share?.toLocaleString?.()||item.share}B (${item.percent}%)`), type: 'pie', marker: { colors: researchRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), line: { color: '#1e293b', width: 2 } }, textinfo: 'none', textposition: 'inside', textfont: { size: 12, color: '#ffffff', family: 'sans-serif' }, hovertemplate: '<b>%{label}</b><extra></extra>' }];
+            const gdpDataChart = [{ values: gdpRanking.map(item=>item.total), labels: gdpRanking.map(item=>`${empireShortNames[item.empire]}\n$${item.total?.toLocaleString?.()||item.total}B (${item.percent}%)`), type: 'pie', marker: { colors: gdpRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), line: { color: '#1e293b', width: 2 } }, textinfo: 'none', textposition: 'inside', textfont: { size: 12, color: '#ffffff', family: 'sans-serif' }, hovertemplate: '<b>%{label}</b><extra></extra>' }];
 
             const layout = { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', showlegend: false, margin: {t:10,b:10,l:10,r:10}, height: 280 };
             const config = { responsive: true, displayModeBar: false };
@@ -445,6 +433,43 @@
 
         // start
         loadData();
+    
+            function createInfoTable(containerId, data, titleColor) {
+                const container = document.getElementById(containerId).parentElement;
+                const infoCard = document.createElement('div');
+                infoCard.className = 'card-glow rounded-2xl p-4 mt-4';
+                const table = document.createElement('table');
+                table.className = 'w-full text-sm text-left text-white';
+                table.innerHTML = '<thead><tr><th class="text-slate-400 font-semibold pb-2">Empire</th><th class="text-slate-400 font-semibold pb-2 text-right">Value</th><th class="text-slate-400 font-semibold pb-2 text-right">Share</th></tr></thead>';
+                const tbody = document.createElement('tbody');
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-slate-700/50';
+                    tr.innerHTML = `<td class="py-1">${row.name}</td><td class="py-1 text-right text-${titleColor}-400 font-mono">${row.value}</td><td class="py-1 text-right text-slate-300">${row.percent}%</td>`;
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                infoCard.appendChild(table);
+                container.appendChild(infoCard);
+            }
+            
+            createInfoTable('marketCapPie', marketCapRanking.map(item => ({
+                name: empireShortNames[item.empire],
+                value: item.total,
+                percent: (100 * parseFloat(String(item.total).replace(/[^0-9.-]+/g, '')) / marketCapRanking.reduce((s,x)=>s+(parseFloat(String(x.total).replace(/[^0-9.-]+/g, ''))||0),0)).toFixed(1)
+            })), 'green');
+
+            createInfoTable('rdPie', researchRanking.map(item => ({
+                name: empireShortNames[item.empire],
+                value: item.share,
+                percent: item.percent.toFixed(1)
+            })), 'purple');
+
+            createInfoTable('gdpPie', gdpRanking.map(item => ({
+                name: empireShortNames[item.empire],
+                value: '$' + item.total.toLocaleString(),
+                percent: item.percent.toFixed(1)
+            })), 'green');
     </script>
 </body>
 </html>
