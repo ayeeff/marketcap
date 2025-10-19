@@ -326,8 +326,7 @@ def save_to_csv(empire_data, output_dir='data'):
     """Save empire rankings to CSV file."""
     os.makedirs(output_dir, exist_ok=True)
     
-    timestamp = datetime.now().strftime('%Y-%m')
-    filename = os.path.join(output_dir, f'empire_research_{timestamp}.csv')
+    filename = os.path.join(output_dir, 'empire_research.csv')  
     
     # Remove existing file if it exists to ensure clean overwrite
     if os.path.exists(filename):
