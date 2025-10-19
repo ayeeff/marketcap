@@ -147,7 +147,7 @@
 <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Rank</th>
 </tr>
 </thead>
-<tbody class="text-white" id="researchEmpire3Table"></tbody>
+<tbody class="text-white" id="researchEmpire2Table"></tbody>
 </table>
 </div>
 </div>
@@ -284,10 +284,16 @@
 
         async function loadData() {
             try {
+                console.log('Starting data load...');
+                
                 // Companies
+                console.log('Fetching companies...');
                 const companiesResponse = await fetch(GITHUB_BASE + 'empire_top_companies.csv');
+                if (!companiesResponse.ok) throw new Error(`Companies fetch failed: ${companiesResponse.status}`);
                 const companiesData = await companiesResponse.text();
                 const companiesParsed = Papa.parse(companiesData, { header: true, skipEmptyLines: true, dynamicTyping: false });
+                console.log('Companies headers:', companiesParsed.meta.fields);
+                console.log('Companies sample:', companiesParsed.data[0]);
 
                 companies = companiesParsed.data.map(row => {
                     const companyName = (row.Company || '').split('\n')[0].trim();
@@ -300,11 +306,16 @@
                         country: row.Country || row.country || row.CountryCode || row.Country_Code || ''
                     };
                 });
+                console.log('Companies loaded:', companies.length);
 
                 // Institutions
+                console.log('Fetching institutions...');
                 const researchResponse = await fetch(GITHUB_BASE + 'empire_research.csv');
+                if (!researchResponse.ok) throw new Error(`Research fetch failed: ${researchResponse.status}`);
                 const researchData = await researchResponse.text();
                 const researchParsed = Papa.parse(researchData, { header: true, skipEmptyLines: true, dynamicTyping: true });
+                console.log('Research headers:', researchParsed.meta.fields);
+                console.log('Research sample:', researchParsed.data[0]);
 
                 institutions = researchParsed.data.map(row => ({
                     empire: parseInt(row.Empire),
@@ -313,36 +324,77 @@
                     globalRank: parseInt(row.Global_Rank) || null,
                     country: row.Country || row.country || row.CountryCode || row.Country_Code || ''
                 }));
+                console.log('Institutions loaded:', institutions.length);
 
                 // market cap totals
+                console.log('Fetching market cap totals...');
                 const marketCapResponse = await fetch(GITHUB_BASE + 'empire_totals.csv');
+                if (!marketCapResponse.ok) throw new Error(`Market cap fetch failed: ${marketCapResponse.status}`);
                 const marketCapData = await marketCapResponse.text();
                 const marketCapParsed = Papa.parse(marketCapData, { header: true, skipEmptyLines: true, dynamicTyping: false });
-                marketCapTotals = marketCapParsed.data.map(row => ({ empire: parseInt(row.Empire), total: row['Total Market Cap'], date: row.Date }));
+                console.log('Market cap headers:', marketCapParsed.meta.fields);
+                console.log('Market cap data:', marketCapParsed.data);
+                marketCapTotals = marketCapParsed.data.map(row => ({ 
+                    empire: parseInt(row.Empire), 
+                    total: row['Total Market Cap'] || row.Total_Market_Cap || row.total, 
+                    date: row.Date 
+                }));
+                console.log('Market cap totals loaded:', marketCapTotals);
 
                 // rd expenditures
+                console.log('Fetching R&D data...');
                 const rdResponse = await fetch(GITHUB_BASE + 'empire_nature_share.csv');
+                if (!rdResponse.ok) throw new Error(`R&D fetch failed: ${rdResponse.status}`);
                 const rdData = await rdResponse.text();
                 const rdParsed = Papa.parse(rdData, { header: true, skipEmptyLines: true, dynamicTyping: true });
-                rdExpenditures = rdParsed.data.map(row => ({ empire: parseInt(row.empire), share: parseFloat(row.share_2024), percent: parseFloat(row.percent) }));
+                console.log('R&D headers:', rdParsed.meta.fields);
+                console.log('R&D data:', rdParsed.data);
+                rdExpenditures = rdParsed.data.map(row => ({ 
+                    empire: parseInt(row.empire || row.Empire), 
+                    share: parseFloat(row.share_2024 || row.share), 
+                    percent: parseFloat(row.percent || row['%']) 
+                }));
+                console.log('R&D expenditures loaded:', rdExpenditures);
 
                 // gdp
+                console.log('Fetching GDP data...');
                 const gdpResponse = await fetch(GITHUB_BASE + 'empire_gdp_ppp_2025.csv');
+                if (!gdpResponse.ok) throw new Error(`GDP fetch failed: ${gdpResponse.status}`);
                 const gdpDataText = await gdpResponse.text();
                 const gdpParsed = Papa.parse(gdpDataText, { header: true, skipEmptyLines: true, dynamicTyping: true });
-                gdpData = gdpParsed.data.map(row => ({ empire: parseInt(row['empire#']), total: parseFloat(row.total), percent: parseFloat(row['%']) }));
+                console.log('GDP headers:', gdpParsed.meta.fields);
+                console.log('GDP data:', gdpParsed.data);
+                gdpData = gdpParsed.data.map(row => ({ 
+                    empire: parseInt(row['empire#'] || row.empire || row.Empire), 
+                    total: parseFloat(row.total || row.Total), 
+                    percent: parseFloat(row['%'] || row.percent) 
+                }));
+                console.log('GDP data loaded:', gdpData);
 
                 // cities
+                console.log('Fetching cities data...');
                 const citiesResponse = await fetch(GITHUB_BASE + 'empire_cities_population.csv');
+                if (!citiesResponse.ok) throw new Error(`Cities fetch failed: ${citiesResponse.status}`);
                 const citiesDataText = await citiesResponse.text();
                 const citiesParsed = Papa.parse(citiesDataText, { header: true, skipEmptyLines: true, dynamicTyping: true });
+                console.log('Cities headers:', citiesParsed.meta.fields);
+                console.log('Cities sample:', citiesParsed.data[0]);
 
-                citiesData = citiesParsed.data.map(row => ({ empire: parseInt(row.Empire), rank: parseInt(row.Rank), city: row.City, country: row.Country, population: parseInt(row.Population), date: row.Scraped_Date }));
+                citiesData = citiesParsed.data.map(row => ({ 
+                    empire: parseInt(row.Empire), 
+                    rank: parseInt(row.Rank), 
+                    city: row.City, 
+                    country: row.Country, 
+                    population: parseInt(row.Population), 
+                    date: row.Scraped_Date 
+                }));
+                console.log('Cities loaded:', citiesData.length);
 
+                console.log('All data loaded, initializing dashboard...');
                 initDashboard();
             } catch (error) {
                 console.error('Error loading data:', error);
-                document.body.innerHTML += `<div style="color: red; text-align: center; padding: 20px;">Error loading data: ${error.message}</div>`;
+                document.body.innerHTML += `<div style="color: red; text-align: center; padding: 20px;">Error loading data: ${error.message}<br>Check console for details</div>`;
             }
         }
 
@@ -373,11 +425,7 @@
                 const flag = makeFlagImg(company.country);
                 const row = document.createElement('tr');
                 row.className = 'table-row border-b border-slate-700/50';
-                row.innerHTML = `
-                    <td class="py-1 text-slate-300 text-xs">${index + 1}</td>
-                    <td class="py-1 text-xs break-words max-w-32"><span class="name-with-flag">${flag}${company.name}</span></td>
-                    <td class="py-1 text-right font-mono text-green-400 text-xs">${company.marketCap}</td>
-                `;
+                row.innerHTML = `<td class="py-1 text-slate-300 text-xs">${index + 1}</td><td class="py-1 text-xs break-words max-w-32"><span class="name-with-flag">${flag}${company.name}</span></td><td class="py-1 text-right font-mono text-green-400 text-xs">${company.marketCap}</td>`;
                 tableBody.appendChild(row);
             });
         }
