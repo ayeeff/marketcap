@@ -32,8 +32,11 @@ jobs:
         # Remove previous month's file to ensure clean state
         rm -f data/empire_research_*.csv || true
       
-    - name: Run scraper
+    - name: Run institution scraper
       run: python empire_research.py
+      
+    - name: Run nature share scraper
+      run: python empire_nature_share.py
       
     - name: Commit and push if changes
       run: |
