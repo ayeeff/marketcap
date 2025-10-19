@@ -1,6 +1,6 @@
 """
-Empire Research Scraper - With Research Share 2024 Data
-Enhanced version that specifically extracts Share 2024 data
+Empire Research Scraper - Correct Share 2024 Data Extraction
+Fixed to specifically extract Share 2024 from the correct table column
 """
 import requests
 import csv
@@ -60,217 +60,100 @@ def parse_research_leaders_page(html_content):
         f.write(html_content)
     print("💾 Saved research_leaders_page.html")
     
-    # Method 1: Look for script tags containing JSON data
-    script_tags = soup.find_all('script')
-    for script in script_tags:
-        script_content = script.string
-        if script_content and '__NEXT_DATA__' in script_content:
-            print("✅ Found Next.js data payload")
-            institutions = parse_nextjs_data_2024(script_content)
-            if institutions:
-                print(f"✅ Extracted {len(institutions)} institutions with Share 2024 data")
-                return institutions
-    
-    # Method 2: Look for tables and specifically target Share 2024 columns
+    # Method 1: Look for the main rankings table with specific column structure
     tables = soup.find_all('table')
     print(f"📊 Found {len(tables)} tables")
     
     for i, table in enumerate(tables):
         print(f"  Analyzing table {i+1} for Share 2024 data...")
-        institutions_from_table = parse_rankings_table_2024(table)
+        institutions_from_table = parse_rankings_table_correct_2024(table)
         if institutions_from_table:
             print(f"✅ Table {i+1}: Found {len(institutions_from_table)} institutions with Share 2024")
             return institutions_from_table
     
-    # Method 3: Look for elements containing 2024 share data
-    print("🔍 Searching for Share 2024 data in page elements...")
-    share_2024_elements = soup.find_all(string=re.compile(r'2024', re.IGNORECASE))
-    if share_2024_elements:
-        print(f"✅ Found {len(share_2024_elements)} elements mentioning 2024")
-        institutions_from_elements = parse_share_2024_elements(soup)
-        if institutions_from_elements:
-            return institutions_from_elements
-    
     return []
 
 
-def parse_nextjs_data_2024(script_content):
-    """Parse Next.js JSON data to extract institution information with Share 2024."""
-    try:
-        json_match = re.search(r'__NEXT_DATA__\s*=\s*({.*?})', script_content)
-        if json_match:
-            json_data = json.loads(json_match.group(1))
-            print("🔍 Searching for Share 2024 data in JSON structure...")
-            
-            # Look for Share 2024 data in the JSON structure
-            institutions = extract_share_2024_from_json(json_data)
-            if institutions:
-                return institutions
-            
-            # Alternative approach: look for specific 2024 share keys
-            props = json_data.get('props', {})
-            page_props = props.get('pageProps', {})
-            
-            # Try to find institution data with share_2024 or similar keys
-            institutions = find_2024_share_data(page_props)
-            if institutions:
-                return institutions
-                
-    except Exception as e:
-        print(f"❌ Error parsing Next.js data: {e}")
-    
-    return []
-
-
-def extract_share_2024_from_json(json_data, path=[]):
-    """Recursively search JSON structure for institution data with Share 2024."""
-    institutions = []
-    
-    if isinstance(json_data, dict):
-        # Check if this looks like institution data with 2024 share
-        if all(key in json_data for key in ['rank', 'name', 'country']):
-            share_2024 = extract_2024_share_value(json_data)
-            if share_2024 is not None:
-                institutions.append({
-                    'rank': json_data.get('rank'),
-                    'name': json_data.get('name', ''),
-                    'country': json_data.get('country', ''),
-                    'research_share': share_2024
-                })
-        
-        # Recursively search deeper
-        for key, value in json_data.items():
-            institutions.extend(extract_share_2024_from_json(value, path + [key]))
-    
-    elif isinstance(json_data, list):
-        for item in json_data:
-            institutions.extend(extract_share_2024_from_json(item, path))
-    
-    return institutions
-
-
-def extract_2024_share_value(inst_data):
-    """Extract Share 2024 value from institution data using various possible key names."""
-    # Try different possible keys for Share 2024
-    possible_keys = [
-        'share_2024', 'share2024', '2024_share', '2024share',
-        'current_share', 'latest_share', 'share',
-        'research_share_2024', 'research_share'
-    ]
-    
-    for key in possible_keys:
-        if key in inst_data and inst_data[key] is not None:
-            return float(inst_data[key])
-    
-    # If no direct key, look in nested structures
-    if 'shares' in inst_data and isinstance(inst_data['shares'], dict):
-        for year_key, share_value in inst_data['shares'].items():
-            if '2024' in str(year_key):
-                return float(share_value)
-    
-    return None
-
-
-def find_2024_share_data(data):
-    """Find Share 2024 data in various data structures."""
-    institutions = []
-    
-    if isinstance(data, list):
-        for item in data:
-            if isinstance(item, dict):
-                share_2024 = extract_2024_share_value(item)
-                if share_2024 is not None and item.get('name'):
-                    institutions.append({
-                        'rank': item.get('rank'),
-                        'name': item.get('name', ''),
-                        'country': item.get('country', ''),
-                        'research_share': share_2024
-                    })
-    
-    elif isinstance(data, dict):
-        for key, value in data.items():
-            if isinstance(value, list) and key in ['institutions', 'rankings', 'data']:
-                institutions.extend(find_2024_share_data(value))
-    
-    return institutions
-
-
-def parse_rankings_table_2024(table):
-    """Parse a rankings table to extract institution data with Share 2024."""
+def parse_rankings_table_correct_2024(table):
+    """Parse the rankings table with correct column mapping for Share 2024."""
     institutions = []
     rows = table.find_all('tr')
     
-    # First, identify which column contains Share 2024
+    # First, identify the exact column indices
     header_row = table.find('tr')
-    if header_row:
-        headers = [th.get_text(strip=True) for th in header_row.find_all(['th', 'td'])]
-        share_2024_col_index = None
+    if not header_row:
+        return institutions
         
-        for i, header in enumerate(headers):
-            if '2024' in header and ('share' in header.lower() or 'count' in header.lower()):
-                share_2024_col_index = i
-                print(f"✅ Found Share 2024 column at index {i}: '{header}'")
-                break
-        
-        if share_2024_col_index is None:
-            # If no 2024 header found, try to infer column (often the first numeric column after name)
-            print("⚠️ No explicit Share 2024 column found, trying to infer...")
+    headers = [th.get_text(strip=True) for th in header_row.find_all(['th', 'td'])]
+    print(f"📋 Table headers: {headers}")
     
+    # Find column indices
+    position_col = None
+    institution_col = None
+    share_2023_col = None
+    share_2024_col = None
+    
+    for i, header in enumerate(headers):
+        if 'position' in header.lower() or header == '':
+            position_col = i
+        elif 'institution' in header.lower():
+            institution_col = i
+        elif 'share 2023' in header.lower():
+            share_2023_col = i
+        elif 'share 2024' in header.lower():
+            share_2024_col = i
+    
+    print(f"🔍 Column mapping: Position={position_col}, Institution={institution_col}, Share 2023={share_2023_col}, Share 2024={share_2024_col}")
+    
+    if share_2024_col is None:
+        print("❌ Could not find Share 2024 column!")
+        return institutions
+    
+    # Parse data rows
     for row in rows:
         # Skip header rows
         if row.find('th'):
             continue
             
         cells = row.find_all(['td', 'div'])
-        if len(cells) >= 3:
+        if len(cells) > max(filter(None, [position_col, institution_col, share_2024_col])):
             try:
-                # Extract rank from first cell
-                rank_text = cells[0].get_text(strip=True)
+                # Extract rank from position column
+                rank_text = cells[position_col].get_text(strip=True) if position_col is not None else cells[0].get_text(strip=True)
                 rank_match = re.search(r'(\d+)', rank_text)
                 if not rank_match:
                     continue
-                    
                 rank = int(rank_match.group(1))
                 
-                # Extract institution name and country
-                name = ''
-                country = 'Unknown'
+                # Extract institution name and country from institution column
+                institution_cell = cells[institution_col] if institution_col is not None else cells[1]
+                institution_text = institution_cell.get_text(strip=True)
                 
-                for i, cell in enumerate(cells[1:], 1):
-                    cell_text = cell.get_text(strip=True)
-                    if not cell_text or cell_text.isdigit() or re.match(r'^\d+\.\d+$', cell_text):
-                        continue
-                    
-                    if 'University of California' in cell_text:
-                        name, country = parse_uc_institution(cell_text)
-                        break
+                if 'University of California' in institution_text:
+                    name, country = parse_uc_institution(institution_text)
+                else:
+                    name_country_match = re.search(r'^(.+?),\s*(.+)$', institution_text)
+                    if name_country_match:
+                        name = name_country_match.group(1).strip()
+                        country_raw = name_country_match.group(2).strip()
+                        country = extract_country_name(country_raw)
                     else:
-                        name_country_match = re.search(r'^(.+?),\s*(.+)$', cell_text)
-                        if name_country_match:
-                            name = name_country_match.group(1).strip()
-                            country_raw = name_country_match.group(2).strip()
-                            country = extract_country_name(country_raw)
-                            break
-                        else:
-                            name = cell_text
+                        name = institution_text
+                        country = 'Unknown'
                 
-                # Extract Share 2024 - look for decimal numbers in cells
-                research_share = None
-                for cell in cells:
-                    cell_text = cell.get_text(strip=True)
-                    # Look for decimal numbers that could be share values
-                    share_match = re.search(r'^(\d+\.\d+)$', cell_text)
-                    if share_match:
-                        research_share = float(share_match.group(1))
-                        break
+                # Extract Share 2024 from the correct column
+                share_2024_cell = cells[share_2024_col]
+                share_2024_text = share_2024_cell.get_text(strip=True)
+                research_share = float(share_2024_text) if share_2024_text.replace('.', '').isdigit() else None
                 
-                if name:  # Only add if we found a name
+                if name:
                     institutions.append({
                         'rank': rank,
                         'name': name,
                         'country': country,
                         'research_share': research_share
                     })
+                    print(f"  ✅ #{rank}: {name} - Share 2024: {research_share}")
                     
             except Exception as e:
                 print(f"⚠️ Error parsing row: {e}")
@@ -279,33 +162,19 @@ def parse_rankings_table_2024(table):
     return institutions
 
 
-def parse_share_2024_elements(soup):
-    """Parse page elements to find Share 2024 data."""
-    institutions = []
-    
-    # Look for elements that might contain ranking data with 2024 share
-    possible_selectors = [
-        '[data-test*="institution"]',
-        '.institution-row',
-        '.ranking-item',
-        'tr',
-    ]
-    
-    for selector in possible_selectors:
-        elements = soup.select(selector)
-        if len(elements) > 10:
-            print(f"🔍 Found {len(elements)} elements with selector: {selector}")
-            # Try to parse these elements for 2024 share data
-            for element in elements[:5]:  # Check first 5
-                text = element.get_text()
-                if '2024' in text:
-                    print(f"  Found 2024 mention: {text[:100]}...")
-    
-    return institutions
-
-
 def parse_uc_institution(text):
     """Parse University of California institution names specifically."""
+    # Handle UC institutions - they have campus names after the comma
+    if 'University of California' in text:
+        # Split by last comma to separate institution from country
+        parts = text.rsplit(',', 1)
+        if len(parts) == 2:
+            name = parts[0].strip()
+            country_raw = parts[1].strip()
+            country = extract_country_name(country_raw)
+            return name, country
+    
+    # Fallback for other institutions
     parts = text.rsplit(',', 1)
     if len(parts) == 2:
         name = parts[0].strip()
@@ -313,7 +182,7 @@ def parse_uc_institution(text):
         country = extract_country_name(country_raw)
         return name, country
     else:
-        return text, 'United States of America'
+        return text, 'Unknown'
 
 
 def extract_country_name(country_raw):
@@ -321,9 +190,9 @@ def extract_country_name(country_raw):
     country = re.sub(r'\s*\([^)]*\)$', '', country_raw).strip()
     
     # Handle specific cases
-    if 'United States of America' in country:
+    if any(us in country for us in ['United States of America', 'USA', 'United States']):
         return 'United States of America'
-    elif 'United Kingdom' in country:
+    elif 'United Kingdom' in country or 'UK' in country:
         return 'United Kingdom'
     elif 'China' in country:
         return 'China'
@@ -459,7 +328,7 @@ def save_to_csv(empire_data, output_dir='data'):
 def main():
     """Main scraper function."""
     print("=" * 60)
-    print("Nature Index Empire Research Scraper - Share 2024 Focus")
+    print("Nature Index Empire Research Scraper - Correct Share 2024 Extraction")
     print("=" * 60)
     print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
@@ -492,7 +361,17 @@ def main():
     
     for inst in institutions_with_share[:5]:
         research_share = inst.get('research_share', 'N/A')
-        print(f"  #{inst['rank']}: {inst['name']} - Share 2024: {research_share}")
+        print(f"  #{inst['rank']}: {inst['name']} - {inst['country']} - Share 2024: {research_share}")
+    
+    # Verify Chinese Academy of Sciences data
+    cas_institutions = [inst for inst in institutions if 'Chinese Academy of Sciences' in inst['name']]
+    if cas_institutions:
+        print("\n🔍 Verifying Chinese Academy of Sciences data:")
+        for inst in cas_institutions:
+            research_share = inst.get('research_share', 'N/A')
+            print(f"  #{inst['rank']}: {inst['name']} - Share 2024: {research_share}")
+            if research_share == 2776.90:
+                print("  ✅ CORRECT: Share 2024 matches expected value (2776.90)")
     
     # Categorize by empire
     print("\n🌍 Categorizing by empire...")
@@ -524,6 +403,13 @@ def main():
         # Show file info
         file_size = os.path.getsize(filename)
         print(f"📁 File: {filename} ({file_size} bytes)")
+        
+        # Show first few lines of CSV
+        print("\n📄 First few lines of CSV:")
+        with open(filename, 'r', encoding='utf-8') as f:
+            for i, line in enumerate(f):
+                if i < 5:  # Show first 5 lines
+                    print(f"  {line.strip()}")
     else:
         print("\n❌ No data to save")
     
