@@ -82,8 +82,7 @@ def main():
 
     # ---- 4f.  save -----------------------------------------------
     os.makedirs('data', exist_ok=True)
-    stamp = datetime.utcnow().strftime('%Y-%m')
-    out_file = f'data/empire_energy_consumption_{stamp}.csv'
+    out_file = 'data/empire_energy_consumption.csv'
     final.to_csv(out_file, index=False)
     print(f'\n✅  Saved → {out_file}\n')
     print(final)
