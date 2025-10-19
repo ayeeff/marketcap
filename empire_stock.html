@@ -452,20 +452,22 @@
 
             const table = document.createElement('table');
             table.className = 'w-full text-sm text-left text-white';
-            table.innerHTML = `
-                <thead>
-                    <tr>
-                        <th class="text-slate-400 font-semibold pb-2">Empire</th>
-                        <th class="text-slate-400 font-semibold pb-2 text-right">Value</th>
-                        <th class="text-slate-400 font-semibold pb-2 text-right">Share</th>
-                    </tr>
-                </thead>
-                <tbody id="${containerId}-table-body"></tbody>
+            
+            // Create table header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = `
+                <th class="text-slate-400 font-semibold pb-2">Empire</th>
+                <th class="text-slate-400 font-semibold pb-2 text-right">Value</th>
+                <th class="text-slate-400 font-semibold pb-2 text-right">Share</th>
             `;
-            infoDiv.appendChild(table);
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create table body
+            const tbody = document.createElement('tbody');
             
             // Populate table with data
-            const tbody = document.getElementById(`${containerId}-table-body`);
             data.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-slate-700/50';
@@ -476,6 +478,9 @@
                 `;
                 tbody.appendChild(tr);
             });
+            
+            table.appendChild(tbody);
+            infoDiv.appendChild(table);
             
             // Add info card and pie chart to the new container
             newContainer.appendChild(infoDiv);
