@@ -687,6 +687,11 @@
             95% { clip: rect(37px, 9999px, 20px, 0); }
             100% { clip: rect(4px, 9999px, 91px, 0); }
         }
+
+        /* Text Color Fix for Larger Text Classes */
+        .text-xl, .text-2xl, .text-3xl {
+            color: white !important;
+        }
     </style>
 </head>
 <body class="p-8 relative">
@@ -1180,278 +1185,7 @@
                                         🤖
                                     </div>
                                     <div>
-                                        <div class="text-xs text-green-400 tracking-widest font-bold">EMPIRE 3.0</div>
-                                        <div class="text-xl font-bold text-emerald-300" style="font-family: 'Orbitron', monospace;">TECH ERA</div>
-                                    </div>
-                                </div>
-                                <div class="text-sm text-emerald-300 mb-6 opacity-80">Asian Tech Corridor</div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="data-stream bg-emerald-950/50 p-3 rounded-lg border border-emerald-500/30">
-                                        <div class="metric-display text-3xl text-emerald-400 mb-1" id="metro-empire3-total">-</div>
-                                        <div class="text-xs text-emerald-400 tracking-wider">TOTAL KM</div>
-                                    </div>
-                                    <div class="data-stream bg-emerald-950/50 p-3 rounded-lg border border-emerald-500/30">
-                                        <div class="metric-display text-3xl text-emerald-400 mb-1" id="metro-empire3-cities">-</div>
-                                        <div class="text-xs text-emerald-400 tracking-wider">CITIES</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Charts Grid -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                        <!-- Total Length Comparison -->
-                        <div class="speed-card rounded-2xl p-8">
-                            <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                                <span class="text-3xl glitch" data-text="🚇">🚇</span>
-                                Total Metro Network Length
-                            </h2>
-                            <div id="metro-totalLengthChart"></div>
-                        </div>
-
-                        <!-- Distribution -->
-                        <div class="speed-card rounded-2xl p-8">
-                            <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                                <span class="text-3xl">📈</span>
-                                Global Metro Distribution
-                            </h2>
-                            <div id="metro-distributionChart"></div>
-                        </div>
-                    </div>
-
-                    <!-- Top Cities -->
-                    <div class="speed-card rounded-2xl p-8 mb-12">
-                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                            <span class="text-3xl">🏙️</span>
-                            Top 15 Cities by Metro Length
-                        </h2>
-                        <div id="metro-topCitiesChart"></div>
-                    </div>
-
-                    <!-- Country Comparison -->
-                    <div class="speed-card rounded-2xl p-8 mb-12">
-                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                            <span class="text-3xl">🌐</span>
-                            Metro Length by Country
-                        </h2>
-                        <div id="metro-countryChart"></div>
-                    </div>
-
-                    <!-- Detailed Systems Table -->
-                    <div class="speed-card rounded-2xl p-8">
-                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                            <span class="text-3xl">🔍</span>
-                            Complete Metro Systems Database
-                        </h2>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead>
-                                    <tr class="border-b border-cyan-500/20">
-                                        <th class="text-left py-4 px-4 orbitron text-cyan-300">EMPIRE</th>
-                                        <th class="text-left py-4 px-4 orbitron text-cyan-300">COUNTRY</th>
-                                        <th class="text-left py-4 px-4 orbitron text-cyan-300">CITY</th>
-                                        <th class="text-left py-4 px-4 orbitron text-cyan-300">SYSTEM</th>
-                                        <th class="text-right py-4 px-4 orbitron text-cyan-300">LENGTH (KM)</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="metro-tableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Rail Tab -->
-                <div id="rail" class="tab-content">
-                    <!-- Empire Speed Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-                        
-                        <!-- Empire 1: Steam & Colonies -->
-                        <div class="speed-card rounded-2xl p-8 group">
-                            <div class="flex items-center gap-4 mb-6">
-                                <div class="w-16 h-16 steam-glow rounded-xl flex items-center justify-center text-3xl">
-                                    🚂
-                                </div>
-                                <div>
-                                    <div class="text-sm text-blue-400 orbitron">EMPIRE 1.0</div>
-                                    <div class="text-xl font-bold">Steam & Colonies</div>
-                                    <div class="text-xs text-slate-400">British Commonwealth</div>
-                                </div>
-                            </div>
-                            
-                            <div class="space-y-4">
-                                <div>
-                                    <div class="stat-number text-5xl mb-1" id="rail-empire1-total">-</div>
-                                    <div class="text-sm text-slate-400">Total Rail Length (km)</div>
-                                    <div class="velocity-bar text-blue-500 mt-2" id="rail-empire1-bar"></div>
-                                </div>
-                                
-                                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
-                                    <div>
-                                        <div class="text-2xl font-bold orbitron text-blue-400" id="rail-empire1-lines">-</div>
-                                        <div class="text-xs text-slate-400">Lines</div>
-                                    </div>
-                                    <div>
-                                        <div class="text-2xl font-bold orbitron text-blue-400" id="rail-empire1-countries">-</div>
-                                        <div class="text-xs text-slate-400">Countries</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Empire 2: Oil & Silicon -->
-                        <div class="speed-card rounded-2xl p-8 group">
-                            <div class="flex items-center gap-4 mb-6">
-                                <div class="w-16 h-16 oil-glow rounded-xl flex items-center justify-center text-3xl">
-                                    🛢️
-                                </div>
-                                <div>
-                                    <div class="text-sm text-red-400 orbitron">EMPIRE 2.0</div>
-                                    <div class="text-xl font-bold">Oil & Silicon</div>
-                                    <div class="text-xs text-slate-400">United States</div>
-                                </div>
-                            </div>
-                            
-                            <div class="space-y-4">
-                                <div>
-                                    <div class="stat-number text-5xl mb-1" id="rail-empire2-total">-</div>
-                                    <div class="text-sm text-slate-400">Total Rail Length (km)</div>
-                                    <div class="velocity-bar text-red-500 mt-2" id="rail-empire2-bar"></div>
-                                </div>
-                                
-                                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
-                                    <div>
-                                        <div class="text-2xl font-bold orbitron text-red-400" id="rail-empire2-lines">-</div>
-                                        <div class="text-xs text-slate-400">Lines</div>
-                                    </div>
-                                    <div>
-                                        <div class="text-2xl font-bold orbitron text-red-400" id="rail-empire2-countries">-</div>
-                                        <div class="text-xs text-slate-400">Countries</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Empire 3: Rare Earths & Robotics -->
-                        <div class="speed-card rounded-2xl p-8 group relative">
-                            <div class="flex items-center gap-4 mb-6">
-                                <div class="w-16 h-16 tech-glow rounded-xl flex items-center justify-center text-3xl">
-                                    🤖
-                                </div>
-                                <div>
-                                    <div class="text-sm text-green-400 orbitron">EMPIRE 3.0</div>
-                                    <div class="text-xl font-bold">Rare Earths & Robotics</div>
-                                    <div class="text-xs text-slate-400">China + HK + Taiwan</div>
-                                </div>
-                            </div>
-                            
-                            <div class="space-y-4">
-                                <div>
-                                    <div class="stat-number text-5xl mb-1" id="rail-empire3-total">-</div>
-                                    <div class="text-sm text-slate-400">Total Rail Length (km)</div>
-                                    <div class="velocity-bar text-green-500 mt-2" id="rail-empire3-bar"></div>
-                                </div>
-                                
-                                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
-                                    <div>
-                                        <div class="text-2xl font-bold orbitron text-green-400" id="rail-empire3-lines">-</div>
-                                        <div class="text-xs text-slate-400">Lines</div>
-                                    </div>
-                                    <div>
-                                        <div class="text-2xl font-bold orbitron text-green-400" id="rail-empire3-countries">-</div>
-                                        <div class="text-xs text-slate-400">Countries</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Charts Grid -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                        
-                        <!-- Total Length Comparison -->
-                        <div class="speed-card rounded-2xl p-8">
-                            <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                                <span class="text-3xl">🛤️</span>
-                                Total Rail Network Length
-                            </h2>
-                            <div id="rail-totalLengthChart"></div>
-                        </div>
-
-                        <!-- Market Share -->
-                        <div class="speed-card rounded-2xl p-8">
-                            <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                                <span class="text-3xl">🌍</span>
-                                Global Rail Distribution
-                            </h2>
-                            <div id="rail-distributionChart"></div>
-                        </div>
-                    </div>
-
-                    <!-- Top Lines -->
-                    <div class="speed-card rounded-2xl p-8 mb-12">
-                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                            <span class="text-3xl">🏆</span>
-                            Top 20 Longest Rail Lines
-                        </h2>
-                        <div id="rail-topLinesChart"></div>
-                    </div>
-
-                    <!-- Country Comparison -->
-                    <div class="speed-card rounded-2xl p-8 mb-12">
-                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                            <span class="text-3xl">🗺️</span>
-                            Rail Length by Country
-                        </h2>
-                        <div id="rail-countryChart"></div>
-                    </div>
-
-                    <!-- Detailed Lines Table -->
-                    <div class="speed-card rounded-2xl p-8">
-                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                            <span class="text-3xl">📊</span>
-                            Complete Rail Lines Database
-                        </h2>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead>
-                                    <tr class="border-b border-slate-700">
-                                        <th class="text-left py-4 px-4 orbitron">EMPIRE</th>
-                                        <th class="text-left py-4 px-4 orbitron">COUNTRY</th>
-                                        <th class="text-left py-4 px-4 orbitron">CITY</th>
-                                        <th class="text-left py-4 px-4 orbitron">LINE</th>
-                                        <th class="text-right py-4 px-4 orbitron">LENGTH (KM)</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="rail-tableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script>
-        let companies = [];
-        let institutions = [];
-        let marketCapTotals = [];
-        let rdExpenditures = [];
-        let gdpData = [];
-        let citiesData = [];
-
-        const empireShortNames = { 1: 'Empire 1.0: Steam & Colonies', 2: 'Empire 2.0: Oil & Silicon', 3: 'Empire 3.0: Rare Earths, Renewables & Robotics' };
-
-        const GITHUB_BASE = 'https://raw.githubusercontent.com/ayeeff/marketcap/main/data/';
-
-        // Minimal country name -> ISO2 lookup for common countries. Expand as needed.
-        const countryNameToIso = {
-            'united states': 'us', 'usa': 'us', 'united kingdom': 'gb', 'uk': 'gb', 'china': 'cn', 'peoples republic of china': 'cn', 'jp': 'jp', 'japan': 'jp', 'germany': 'de', 'france': 'fr', 'australia': 'au', 'canada': 'ca', 'india': 'in', 'russia': 'ru', 'brazil': 'br', 'south korea': 'kr', 'korea, south': 'kr', 'italy': 'it', 'spain': 'es', 'netherlands': 'nl', 'saudi arabia': 'sa', 'uae': 'ae', 'united arab emirates': 'ae', 'singapore': 'sg', 'sweden': 'se', 'switzerland': 'ch', 'norway': 'no', 'mexico': 'mx', 'indonesia': 'id', 'turkey': 'tr', 'argentina': 'ar', 'south africa': 'za', 'poland': 'pl', 'belgium': 'be', 'ireland': 'ie', 'israel': 'il', 'hong kong': 'hk', 'taiwan': 'tw', 'vietnam': 'vn', 'malaysia': 'my', 'america': 'us', 'united states of america': 'us', 'united states': 'us'
-        };
-
-        function getIsoFromCountry(countryRaw) {
-            if (!countryRaw) return null;
+                                        <div class="text-xs...(truncated 16332 characters)...          if (!countryRaw) return null;
             const c = String(countryRaw).trim();
             // If it's already 2 letters
             if (/^[A-Za-z]{2}$/.test(c)) return c.toLowerCase();
@@ -1862,11 +1596,11 @@
                 const response = await fetch(GITHUB_BASE + 'empire_hsr.csv');
                 const csvText = await response.text();
                 const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true, dynamicTyping: true });
-                return parsed.data.filter(row => row.empire && row.country && row.line && row.length > 0).map(row => ({
-                    empire: parseInt(row.empire),
-                    country: row.country,
-                    line: row.line,
-                    length: row.length
+                return parsed.data.filter(row => row.Empire && row.Country && row.Line && row.Length_km > 0).map(row => ({
+                    empire: parseInt(row.Empire),
+                    country: row.Country,
+                    line: row.Line,
+                    length: row.Length_km
                 }));
             } catch (error) {
                 console.error('Error loading HSR data:', error);
