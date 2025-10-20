@@ -451,16 +451,6 @@
             header.textContent = sectionTitle;
             infoDiv.appendChild(header);
 
-            // Add source row
-            if (sources.length > 0) {
-                const sourceDiv = document.createElement('div');
-                sourceDiv.className = 'text-sm text-slate-500 mb-4';
-                let sourceText = sources.length === 1 ? 'Source: ' : 'Sources: ';
-                sourceText += sources.map(src => `<a href="${src}" class="text-blue-400 hover:text-blue-300" target="_blank">${src}</a>`).join(', ');
-                sourceDiv.innerHTML = sourceText;
-                infoDiv.appendChild(sourceDiv);
-            }
-
             const table = document.createElement('table');
             table.className = 'w-full text-sm text-left text-white';
             
@@ -492,6 +482,20 @@
             
             table.appendChild(tbody);
             infoDiv.appendChild(table);
+
+            // Add source row after the table
+            if (sources.length > 0) {
+                const sourceDiv = document.createElement('div');
+                sourceDiv.className = 'text-sm text-slate-500 mt-4 pt-3 border-t border-slate-700';
+                let sourceText = '';
+                if (sources.length === 1) {
+                    sourceText = `Source: <a href="${sources[0]}" class="text-blue-400 hover:text-blue-300" target="_blank">${sources[0]}</a>`;
+                } else {
+                    sourceText = sources.map(src => `Source: <a href="${src}" class="text-blue-400 hover:text-blue-300" target="_blank">${src}</a>`).join('<br>');
+                }
+                sourceDiv.innerHTML = sourceText;
+                infoDiv.appendChild(sourceDiv);
+            }
             
             // Add info card and pie chart to the new container
             newContainer.appendChild(infoDiv);
@@ -531,7 +535,7 @@
 
             const rdContainer = createInfoCard('rdPie', 'Research Share by Empire', rdExpenditures.map(item => ({
                 name: `Empire ${item.empire}.0`,
-                value: `${item.share?.toLocaleString?.() || item.share} high-quality research outputs`,
+                value: `${item.share?.toLocaleString?.() || item.share} research outputs`,
                 percent: item.percent.toFixed(1)
             })), 'purple', ['https://www.nature.com/nature-index/research-leaders/2025/institution/all/all/global']);
 
