@@ -451,6 +451,16 @@
             header.textContent = sectionTitle;
             infoDiv.appendChild(header);
 
+            // Add source row
+            if (sources.length > 0) {
+                const sourceDiv = document.createElement('div');
+                sourceDiv.className = 'text-sm text-slate-500 mb-4';
+                let sourceText = sources.length === 1 ? 'Source: ' : 'Sources: ';
+                sourceText += sources.map(src => `<a href="${src}" class="text-blue-400 hover:text-blue-300" target="_blank">${src}</a>`).join(', ');
+                sourceDiv.innerHTML = sourceText;
+                infoDiv.appendChild(sourceDiv);
+            }
+
             const table = document.createElement('table');
             table.className = 'w-full text-sm text-left text-white';
             
@@ -479,18 +489,6 @@
                 `;
                 tbody.appendChild(tr);
             });
-            
-            if (sources.length > 0) {
-                const sourceTr = document.createElement('tr');
-                sourceTr.className = 'border-t border-slate-700/50';
-                const td = document.createElement('td');
-                td.colSpan = 3;
-                td.className = 'text-center py-2 text-sm text-slate-500';
-                let sourceText = sources.length === 1 ? 'Source: ' : 'Sources: ';
-                sourceText += sources.map(src => `<a href="${src}" class="text-blue-400 hover:text-blue-300" target="_blank">${src}</a>`).join(', ');
-                td.innerHTML = sourceText;
-                tbody.appendChild(sourceTr);
-            }
             
             table.appendChild(tbody);
             infoDiv.appendChild(table);
@@ -601,7 +599,6 @@
             Plotly.newPlot(gdpContainer.querySelector('#gdpPie'), gdpDataChart, layout, config);
         }
 
-        // Start loading data
         loadData();
     </script>
 </body>
