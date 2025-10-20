@@ -1,250 +1,641 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Empire Dashboard</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empire Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 1) 0%, rgba(30, 41, 59, 1) 50%, rgba(12, 30, 61, 1) 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
         }
-        body { background: linear-gradient(-45deg, #0f172a, #1e293b, #0c1e3d, #1a1f3a); background-size: 400% 400%; animation: gradientShift 15s ease infinite; }
-        .card-glow { position: relative; background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; }
-        .card-glow:hover { transform: translateY(-5px); border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(59, 130, 246, 0.3); }
-        .empire-img { transition: all 0.3s ease; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3)); }
-        .empire-img:hover { transform: scale(1.05); filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.6)); }
-        .table-row { transition: all 0.2s ease; border-left: 3px solid transparent; }
-        .table-row:hover { background: rgba(59, 130, 246, 0.1); border-left-color: #3b82f6; transform: translateX(5px); }
-        .shimmer-text { background: linear-gradient(90deg, #fff 0%, #60a5fa 50%, #fff 100%); background-size: 1000px 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite; }
-        .neon-border { position: relative; border: 2px solid transparent; background: linear-gradient(rgba(30, 41, 59, 0.8), rgba(30, 41, 59, 0.8)) padding-box, linear-gradient(45deg, #3b82f6, #8b5cf6, #3b82f6) border-box; }
-        .leader-panel { display: flex; align-items: center; justify-content: center; gap: 0; }
-        .empire-wrapper { position: relative; display: flex; align-items: center; justify-content: center; padding: 8px; border-radius: 12px; margin-right: -20px; }
-        .rank-number { position: absolute; top: 10px; left: 10px; font-size: 3rem; font-weight: bold; color: #000; z-index: 10; }
-        .gold-bg { background: linear-gradient(135deg, #FFD700, #FFA500); }
-        .silver-bg { background: linear-gradient(135deg, #C0C0C0, #A9A9A9); }
-        .bronze-bg { background: linear-gradient(135deg, #CD7F32, #B8860B); }
-        .flag-img { display: inline-block; width: 20px; height: 14px; object-fit: cover; margin-right: 8px; vertical-align: middle; }
-        .name-with-flag { display: inline-flex; align-items: center; }
+        
+        .orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .rajdhani {
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        /* Cyber Grid Background */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(180deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+            animation: gridScroll 20s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes gridScroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
+        }
+        
+        /* Tab Styles - Not used, but kept for consistency */
+        .tab-container {
+            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .tab-button {
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .tab-button:hover {
+            color: white;
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .tab-button.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: white;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Common Animations */
+        .rail-track {
+            position: relative;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                transparent 48%, 
+                currentColor 48%, 
+                currentColor 52%, 
+                transparent 52%, 
+                transparent 100%
+            );
+            overflow: hidden;
+        }
+        
+        .rail-track::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -100%;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255,255,255,0.8) 50%, 
+                transparent 100%
+            );
+            animation: trainPass 3s ease-in-out infinite;
+        }
+        
+        @keyframes trainPass {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+        
+        /* Card Styles - Adapted for Dashboard */
+        .speed-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+        }
+        
+        .speed-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.6s;
+        }
+        
+        .speed-card:hover::before {
+            left: 100%;
+        }
+        
+        .speed-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.3);
+        }
+        
+        /* Empire Glow Effects - Adapted for Stock */
+        .steam-glow {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
+        }
+        
+        .oil-glow {
+            background: linear-gradient(135deg, #991b1b 0%, #dc2626 50%, #f87171 100%);
+            box-shadow: 0 0 40px rgba(220, 38, 38, 0.4);
+        }
+        
+        .tech-glow {
+            background: linear-gradient(135deg, #065f46 0%, #10b981 50%, #6ee7b7 100%);
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.4);
+        }
+        
+        .empire-1-glow {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+        }
+        
+        .empire-2-glow {
+            background: linear-gradient(135deg, #450a0a 0%, #991b1b 100%);
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+        }
+        
+        .empire-3-glow {
+            background: linear-gradient(135deg, #052e16 0%, #166534 100%);
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+        }
+        
+        .stat-number {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .velocity-bar {
+            height: 8px;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0.2) 0%, 
+                currentColor 50%, 
+                rgba(255,255,255,0.2) 100%
+            );
+            border-radius: 4px;
+            box-shadow: 0 0 20px currentColor;
+            width: 0%;
+            transition: width 1.5s ease-out;
+        }
+        
+        /* Table Styles */
+        .table-row {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .table-row:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-left-color: #3b82f6;
+            transform: translateX(5px);
+        }
+        
+        /* Leader Panel Enhancements */
+        .leader-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+        }
+        
+        .empire-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            border-radius: 12px;
+            margin-right: -20px;
+            transition: all 0.3s ease;
+        }
+        
+        .empire-wrapper:hover {
+            transform: scale(1.02);
+        }
+        
+        .rank-number {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 3rem;
+            font-weight: bold;
+            color: #000;
+            z-index: 10;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .gold-bg { 
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        .silver-bg { 
+            background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
+            box-shadow: 0 0 20px rgba(192, 192, 192, 0.5);
+        }
+        
+        .bronze-bg { 
+            background: linear-gradient(135deg, #CD7F32, #B8860B);
+            box-shadow: 0 0 20px rgba(205, 127, 50, 0.5);
+        }
+        
+        .flag-img { 
+            display: inline-block; 
+            width: 20px; 
+            height: 14px; 
+            object-fit: cover; 
+            margin-right: 8px; 
+            vertical-align: middle;
+            filter: drop-shadow(0 0 2px rgba(255,255,255,0.5));
+        }
+        
+        .name-with-flag { 
+            display: inline-flex; 
+            align-items: center; 
+        }
+        
+        /* Shimmer Text for Header */
+        .shimmer-text { 
+            background: linear-gradient(90deg, #fff 0%, #60a5fa 50%, #fff 100%); 
+            background-size: 1000px 100%; 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            animation: shimmer 3s linear infinite;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        /* Neon Border for Sections */
+        .neon-border { 
+            position: relative; 
+            border: 2px solid transparent; 
+            background: linear-gradient(rgba(30, 41, 59, 0.8), rgba(30, 41, 59, 0.8)) padding-box, 
+                        linear-gradient(45deg, #3b82f6, #8b5cf6, #3b82f6) border-box; 
+        }
+        
+        /* Glitch for Title */
+        .glitch {
+            position: relative;
+        }
+        
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 #00ffff;
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim 3s infinite linear alternate-reverse;
+        }
+        
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 #ff00ff;
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+        
+        @keyframes glitch-anim {
+            0% { clip: rect(42px, 9999px, 44px, 0); }
+            5% { clip: rect(12px, 9999px, 59px, 0); }
+            10% { clip: rect(48px, 9999px, 29px, 0); }
+            15% { clip: rect(42px, 9999px, 73px, 0); }
+            20% { clip: rect(63px, 9999px, 27px, 0); }
+            25% { clip: rect(34px, 9999px, 55px, 0); }
+            30% { clip: rect(86px, 9999px, 73px, 0); }
+            35% { clip: rect(20px, 9999px, 20px, 0); }
+            40% { clip: rect(26px, 9999px, 60px, 0); }
+            45% { clip: rect(25px, 9999px, 66px, 0); }
+            50% { clip: rect(57px, 9999px, 98px, 0); }
+            55% { clip: rect(5px, 9999px, 46px, 0); }
+            60% { clip: rect(82px, 9999px, 31px, 0); }
+            65% { clip: rect(54px, 9999px, 27px, 0); }
+            70% { clip: rect(28px, 9999px, 99px, 0); }
+            75% { clip: rect(45px, 9999px, 69px, 0); }
+            80% { clip: rect(23px, 9999px, 85px, 0); }
+            85% { clip: rect(54px, 9999px, 84px, 0); }
+            90% { clip: rect(45px, 9999px, 47px, 0); }
+            95% { clip: rect(37px, 9999px, 20px, 0); }
+            100% { clip: rect(4px, 9999px, 91px, 0); }
+        }
+        
+        /* Pulse for Icons */
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Data Stream for Tables */
+        .data-stream {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .data-stream::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(0, 255, 255, 0.3) 50%, 
+                transparent 100%);
+            animation: stream 2s ease-in-out infinite;
+        }
+        
+        @keyframes stream {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .metric-display {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
     </style>
 </head>
-<body class="min-h-screen p-8">
-<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-<div class="max-w-7xl mx-auto">
-<div class="text-center mb-12">
-<h1 class="text-6xl font-bold shimmer-text mb-2">Global Empire Dashboard</h1>
-<p class="text-blue-400 text-lg">Real-time Market Intelligence &amp; Research Analytics</p>
-<p class="text-slate-500 text-sm mt-2">Last Updated: October 20, 2025</p>
-</div>
-<!-- Market Cap Section -->
-<div class="mb-16">
-<h2 class="text-3xl font-bold text-white mb-6 text-center">
-<span class="text-blue-400">💹</span> Total Market Capitalization of all Exchanges
+<body class="p-8 relative">
+    <!-- Cyber Grid Background -->
+    <div class="cyber-grid"></div>
+    
+    <div class="relative z-10 max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <div class="glitch inline-block mb-6" data-text="GLOBAL EMPIRE DASHBOARD">
+                <h1 class="text-6xl md:text-7xl font-black mb-2 orbitron bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent shimmer-text">
+                    GLOBAL EMPIRE DASHBOARD
+                </h1>
+            </div>
+            <p class="text-2xl text-slate-300 mb-4 rajdhani">Real-time Market Intelligence & Research Analytics</p>
+            <div class="flex items-center justify-center gap-4 text-slate-400">
+                <div class="w-16 h-px bg-gradient-to-r from-transparent via-slate-500 to-transparent"></div>
+                <span class="text-xs tracking-widest">Last Updated: October 20, 2025</span>
+                <div class="w-16 h-px bg-gradient-to-r from-transparent via-slate-500 to-transparent"></div>
+            </div>
+        </div>
+
+        <!-- Market Cap Section -->
+        <div class="mb-16 neon-border rounded-2xl p-6">
+            <h2 class="text-3xl font-bold text-white mb-6 text-center orbitron flex items-center justify-center gap-3">
+                <span class="text-3xl pulse-dot text-blue-400">💹</span>
+                Total Market Capitalization of all Exchanges
             </h2>
-<div class="grid grid-cols-2 gap-6 mb-12">
-<div class="card-glow rounded-2xl p-6"><div class="leader-panel" id="marketCapLeaderPanel"></div></div>
-<div class="card-glow rounded-2xl p-6"><div class="w-full" id="marketCapPie"></div></div>
-</div>
-<div class="grid grid-cols-3 gap-6">
-<div class="card-glow rounded-2xl p-6">
-<div class="mb-4 border-b border-slate-700 pb-3">
-<h3 class="text-xl font-bold text-white mb-1">Empire 1.0: Steam &amp; Colonies</h3>
-<span class="text-amber-400 text-sm font-bold">Top Companies</span>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left text-sm">
-<thead>
-<tr class="border-b border-slate-700">
-<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Cap</th>
-</tr>
-</thead>
-<tbody class="text-white" id="marketEmpire1Table"></tbody>
-</table>
-</div>
-</div>
-<div class="card-glow rounded-2xl p-6">
-<div class="mb-4 border-b border-slate-700 pb-3">
-<h3 class="text-xl font-bold text-white mb-1">Empire 2.0: Oil &amp; Silicon</h3>
-<span class="text-blue-400 text-sm font-bold">Top Companies</span>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left text-sm">
-<thead>
-<tr class="border-b border-slate-700">
-<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Cap</th>
-</tr>
-</thead>
-<tbody class="text-white" id="marketEmpire2Table"></tbody>
-</table>
-</div>
-</div>
-<div class="card-glow rounded-2xl p-6">
-<div class="mb-4 border-b border-slate-700 pb-3">
-<h3 class="text-xl font-bold text-white mb-1">Empire 3.0: Rare Earths, Renewables &amp; Robotics</h3>
-<span class="text-red-400 text-sm font-bold">Top Companies</span>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left text-sm">
-<thead>
-<tr class="border-b border-slate-700">
-<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Cap</th>
-</tr>
-</thead>
-<tbody class="text-white" id="marketEmpire3Table"></tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-<!-- R&D Section -->
-<div class="mb-16">
-<h2 class="text-3xl font-bold text-white mb-6 text-center">
-<span class="text-purple-400">🔬</span> 2025 Research Leaders: Leading Countries/Institutions via Nature Index
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                <div class="speed-card rounded-2xl p-6"><div class="leader-panel" id="marketCapLeaderPanel"></div></div>
+                <div class="speed-card rounded-2xl p-6"><div class="w-full" id="marketCapPie"></div></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="speed-card rounded-2xl p-6 empire-1-glow">
+                    <div class="mb-4 border-b border-slate-700 pb-3">
+                        <h3 class="text-xl font-bold text-white mb-1 orbitron">Empire 1.0: Steam & Colonies</h3>
+                        <span class="text-amber-400 text-sm font-bold metric-display">Top Companies</span>
+                    </div>
+                    <div class="overflow-x-auto data-stream">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-700">
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Cap</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-white" id="marketEmpire1Table"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="speed-card rounded-2xl p-6 empire-2-glow">
+                    <div class="mb-4 border-b border-slate-700 pb-3">
+                        <h3 class="text-xl font-bold text-white mb-1 orbitron">Empire 2.0: Oil & Silicon</h3>
+                        <span class="text-blue-400 text-sm font-bold metric-display">Top Companies</span>
+                    </div>
+                    <div class="overflow-x-auto data-stream">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-700">
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Cap</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-white" id="marketEmpire2Table"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="speed-card rounded-2xl p-6 empire-3-glow">
+                    <div class="mb-4 border-b border-slate-700 pb-3">
+                        <h3 class="text-xl font-bold text-white mb-1 orbitron">Empire 3.0: Rare Earths, Renewables & Robotics</h3>
+                        <span class="text-red-400 text-sm font-bold metric-display">Top Companies</span>
+                    </div>
+                    <div class="overflow-x-auto data-stream">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-700">
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Company</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Cap</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-white" id="marketEmpire3Table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- R&D Section -->
+        <div class="mb-16 neon-border rounded-2xl p-6">
+            <h2 class="text-3xl font-bold text-white mb-6 text-center orbitron flex items-center justify-center gap-3">
+                <span class="text-3xl pulse-dot text-purple-400">🔬</span>
+                2025 Research Leaders: Leading Countries/Institutions via Nature Index
             </h2>
-<div class="grid grid-cols-2 gap-6 mb-12">
-<div class="card-glow rounded-2xl p-6"><div class="leader-panel" id="researchLeaderPanel"></div></div>
-<div class="card-glow rounded-2xl p-6"><div class="w-full" id="rdPie"></div></div>
-</div>
-<div class="grid grid-cols-3 gap-6">
-<div class="card-glow rounded-2xl p-6">
-<div class="mb-4 border-b border-slate-700 pb-3">
-<h3 class="text-xl font-bold text-white mb-1">Empire 1.0: Steam &amp; Colonies</h3>
-<span class="text-amber-400 text-sm font-bold">Top Institutions</span>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left text-sm">
-<thead>
-<tr class="border-b border-slate-700">
-<th class="pb-2 text-slate-400 font-semibold text-xs">Global Rank</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Research Share</th>
-</tr>
-</thead>
-<tbody class="text-white" id="researchEmpire1Table"></tbody>
-</table>
-</div>
-</div>
-<div class="card-glow rounded-2xl p-6">
-<div class="mb-4 border-b border-slate-700 pb-3">
-<h3 class="text-xl font-bold text-white mb-1">Empire 2.0: Oil &amp; Silicon</h3>
-<span class="text-blue-400 text-sm font-bold">Top Institutions</span>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left text-sm">
-<thead>
-<tr class="border-b border-slate-700">
-<th class="pb-2 text-slate-400 font-semibold text-xs">Global Rank</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Research Share</th>
-</tr>
-</thead>
-<tbody class="text-white" id="researchEmpire2Table"></tbody>
-</table>
-</div>
-</div>
-<div class="card-glow rounded-2xl p-6">
-<div class="mb-4 border-b border-slate-700 pb-3">
-<h3 class="text-xl font-bold text-white mb-1">Empire 3.0: Rare Earths, Renewables &amp; Robotics</h3>
-<span class="text-red-400 text-sm font-bold">Top Institutions</span>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left text-sm">
-<thead>
-<tr class="border-b border-slate-700">
-<th class="pb-2 text-slate-400 font-semibold text-xs">Global Rank</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Research Share</th>
-</tr>
-</thead>
-<tbody class="text-white" id="researchEmpire3Table"></tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-<!-- GDP Section (kept simple) -->
-<div class="mb-16">
-<h2 class="text-3xl font-bold text-white mb-6 text-center">
-<span class="text-green-400">🌍</span> GDP PPP (2024)
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                <div class="speed-card rounded-2xl p-6"><div class="leader-panel" id="researchLeaderPanel"></div></div>
+                <div class="speed-card rounded-2xl p-6"><div class="w-full" id="rdPie"></div></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="speed-card rounded-2xl p-6 empire-1-glow">
+                    <div class="mb-4 border-b border-slate-700 pb-3">
+                        <h3 class="text-xl font-bold text-white mb-1 orbitron">Empire 1.0: Steam & Colonies</h3>
+                        <span class="text-amber-400 text-sm font-bold metric-display">Top Institutions</span>
+                    </div>
+                    <div class="overflow-x-auto data-stream">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-700">
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Global Rank</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Research Share</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-white" id="researchEmpire1Table"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="speed-card rounded-2xl p-6 empire-2-glow">
+                    <div class="mb-4 border-b border-slate-700 pb-3">
+                        <h3 class="text-xl font-bold text-white mb-1 orbitron">Empire 2.0: Oil & Silicon</h3>
+                        <span class="text-blue-400 text-sm font-bold metric-display">Top Institutions</span>
+                    </div>
+                    <div class="overflow-x-auto data-stream">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-700">
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Global Rank</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Research Share</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-white" id="researchEmpire2Table"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="speed-card rounded-2xl p-6 empire-3-glow">
+                    <div class="mb-4 border-b border-slate-700 pb-3">
+                        <h3 class="text-xl font-bold text-white mb-1 orbitron">Empire 3.0: Rare Earths, Renewables & Robotics</h3>
+                        <span class="text-red-400 text-sm font-bold metric-display">Top Institutions</span>
+                    </div>
+                    <div class="overflow-x-auto data-stream">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-700">
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Global Rank</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">Institution</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Research Share</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-white" id="researchEmpire3Table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GDP Section -->
+        <div class="mb-16 neon-border rounded-2xl p-6">
+            <h2 class="text-3xl font-bold text-white mb-6 text-center orbitron flex items-center justify-center gap-3">
+                <span class="text-3xl pulse-dot text-green-400">🌍</span>
+                GDP PPP (2024)
             </h2>
-<div class="grid grid-cols-2 gap-6 mb-12">
-<div class="card-glow rounded-2xl p-6"><div class="leader-panel" id="gdpLeaderPanel"></div></div>
-<div class="card-glow rounded-2xl p-6"><div class="w-full" id="gdpPie"></div></div>
-</div>
-</div>
-<!-- Population Section -->
-<div class="mb-16">
-<h2 class="text-3xl font-bold text-white mb-6 text-center">
-<span class="text-yellow-400">🏙️</span> Top Cities by Population
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                <div class="speed-card rounded-2xl p-6"><div class="leader-panel" id="gdpLeaderPanel"></div></div>
+                <div class="speed-card rounded-2xl p-6"><div class="w-full" id="gdpPie"></div></div>
+            </div>
+        </div>
+
+        <!-- Population Section -->
+        <div class="neon-border rounded-2xl p-6">
+            <h2 class="text-3xl font-bold text-white mb-6 text-center orbitron flex items-center justify-center gap-3">
+                <span class="text-3xl pulse-dot text-yellow-400">🏙️</span>
+                Top Cities by Population
             </h2>
-<div class="grid grid-cols-3 gap-6">
-<div class="card-glow rounded-2xl p-6">
-<div class="mb-4 border-b border-slate-700 pb-3">
-<h3 class="text-xl font-bold text-white mb-1">Empire 1.0: Steam &amp; Colonies</h3>
-<span class="text-amber-400 text-sm font-bold">Top Cities</span>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left text-sm">
-<thead>
-<tr class="border-b border-slate-700">
-<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs">City</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Population</th>
-</tr>
-</thead>
-<tbody class="text-white" id="citiesEmpire1Table"></tbody>
-</table>
-</div>
-</div>
-<div class="card-glow rounded-2xl p-6">
-<div class="mb-4 border-b border-slate-700 pb-3">
-<h3 class="text-xl font-bold text-white mb-1">Empire 2.0: Oil &amp; Silicon</h3>
-<span class="text-blue-400 text-sm font-bold">Top Cities</span>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left text-sm">
-<thead>
-<tr class="border-b border-slate-700">
-<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs">City</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Population</th>
-</tr>
-</thead>
-<tbody class="text-white" id="citiesEmpire2Table"></tbody>
-</table>
-</div>
-</div>
-<div class="card-glow rounded-2xl p-6">
-<div class="mb-4 border-b border-slate-700 pb-3">
-<h3 class="text-xl font-bold text-white mb-1">Empire 3.0: Rare Earths, Renewables &amp; Robotics</h3>
-<span class="text-red-400 text-sm font-bold">Top Cities</span>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left text-sm">
-<thead>
-<tr class="border-b border-slate-700">
-<th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs">City</th>
-<th class="pb-2 text-slate-400 font-semibold text-xs text-right">Population</th>
-</tr>
-</thead>
-<tbody class="text-white" id="citiesEmpire3Table"></tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-<script>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="speed-card rounded-2xl p-6 empire-1-glow">
+                    <div class="mb-4 border-b border-slate-700 pb-3">
+                        <h3 class="text-xl font-bold text-white mb-1 orbitron">Empire 1.0: Steam & Colonies</h3>
+                        <span class="text-amber-400 text-sm font-bold metric-display">Top Cities</span>
+                    </div>
+                    <div class="overflow-x-auto data-stream">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-700">
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">City</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Population</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-white" id="citiesEmpire1Table"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="speed-card rounded-2xl p-6 empire-2-glow">
+                    <div class="mb-4 border-b border-slate-700 pb-3">
+                        <h3 class="text-xl font-bold text-white mb-1 orbitron">Empire 2.0: Oil & Silicon</h3>
+                        <span class="text-blue-400 text-sm font-bold metric-display">Top Cities</span>
+                    </div>
+                    <div class="overflow-x-auto data-stream">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-700">
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">City</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Population</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-white" id="citiesEmpire2Table"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="speed-card rounded-2xl p-6 empire-3-glow">
+                    <div class="mb-4 border-b border-slate-700 pb-3">
+                        <h3 class="text-xl font-bold text-white mb-1 orbitron">Empire 3.0: Rare Earths, Renewables & Robotics</h3>
+                        <span class="text-red-400 text-sm font-bold metric-display">Top Cities</span>
+                    </div>
+                    <div class="overflow-x-auto data-stream">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-700">
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">#</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs">City</th>
+                                    <th class="pb-2 text-slate-400 font-semibold text-xs text-right">Population</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-white" id="citiesEmpire3Table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
         let companies = [];
         let institutions = [];
         let marketCapTotals = [];
@@ -400,7 +791,11 @@
                 const flag = makeFlagImg(company.country);
                 const row = document.createElement('tr');
                 row.className = 'table-row border-b border-slate-700/50';
-                row.innerHTML = `\n                    <td class="py-1 text-slate-300 text-xs">${index + 1}</td>\n                    <td class="py-1 text-xs break-words max-w-32"><span class=\"name-with-flag\">${flag}${company.name}</span></td>\n                    <td class="py-1 text-right font-mono text-green-400 text-xs">${company.marketCap}</td>\n                `;
+                row.innerHTML = `
+                    <td class="py-1 text-slate-300 text-xs">${index + 1}</td>
+                    <td class="py-1 text-xs break-words max-w-32"><span class="name-with-flag">${flag}${company.name}</span></td>
+                    <td class="py-1 text-right font-mono text-green-400 text-xs">${company.marketCap}</td>
+                `;
                 tableBody.appendChild(row);
             });
         }
@@ -413,7 +808,11 @@
                 const flag = makeFlagImg(inst.country);
                 const row = document.createElement('tr');
                 row.className = 'table-row border-b border-slate-700/50';
-                row.innerHTML = `\n                    <td class="py-1 text-slate-300 text-xs">${inst.globalRank || '—'}</td>\n                    <td class="py-1 text-xs break-words max-w-32"><span class=\"name-with-flag\">${flag}${inst.name}</span></td>\n                    <td class="py-1 text-right font-mono text-purple-400 text-xs">${inst.researchShare}</td>\n                `;
+                row.innerHTML = `
+                    <td class="py-1 text-slate-300 text-xs">${inst.globalRank || '—'}</td>
+                    <td class="py-1 text-xs break-words max-w-32"><span class="name-with-flag">${flag}${inst.name}</span></td>
+                    <td class="py-1 text-right font-mono text-purple-400 text-xs">${inst.researchShare}</td>
+                `;
                 tableBody.appendChild(row);
             });
         }
@@ -426,7 +825,11 @@
                 const flag = makeFlagImg(city.country);
                 const row = document.createElement('tr');
                 row.className = 'table-row border-b border-slate-700/50';
-                row.innerHTML = `\n                    <td class="py-1 text-slate-300 text-xs">${city.rank}</td>\n                    <td class="py-1 text-xs break-words max-w-32"><span class=\"name-with-flag\">${flag}${city.city}</span></td>\n                    <td class="py-1 text-right font-mono text-yellow-400 text-xs">${city.population.toLocaleString()}</td>\n                `;
+                row.innerHTML = `
+                    <td class="py-1 text-slate-300 text-xs">${city.rank}</td>
+                    <td class="py-1 text-xs break-words max-w-32"><span class="name-with-flag">${flag}${city.city}</span></td>
+                    <td class="py-1 text-right font-mono text-yellow-400 text-xs">${city.population.toLocaleString()}</td>
+                `;
                 tableBody.appendChild(row);
             });
         }
@@ -440,14 +843,14 @@
             
             // Create a new container for the info card and pie chart
             const newContainer = document.createElement('div');
-            newContainer.className = 'grid grid-cols-2 gap-6';
+            newContainer.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
             
             // Create info card
             const infoDiv = document.createElement('div');
-            infoDiv.className = 'card-glow rounded-2xl p-6 flex flex-col justify-start';
+            infoDiv.className = 'speed-card rounded-2xl p-6 flex flex-col justify-start';
             
             const header = document.createElement('h3');
-            header.className = 'text-slate-300 font-bold mb-4';
+            header.className = 'text-slate-300 font-bold mb-4 orbitron';
             header.textContent = sectionTitle;
             infoDiv.appendChild(header);
 
@@ -471,7 +874,7 @@
             // Populate table with data
             data.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = 'border-b border-slate-700/50';
+                tr.className = 'table-row border-b border-slate-700/50';
                 tr.innerHTML = `
                     <td class="py-1">${item.name}</td>
                     <td class="py-1 text-right text-${color}-400 font-mono">${item.value}</td>
