@@ -1,0 +1,8 @@
+{
+  "name": "empire-dashboard-build",
+  "version": "1.0.0",
+  "dependencies": {
+    "papaparse": "^5.4.1",
+    "node-fetch": "^2.7.0"
+  }
+}
