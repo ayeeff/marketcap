@@ -36,12 +36,12 @@
 <div class="text-center mb-12">
 <h1 class="text-6xl font-bold shimmer-text mb-2">Global Empire Dashboard</h1>
 <p class="text-blue-400 text-lg">Real-time Market Intelligence &amp; Research Analytics</p>
-<p class="text-slate-500 text-sm mt-2">Last Updated: October 19, 2025</p>
+<p class="text-slate-500 text-sm mt-2">Last Updated: October 20, 2025</p>
 </div>
 <!-- Market Cap Section -->
 <div class="mb-16">
 <h2 class="text-3xl font-bold text-white mb-6 text-center">
-<span class="text-blue-400">💹</span> Market Capitalization
+<span class="text-blue-400">💹</span> Total Market Capitalization of all Exchanges
             </h2>
 <div class="grid grid-cols-2 gap-6 mb-12">
 <div class="card-glow rounded-2xl p-6"><div class="leader-panel" id="marketCapLeaderPanel"></div></div>
@@ -173,7 +173,7 @@
 <!-- GDP Section (kept simple) -->
 <div class="mb-16">
 <h2 class="text-3xl font-bold text-white mb-6 text-center">
-<span class="text-green-400">🌍</span> GDP PPP (2025)
+<span class="text-green-400">🌍</span> GDP PPP (2024)
             </h2>
 <div class="grid grid-cols-2 gap-6 mb-12">
 <div class="card-glow rounded-2xl p-6"><div class="leader-panel" id="gdpLeaderPanel"></div></div>
@@ -431,7 +431,7 @@
             });
         }
 
-        function createInfoCard(containerId, sectionTitle, data, color) {
+        function createInfoCard(containerId, sectionTitle, data, color, sources = []) {
             const pieDiv = document.getElementById(containerId);
             const gridParent = pieDiv.parentElement;
             
@@ -480,6 +480,18 @@
                 tbody.appendChild(tr);
             });
             
+            if (sources.length > 0) {
+                const sourceTr = document.createElement('tr');
+                sourceTr.className = 'border-t border-slate-700/50';
+                const td = document.createElement('td');
+                td.colSpan = 3;
+                td.className = 'text-center py-2 text-sm text-slate-500';
+                let sourceText = sources.length === 1 ? 'Source: ' : 'Sources: ';
+                sourceText += sources.map(src => `<a href="${src}" class="text-blue-400 hover:text-blue-300" target="_blank">${src}</a>`).join(', ');
+                td.innerHTML = sourceText;
+                tbody.appendChild(sourceTr);
+            }
+            
             table.appendChild(tbody);
             infoDiv.appendChild(table);
             
@@ -517,19 +529,19 @@
                 name: `Empire ${item.empire}.0`,
                 value: item.total,
                 percent: item.share ? item.share.replace('%', '') : '0.0'
-            })), 'green');
+            })), 'green', ['https://www.marketcapwatch.com/all-countries/']);
 
             const rdContainer = createInfoCard('rdPie', 'Research Share by Empire', rdExpenditures.map(item => ({
                 name: `Empire ${item.empire}.0`,
                 value: `${item.share?.toLocaleString?.() || item.share} high-quality research outputs`,
                 percent: item.percent.toFixed(1)
-            })), 'purple');
+            })), 'purple', ['https://www.nature.com/nature-index/research-leaders/2025/institution/all/all/global']);
 
             const gdpContainer = createInfoCard('gdpPie', 'GDP Share by Empire', gdpData.map(item => ({
                 name: `Empire ${item.empire}.0`,
                 value: `$${item.total?.toLocaleString?.() || item.total} B`,
                 percent: item.percent.toFixed(1)
-            })), 'green');
+            })), 'green', ['https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(PPP)', 'https://worldpopulationreview.com/cities']);
 
             // Pie charts with updated empireShortNames
             const marketCapData = [{ 
