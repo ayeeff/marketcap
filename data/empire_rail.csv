@@ -46,7 +46,6 @@ Empire,Country,City or area,Name,Length_km
 1,United Kingdom,Bristol,MetroWest,0.0
 1,United Kingdom,Cardiff,Valley Lines,169.0
 1,United Kingdom,Edinburgh,ScotRail,0.0
-1,United Kingdom,Exeter,,0.0
 1,United Kingdom,Glasgow,ScotRail,3032.0
 1,United Kingdom,Greater Manchester,,229.0
 1,United Kingdom,Liverpool,Merseyrail,120.7
@@ -54,7 +53,6 @@ Empire,Country,City or area,Name,Length_km
 1,United Kingdom,Greater London1,c2c,128.7
 1,United Kingdom,Greater London1,Chiltern Railway,336.4
 1,United Kingdom,Greater London1,Great Western Railway,2129.2
-1,United Kingdom,Greater London1,TSGN,0.0
 1,United Kingdom,Greater London1,TSGN,778.9
 1,United Kingdom,Greater London1,Greater Anglia,0.0
 1,United Kingdom,Greater London1,London Overground,167.0
