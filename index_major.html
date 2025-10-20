@@ -6,7 +6,7 @@
     <title>Empire Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <style>
+  <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap');
         
         body {
@@ -686,6 +686,11 @@
             90% { clip: rect(45px, 9999px, 47px, 0); }
             95% { clip: rect(37px, 9999px, 20px, 0); }
             100% { clip: rect(4px, 9999px, 91px, 0); }
+        }
+
+        /* Force white color for specific text sizes */
+        .text-xl, .text-2xl, .text-3xl {
+            color: white !important;
         }
     </style>
 </head>
