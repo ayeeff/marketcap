@@ -1853,17 +1853,20 @@
             initHSR();
         });
 
-        // HSR Functions
+  // HSR Functions
         async function loadHSRData() {
             try {
                 const response = await fetch(GITHUB_BASE + 'empire_hsr.csv');
                 const csvText = await response.text();
                 const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true, dynamicTyping: true });
-                return parsed.data.filter(row => row.empire && row.country && row.line && row.length > 0).map(row => ({
-                    empire: parseInt(row.empire),
-                    country: row.country,
-                    line: row.line,
-                    length: row.length
+                console.log('HSR CSV parsed:', parsed.data);
+                
+                // Map the CSV headers correctly - they are Empire, Country, Line, Length_km
+                return parsed.data.filter(row => row.Empire && row.Country && row.Line && row.Length_km > 0).map(row => ({
+                    empire: parseInt(row.Empire),
+                    country: row.Country,
+                    line: row.Line,
+                    length: parseFloat(row.Length_km)
                 }));
             } catch (error) {
                 console.error('Error loading HSR data:', error);
