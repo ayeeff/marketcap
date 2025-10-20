@@ -669,31 +669,29 @@
                             </div>
                             <div>
                                 <div class="text-sm text-blue-400 orbitron">EMPIRE 1.0</div>
-                                <div class="text-xl font-bold">Steam & Colonies</div>
-                                <div class="text-xs text-slate-400">British Commonwealth</div>
+                                <div class="text-xl font-bold text-white">Steam & Colonies</div>
                             </div>
                         </div>
-                        
                         <div class="space-y-4">
-                            <div>
-                                <div class="stat-number text-5xl mb-1" id="hsr-empire1-total">-</div>
-                                <div class="text-sm text-slate-400">Total HSR Length (km)</div>
-                                <div class="velocity-bar text-blue-500 mt-2" id="hsr-empire1-bar"></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Leader</span>
+                                <span class="font-bold text-white" id="hsr-empire1-leader">Loading...</span>
                             </div>
-                            
-                            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
-                                <div>
-                                    <div class="text-2xl font-bold orbitron text-blue-400" id="hsr-empire1-lines">-</div>
-                                    <div class="text-xs text-slate-400">Lines</div>
-                                </div>
-                                <div>
-                                    <div class="text-2xl font-bold orbitron text-blue-400" id="hsr-empire1-countries">-</div>
-                                    <div class="text-xs text-slate-400">Countries</div>
-                                </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Total Length</span>
+                                <span class="stat-number text-2xl" id="hsr-empire1-total">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Lines</span>
+                                <span class="text-blue-400" id="hsr-empire1-lines">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Countries</span>
+                                <span class="text-blue-400" id="hsr-empire1-countries">0</span>
                             </div>
                         </div>
                     </div>
-
+                    
                     <!-- Empire 2: Oil & Silicon -->
                     <div class="speed-card rounded-2xl p-8 group">
                         <div class="flex items-center gap-4 mb-6">
@@ -702,122 +700,107 @@
                             </div>
                             <div>
                                 <div class="text-sm text-red-400 orbitron">EMPIRE 2.0</div>
-                                <div class="text-xl font-bold">Oil & Silicon</div>
-                                <div class="text-xs text-slate-400">United States</div>
+                                <div class="text-xl font-bold text-white">Oil & Silicon</div>
                             </div>
                         </div>
-                        
                         <div class="space-y-4">
-                            <div>
-                                <div class="stat-number text-5xl mb-1" id="hsr-empire2-total">-</div>
-                                <div class="text-sm text-slate-400">Total HSR Length (km)</div>
-                                <div class="velocity-bar text-red-500 mt-2" id="hsr-empire2-bar"></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Leader</span>
+                                <span class="font-bold text-white" id="hsr-empire2-leader">Loading...</span>
                             </div>
-                            
-                            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
-                                <div>
-                                    <div class="text-2xl font-bold orbitron text-red-400" id="hsr-empire2-lines">-</div>
-                                    <div class="text-xs text-slate-400">Lines</div>
-                                </div>
-                                <div>
-                                    <div class="text-2xl font-bold orbitron text-red-400" id="hsr-empire2-countries">-</div>
-                                    <div class="text-xs text-slate-400">Countries</div>
-                                </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Total Length</span>
+                                <span class="stat-number text-2xl" id="hsr-empire2-total">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Lines</span>
+                                <span class="text-red-400" id="hsr-empire2-lines">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Countries</span>
+                                <span class="text-red-400" id="hsr-empire2-countries">0</span>
                             </div>
                         </div>
                     </div>
-
+                    
                     <!-- Empire 3: Rare Earths & Robotics -->
-                    <div class="speed-card rounded-2xl p-8 group relative">
+                    <div class="speed-card rounded-2xl p-8 group">
                         <div class="flex items-center gap-4 mb-6">
                             <div class="w-16 h-16 tech-glow rounded-xl flex items-center justify-center text-3xl">
                                 🤖
                             </div>
                             <div>
                                 <div class="text-sm text-green-400 orbitron">EMPIRE 3.0</div>
-                                <div class="text-xl font-bold">Rare Earths & Robotics</div>
-                                <div class="text-xs text-slate-400">China + HK + Taiwan</div>
+                                <div class="text-xl font-bold text-white">Rare Earths, Renewables & Robotics</div>
                             </div>
                         </div>
-                        
                         <div class="space-y-4">
-                            <div>
-                                <div class="stat-number text-5xl mb-1" id="hsr-empire3-total">-</div>
-                                <div class="text-sm text-slate-400">Total HSR Length (km)</div>
-                                <div class="velocity-bar text-green-500 mt-2" id="hsr-empire3-bar"></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Leader</span>
+                                <span class="font-bold text-white" id="hsr-empire3-leader">Loading...</span>
                             </div>
-                            
-                            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
-                                <div>
-                                    <div class="text-2xl font-bold orbitron text-green-400" id="hsr-empire3-lines">-</div>
-                                    <div class="text-xs text-slate-400">Lines</div>
-                                </div>
-                                <div>
-                                    <div class="text-2xl font-bold orbitron text-green-400" id="hsr-empire3-countries">-</div>
-                                    <div class="text-xs text-slate-400">Countries</div>
-                                </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Total Length</span>
+                                <span class="stat-number text-2xl" id="hsr-empire3-total">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Lines</span>
+                                <span class="text-green-400" id="hsr-empire3-lines">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Countries</span>
+                                <span class="text-green-400" id="hsr-empire3-countries">0</span>
                             </div>
                         </div>
                     </div>
                 </div>
-
+                
                 <!-- Charts Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                    
-                    <!-- Total Length Comparison -->
-                    <div class="speed-card rounded-2xl p-8">
-                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
+                    <div class="card-glow rounded-2xl p-6">
+                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3 text-white">
                             <span class="text-3xl">⚡</span>
                             Total HSR Network Length
                         </h2>
                         <div id="hsr-totalLengthChart"></div>
                     </div>
-
-                    <!-- Market Share -->
-                    <div class="speed-card rounded-2xl p-8">
-                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
+                    <div class="card-glow rounded-2xl p-6">
+                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3 text-white">
                             <span class="text-3xl">🌍</span>
                             Global HSR Distribution
                         </h2>
                         <div id="hsr-distributionChart"></div>
                     </div>
                 </div>
-
-                <!-- Top Lines -->
-                <div class="speed-card rounded-2xl p-8 mb-12">
-                    <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                        <span class="text-3xl">🏆</span>
-                        Top 20 Longest High-Speed Rail Lines
-                    </h2>
-                    <div id="hsr-topLinesChart"></div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <div class="card-glow rounded-2xl p-6">
+                        <h2 class="text-2xl font-bold orbitron mb-6 text-white">Top 15 HSR Lines</h2>
+                        <div id="hsr-topLinesChart"></div>
+                    </div>
+                    <div class="card-glow rounded-2xl p-6">
+                        <h2 class="text-2xl font-bold orbitron mb-6 text-white">HSR by Country</h2>
+                        <div id="hsr-countryChart"></div>
+                    </div>
                 </div>
-
-                <!-- Country Comparison -->
-                <div class="speed-card rounded-2xl p-8 mb-12">
-                    <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                        <span class="text-3xl">🗺️</span>
-                        HSR Length by Country
-                    </h2>
-                    <div id="hsr-countryChart"></div>
-                </div>
-
-                <!-- Detailed Lines Table -->
-                <div class="speed-card rounded-2xl p-8">
-                    <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                        <span class="text-3xl">📊</span>
-                        Complete HSR Lines Database
-                    </h2>
+                
+                <!-- Data Table -->
+                <div class="card-glow rounded-2xl overflow-hidden">
+                    <div class="p-6 border-b border-slate-700">
+                        <h3 class="text-xl font-bold text-white mb-2">All High-Speed Rail Lines</h3>
+                        <p class="text-slate-400 text-sm">Complete dataset sorted by length</p>
+                    </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b border-slate-700">
-                                    <th class="text-left py-4 px-4 orbitron">EMPIRE</th>
-                                    <th class="text-left py-4 px-4 orbitron">COUNTRY</th>
-                                    <th class="text-left py-4 px-4 orbitron">LINE</th>
-                                    <th class="text-right py-4 px-4 orbitron">LENGTH (KM)</th>
+                        <table class="w-full">
+                            <thead class="bg-slate-800/50">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Empire</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Country</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Line</th>
+                                    <th class="px-6 py-4 text-right text-xs font-semibold text-slate-300 uppercase tracking-wider">Length (km)</th>
                                 </tr>
                             </thead>
-                            <tbody id="hsr-tableBody"></tbody>
+                            <tbody id="hsr-tableBody" class="divide-y divide-slate-700"></tbody>
                         </table>
                     </div>
                 </div>
@@ -826,145 +809,120 @@
         
         <!-- Metro Tab -->
         <div id="metro" class="tab-content">
-            <div class="relative z-10">
-                <!-- Empire Overview Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-                    <!-- Empire 1 -->
-                    <div class="cyber-border rounded-2xl">
-                        <div class="hologram-card empire-1-glow rounded-2xl p-6 h-full">
-                            <div class="flex items-center gap-3 mb-6">
-                                <div class="w-14 h-14 bg-blue-500/20 rounded-xl flex items-center justify-center text-3xl border border-blue-400/30">
-                                    🚂
-                                </div>
-                                <div>
-                                    <div class="text-xs text-blue-400 tracking-widest font-bold">EMPIRE 1.0</div>
-                                    <div class="text-xl font-bold text-cyan-300" style="font-family: 'Orbitron', monospace;">STEAM ERA</div>
-                                </div>
+            <div class="container mx-auto px-4 pb-12">
+                <!-- Metro Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                    <!-- Empire 1 Metro Card -->
+                    <div class="hologram-card rounded-2xl p-8">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-2xl">
+                                🚇
                             </div>
-                            <div class="text-sm text-blue-300 mb-6 opacity-80">British Commonwealth Network</div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="data-stream bg-blue-950/50 p-3 rounded-lg border border-blue-500/30">
-                                    <div class="metric-display text-3xl text-cyan-400 mb-1" id="metro-empire1-total">-</div>
-                                    <div class="text-xs text-blue-400 tracking-wider">TOTAL KM</div>
-                                </div>
-                                <div class="data-stream bg-blue-950/50 p-3 rounded-lg border border-blue-500/30">
-                                    <div class="metric-display text-3xl text-cyan-400 mb-1" id="metro-empire1-cities">-</div>
-                                    <div class="text-xs text-blue-400 tracking-wider">CITIES</div>
-                                </div>
+                            <div>
+                                <div class="text-sm text-blue-400 orbitron">EMPIRE 1.0</div>
+                                <div class="text-xl font-bold text-white">Metro Networks</div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Total Length</span>
+                                <span class="stat-number text-2xl" id="metro-empire1-total">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Cities</span>
+                                <span class="text-blue-400" id="metro-empire1-cities">0</span>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Empire 2 -->
-                    <div class="cyber-border rounded-2xl">
-                        <div class="hologram-card empire-2-glow rounded-2xl p-6 h-full">
-                            <div class="flex items-center gap-3 mb-6">
-                                <div class="w-14 h-14 bg-red-500/20 rounded-xl flex items-center justify-center text-3xl border border-red-400/30">
-                                    🛢️
-                                </div>
-                                <div>
-                                    <div class="text-xs text-red-400 tracking-widest font-bold">EMPIRE 2.0</div>
-                                    <div class="text-xl font-bold text-red-300" style="font-family: 'Orbitron', monospace;">OIL ERA</div>
-                                </div>
+                    
+                    <!-- Empire 2 Metro Card -->
+                    <div class="hologram-card rounded-2xl p-8">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center text-2xl">
+                                🚇
                             </div>
-                            <div class="text-sm text-red-300 mb-6 opacity-80">American Industrial Network</div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="data-stream bg-red-950/50 p-3 rounded-lg border border-red-500/30">
-                                    <div class="metric-display text-3xl text-red-400 mb-1" id="metro-empire2-total">-</div>
-                                    <div class="text-xs text-red-400 tracking-wider">TOTAL KM</div>
-                                </div>
-                                <div class="data-stream bg-red-950/50 p-3 rounded-lg border border-red-500/30">
-                                    <div class="metric-display text-3xl text-red-400 mb-1" id="metro-empire2-cities">-</div>
-                                    <div class="text-xs text-red-400 tracking-wider">CITIES</div>
-                                </div>
+                            <div>
+                                <div class="text-sm text-red-400 orbitron">EMPIRE 2.0</div>
+                                <div class="text-xl font-bold text-white">Metro Networks</div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Total Length</span>
+                                <span class="stat-number text-2xl" id="metro-empire2-total">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Cities</span>
+                                <span class="text-red-400" id="metro-empire2-cities">0</span>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Empire 3 -->
-                    <div class="cyber-border rounded-2xl">
-                        <div class="hologram-card empire-3-glow rounded-2xl p-6 h-full">
-                            <div class="flex items-center gap-3 mb-6">
-                                <div class="w-14 h-14 bg-green-500/20 rounded-xl flex items-center justify-center text-3xl border border-green-400/30">
-                                    🤖
-                                </div>
-                                <div>
-                                    <div class="text-xs text-green-400 tracking-widest font-bold">EMPIRE 3.0</div>
-                                    <div class="text-xl font-bold text-emerald-300" style="font-family: 'Orbitron', monospace;">TECH ERA</div>
-                                </div>
+                    
+                    <!-- Empire 3 Metro Card -->
+                    <div class="hologram-card rounded-2xl p-8">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center text-2xl">
+                                🚇
                             </div>
-                            <div class="text-sm text-emerald-300 mb-6 opacity-80">East Asian Megacity Network</div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="data-stream bg-emerald-950/50 p-3 rounded-lg border border-emerald-500/30">
-                                    <div class="metric-display text-3xl text-emerald-400 mb-1" id="metro-empire3-total">-</div>
-                                    <div class="text-xs text-emerald-400 tracking-wider">TOTAL KM</div>
-                                </div>
-                                <div class="data-stream bg-emerald-950/50 p-3 rounded-lg border border-emerald-500/30">
-                                    <div class="metric-display text-3xl text-emerald-400 mb-1" id="metro-empire3-cities">-</div>
-                                    <div class="text-xs text-emerald-400 tracking-wider">CITIES</div>
-                                </div>
+                            <div>
+                                <div class="text-sm text-green-400 orbitron">EMPIRE 3.0</div>
+                                <div class="text-xl font-bold text-white">Metro Networks</div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Total Length</span>
+                                <span class="stat-number text-2xl" id="metro-empire3-total">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Cities</span>
+                                <span class="text-green-400" id="metro-empire3-cities">0</span>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Charts Grid -->
+                
+                <!-- Metro Charts -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                    <!-- Total Length Comparison -->
-                    <div class="hologram-card rounded-2xl p-8">
-                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3 text-cyan-300">
-                            <span class="text-3xl">⚡</span>
-                            Total Metro Network Length
-                        </h2>
+                    <div class="card-glow rounded-2xl p-6">
+                        <h2 class="text-2xl font-bold orbitron mb-6 text-white">Metro Length by Empire</h2>
                         <div id="metro-totalLengthChart"></div>
                     </div>
-
-                    <!-- Distribution Pie -->
-                    <div class="hologram-card rounded-2xl p-8">
-                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3 text-cyan-300">
-                            <span class="text-3xl">🌍</span>
-                            Global Metro Distribution
-                        </h2>
+                    <div class="card-glow rounded-2xl p-6">
+                        <h2 class="text-2xl font-bold orbitron mb-6 text-white">Global Metro Distribution</h2>
                         <div id="metro-distributionChart"></div>
                     </div>
                 </div>
-
-                <!-- Top Cities -->
-                <div class="hologram-card rounded-2xl p-8 mb-12">
-                    <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3 text-cyan-300">
-                        <span class="text-3xl">🏆</span>
-                        Top 15 Cities by Metro Length
-                    </h2>
-                    <div id="metro-topCitiesChart"></div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <div class="card-glow rounded-2xl p-6">
+                        <h2 class="text-2xl font-bold orbitron mb-6 text-white">Top 15 Metro Cities</h2>
+                        <div id="metro-topCitiesChart"></div>
+                    </div>
+                    <div class="card-glow rounded-2xl p-6">
+                        <h2 class="text-2xl font-bold orbitron mb-6 text-white">Metro by Country</h2>
+                        <div id="metro-countryChart"></div>
+                    </div>
                 </div>
-
-                <!-- Country Comparison -->
-                <div class="hologram-card rounded-2xl p-8 mb-12">
-                    <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3 text-cyan-300">
-                        <span class="text-3xl">🗺️</span>
-                        Metro Length by Country
-                    </h2>
-                    <div id="metro-countryChart"></div>
-                </div>
-
-                <!-- Detailed Table -->
-                <div class="hologram-card rounded-2xl p-8">
-                    <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3 text-cyan-300">
-                        <span class="text-3xl">📊</span>
-                        Complete Metro Systems Database
-                    </h2>
+                
+                <!-- Metro Data Table -->
+                <div class="card-glow rounded-2xl overflow-hidden">
+                    <div class="p-6 border-b border-slate-700">
+                        <h3 class="text-xl font-bold text-white mb-2">All Metro Systems</h3>
+                        <p class="text-slate-400 text-sm">Complete dataset sorted by length</p>
+                    </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b border-cyan-500/20">
-                                    <th class="text-left py-4 px-4 orbitron text-cyan-300">EMPIRE</th>
-                                    <th class="text-left py-4 px-4 orbitron text-cyan-300">COUNTRY</th>
-                                    <th class="text-left py-4 px-4 orbitron text-cyan-300">CITY</th>
-                                    <th class="text-left py-4 px-4 orbitron text-cyan-300">SYSTEM</th>
-                                    <th class="text-right py-4 px-4 orbitron text-cyan-300">LENGTH (KM)</th>
+                        <table class="w-full">
+                            <thead class="bg-slate-800/50">
+                                <tr>
+                                    <th class="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Empire</th>
+                                    <th class="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Country</th>
+                                    <th class="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">City</th>
+                                    <th class="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">System</th>
+                                    <th class="px-4 py-4 text-right text-xs font-semibold text-slate-300 uppercase tracking-wider">Length (km)</th>
                                 </tr>
                             </thead>
-                            <tbody id="metro-tableBody"></tbody>
+                            <tbody id="metro-tableBody" class="divide-y divide-slate-700"></tbody>
                         </table>
                     </div>
                 </div>
@@ -974,159 +932,140 @@
         <!-- Rail Tab -->
         <div id="rail" class="tab-content">
             <div class="container mx-auto px-4 pb-12">
-                <!-- Empire Summary Cards -->
+                <!-- Rail Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-                    <!-- Empire 1 -->
-                    <div class="speed-card rounded-2xl p-8 group">
+                    <!-- Empire 1 Rail Card -->
+                    <div class="speed-card rounded-2xl p-8">
                         <div class="flex items-center gap-4 mb-6">
                             <div class="w-16 h-16 steam-glow rounded-xl flex items-center justify-center text-3xl">
                                 🚂
                             </div>
                             <div>
                                 <div class="text-sm text-blue-400 orbitron">EMPIRE 1.0</div>
-                                <div class="text-xl font-bold">Steam & Colonies</div>
-                                <div class="text-xs text-slate-400">Heritage Networks</div>
+                                <div class="text-xl font-bold text-white">Rail Networks</div>
                             </div>
                         </div>
                         <div class="space-y-4">
-                            <div>
-                                <div class="stat-number text-5xl mb-1" id="rail-empire1-total">-</div>
-                                <div class="text-sm text-slate-400">Total Length (km)</div>
-                                <div class="velocity-bar text-blue-500 mt-2" id="rail-empire1-bar"></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Total Length</span>
+                                <span class="stat-number text-2xl" id="rail-empire1-total">0</span>
                             </div>
-                            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
-                                <div>
-                                    <div class="text-2xl font-bold orbitron text-blue-400" id="rail-empire1-lines">-</div>
-                                    <div class="text-xs text-slate-400">Lines</div>
-                                </div>
-                                <div>
-                                    <div class="text-2xl font-bold orbitron text-blue-400" id="rail-empire1-countries">-</div>
-                                    <div class="text-xs text-slate-400">Countries</div>
-                                </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Lines</span>
+                                <span class="text-blue-400" id="rail-empire1-lines">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Countries</span>
+                                <span class="text-blue-400" id="rail-empire1-countries">0</span>
+                            </div>
+                            <div class="w-full bg-slate-700 rounded-full h-2">
+                                <div class="velocity-bar bg-blue-500 rounded-full" id="rail-empire1-bar"></div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Empire 2 -->
-                    <div class="speed-card rounded-2xl p-8 group">
+                    
+                    <!-- Empire 2 Rail Card -->
+                    <div class="speed-card rounded-2xl p-8">
                         <div class="flex items-center gap-4 mb-6">
                             <div class="w-16 h-16 oil-glow rounded-xl flex items-center justify-center text-3xl">
-                                🛢️
+                                🚂
                             </div>
                             <div>
                                 <div class="text-sm text-red-400 orbitron">EMPIRE 2.0</div>
-                                <div class="text-xl font-bold">Oil & Silicon</div>
-                                <div class="text-xs text-slate-400">Freight Dominance</div>
+                                <div class="text-xl font-bold text-white">Rail Networks</div>
                             </div>
                         </div>
                         <div class="space-y-4">
-                            <div>
-                                <div class="stat-number text-5xl mb-1" id="rail-empire2-total">-</div>
-                                <div class="text-sm text-slate-400">Total Length (km)</div>
-                                <div class="velocity-bar text-red-500 mt-2" id="rail-empire2-bar"></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Total Length</span>
+                                <span class="stat-number text-2xl" id="rail-empire2-total">0</span>
                             </div>
-                            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
-                                <div>
-                                    <div class="text-2xl font-bold orbitron text-red-400" id="rail-empire2-lines">-</div>
-                                    <div class="text-xs text-slate-400">Lines</div>
-                                </div>
-                                <div>
-                                    <div class="text-2xl font-bold orbitron text-red-400" id="rail-empire2-countries">-</div>
-                                    <div class="text-xs text-slate-400">Countries</div>
-                                </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Lines</span>
+                                <span class="text-red-400" id="rail-empire2-lines">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Countries</span>
+                                <span class="text-red-400" id="rail-empire2-countries">0</span>
+                            </div>
+                            <div class="w-full bg-slate-700 rounded-full h-2">
+                                <div class="velocity-bar bg-red-500 rounded-full" id="rail-empire2-bar"></div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Empire 3 -->
-                    <div class="speed-card rounded-2xl p-8 group">
+                    
+                    <!-- Empire 3 Rail Card -->
+                    <div class="speed-card rounded-2xl p-8">
                         <div class="flex items-center gap-4 mb-6">
                             <div class="w-16 h-16 tech-glow rounded-xl flex items-center justify-center text-3xl">
-                                🤖
+                                🚂
                             </div>
                             <div>
                                 <div class="text-sm text-green-400 orbitron">EMPIRE 3.0</div>
-                                <div class="text-xl font-bold">Rare Earths & Robotics</div>
-                                <div class="text-xs text-slate-400">Electrified Future</div>
+                                <div class="text-xl font-bold text-white">Rail Networks</div>
                             </div>
                         </div>
                         <div class="space-y-4">
-                            <div>
-                                <div class="stat-number text-5xl mb-1" id="rail-empire3-total">-</div>
-                                <div class="text-sm text-slate-400">Total Length (km)</div>
-                                <div class="velocity-bar text-green-500 mt-2" id="rail-empire3-bar"></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">Total Length</span>
+                                <span class="stat-number text-2xl" id="rail-empire3-total">0</span>
                             </div>
-                            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700">
-                                <div>
-                                    <div class="text-2xl font-bold orbitron text-green-400" id="rail-empire3-lines">-</div>
-                                    <div class="text-xs text-slate-400">Lines</div>
-                                </div>
-                                <div>
-                                    <div class="text-2xl font-bold orbitron text-green-400" id="rail-empire3-countries">-</div>
-                                    <div class="text-xs text-slate-400">Countries</div>
-                                </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Lines</span>
+                                <span class="text-green-400" id="rail-empire3-lines">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">Countries</span>
+                                <span class="text-green-400" id="rail-empire3-countries">0</span>
+                            </div>
+                            <div class="w-full bg-slate-700 rounded-full h-2">
+                                <div class="velocity-bar bg-green-500 rounded-full" id="rail-empire3-bar"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Charts Grid -->
+                
+                <!-- Rail Charts -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                    <!-- Total Length -->
-                    <div class="speed-card rounded-2xl p-8">
-                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                            <span class="text-3xl">⚡</span>
-                            Total Rail Network Length
-                        </h2>
+                    <div class="card-glow rounded-2xl p-6">
+                        <h2 class="text-2xl font-bold orbitron mb-6 text-white">Rail Length by Empire</h2>
                         <div id="rail-totalLengthChart"></div>
                     </div>
-
-                    <!-- Distribution -->
-                    <div class="speed-card rounded-2xl p-8">
-                        <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                            <span class="text-3xl">🌍</span>
-                            Global Rail Distribution
-                        </h2>
+                    <div class="card-glow rounded-2xl p-6">
+                        <h2 class="text-2xl font-bold orbitron mb-6 text-white">Global Rail Distribution</h2>
                         <div id="rail-distributionChart"></div>
                     </div>
                 </div>
-
-                <!-- Top Lines -->
-                <div class="speed-card rounded-2xl p-8 mb-12">
-                    <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                        <span class="text-3xl">🏆</span>
-                        Top 20 Longest Rail Lines
-                    </h2>
-                    <div id="rail-topLinesChart"></div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <div class="card-glow rounded-2xl p-6">
+                        <h2 class="text-2xl font-bold orbitron mb-6 text-white">Top 20 Rail Lines</h2>
+                        <div id="rail-topLinesChart"></div>
+                    </div>
+                    <div class="card-glow rounded-2xl p-6">
+                        <h2 class="text-2xl font-bold orbitron mb-6 text-white">Rail by Country</h2>
+                        <div id="rail-countryChart"></div>
+                    </div>
                 </div>
-
-                <!-- Country Comparison -->
-                <div class="speed-card rounded-2xl p-8 mb-12">
-                    <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                        <span class="text-3xl">🗺️</span>
-                        Rail Length by Country
-                    </h2>
-                    <div id="rail-countryChart"></div>
-                </div>
-
-                <!-- Detailed Table -->
-                <div class="speed-card rounded-2xl p-8">
-                    <h2 class="text-2xl font-bold orbitron mb-6 flex items-center gap-3">
-                        <span class="text-3xl">📊</span>
-                        Complete Rail Lines Database
-                    </h2>
+                
+                <!-- Rail Data Table -->
+                <div class="card-glow rounded-2xl overflow-hidden">
+                    <div class="p-6 border-b border-slate-700">
+                        <h3 class="text-xl font-bold text-white mb-2">All Rail Lines</h3>
+                        <p class="text-slate-400 text-sm">Complete dataset sorted by length</p>
+                    </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b border-slate-700">
-                                    <th class="text-left py-4 px-4 orbitron">EMPIRE</th>
-                                    <th class="text-left py-4 px-4 orbitron">COUNTRY</th>
-                                    <th class="text-left py-4 px-4 orbitron">CITY</th>
-                                    <th class="text-left py-4 px-4 orbitron">LINE</th>
-                                    <th class="text-right py-4 px-4 orbitron">LENGTH (KM)</th>
+                        <table class="w-full">
+                            <thead class="bg-slate-800/50">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Empire</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Country</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">City</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Line</th>
+                                    <th class="px-6 py-4 text-right text-xs font-semibold text-slate-300 uppercase tracking-wider">Length (km)</th>
                                 </tr>
                             </thead>
-                            <tbody id="rail-tableBody"></tbody>
+                            <tbody id="rail-tableBody" class="divide-y divide-slate-700"></tbody>
                         </table>
                     </div>
                 </div>
@@ -1136,402 +1075,94 @@
 </div>
 
 <script>
-        let companies = [];
-        let institutions = [];
-        let marketCapTotals = [];
-        let rdExpenditures = [];
-        let gdpData = [];
-        let citiesData = [];
-
-        const empireShortNames = { 1: 'Empire 1.0: Steam & Colonies', 2: 'Empire 2.0: Oil & Silicon', 3: 'Empire 3.0: Rare Earths, Renewables & Robotics' };
-
-        const GITHUB_BASE = 'https://raw.githubusercontent.com/ayeeff/marketcap/main/data/';
-
-        // Minimal country name -> ISO2 lookup for common countries. Expand as needed.
-        const countryNameToIso = {
-            'united states': 'us', 'usa': 'us', 'united kingdom': 'gb', 'uk': 'gb', 'china': 'cn', 'peoples republic of china': 'cn', 'jp': 'jp', 'japan': 'jp', 'germany': 'de', 'france': 'fr', 'australia': 'au', 'canada': 'ca', 'india': 'in', 'russia': 'ru', 'brazil': 'br', 'south korea': 'kr', 'korea, south': 'kr', 'italy': 'it', 'spain': 'es', 'netherlands': 'nl', 'saudi arabia': 'sa', 'uae': 'ae', 'united arab emirates': 'ae', 'singapore': 'sg', 'sweden': 'se', 'switzerland': 'ch', 'norway': 'no', 'mexico': 'mx', 'indonesia': 'id', 'turkey': 'tr', 'argentina': 'ar', 'south africa': 'za', 'poland': 'pl', 'belgium': 'be', 'ireland': 'ie', 'israel': 'il', 'hong kong': 'hk', 'taiwan': 'tw', 'vietnam': 'vn', 'malaysia': 'my', 'america': 'us', 'united states of america': 'us', 'united states': 'us'
-        };
-
-        function getIsoFromCountry(countryRaw) {
-            if (!countryRaw) return null;
-            const c = String(countryRaw).trim();
-            // If it's already 2 letters
-            if (/^[A-Za-z]{2}$/.test(c)) return c.toLowerCase();
-            const lower = c.toLowerCase();
-            if (countryNameToIso[lower]) return countryNameToIso[lower];
-            // try extracting ISO from parentheses like "(US)"
-            const m = c.match(/\(([^)]+)\)/);
-            if (m && /^[A-Za-z]{2}$/.test(m[1])) return m[1].toLowerCase();
-            // fallback: take first two letters (best-effort)
-            return c.slice(0,2).toLowerCase();
-        }
-
-        function flagUrlForCountry(countryRaw) {
-            const iso = getIsoFromCountry(countryRaw);
-            if (!iso) return '';
-            return `https://flagcdn.com/${iso}.svg`;
-        }
-
-        async function loadData() {
-            try {
-                // Companies
-                const companiesResponse = await fetch(GITHUB_BASE + 'empire_top_companies.csv');
-                const companiesData = await companiesResponse.text();
-                const companiesParsed = Papa.parse(companiesData, { header: true, skipEmptyLines: true, dynamicTyping: false });
-
-                companies = companiesParsed.data.map(row => {
-                    const companyName = (row.Company || '').split('\n')[0].trim();
-                    const ticker = (row.Company || '').split('\n')[1]?.trim() || '';
-                    return {
-                        empire: parseInt(row.Empire),
-                        name: companyName,
-                        ticker: ticker,
-                        marketCap: row['Market Cap'] || row.Market_Cap || '',
-                        country: row.Country || row.country || row.CountryCode || row.Country_Code || ''
-                    };
-                });
-
-                // Institutions
-                const researchResponse = await fetch(GITHUB_BASE + 'empire_research.csv');
-                const researchData = await researchResponse.text();
-                const researchParsed = Papa.parse(researchData, { header: true, skipEmptyLines: true, dynamicTyping: true });
-
-                institutions = researchParsed.data.map(row => ({
-                    empire: parseInt(row.Empire),
-                    rank: parseInt(row.Empire_Rank),
-                    name: row.Institution,
-                    globalRank: parseInt(row.Global_Rank) || null,
-                    researchShare: parseFloat(row['Research Share']) || 0,
-                    country: row.Country || row.country || row.CountryCode || row.Country_Code || ''
-                }));
-
-                // Market cap totals
-                const marketCapResponse = await fetch(GITHUB_BASE + 'empire_totals.csv');
-                const marketCapData = await marketCapResponse.text();
-                const marketCapParsed = Papa.parse(marketCapData, { header: true, skipEmptyLines: true, dynamicTyping: false });
-                marketCapTotals = marketCapParsed.data.map(row => ({ 
-                    empire: parseInt(row.Empire), 
-                    total: row['Total Market Cap'], 
-                    share: row.Share,
-                    date: row.Date 
-                }));
-
-                // R&D expenditures (Nature share)
-                const rdResponse = await fetch(GITHUB_BASE + 'empire_nature_share.csv');
-                const rdData = await rdResponse.text();
-                const rdParsed = Papa.parse(rdData, { header: true, skipEmptyLines: true, dynamicTyping: true });
-                rdExpenditures = rdParsed.data.map(row => ({ 
-                    empire: parseInt(row.empire), 
-                    share: parseFloat(row.share_2024), 
-                    percent: parseFloat(row.percent) 
-                }));
-
-                // GDP data
-                const gdpResponse = await fetch(GITHUB_BASE + 'empire_gdp_ppp_2025.csv');
-                const gdpDataText = await gdpResponse.text();
-                const gdpParsed = Papa.parse(gdpDataText, { header: true, skipEmptyLines: true, dynamicTyping: true });
-                gdpData = gdpParsed.data.map(row => ({ 
-                    empire: parseFloat(row['empire#']), 
-                    total: parseFloat(row.total), 
-                    percent: parseFloat(row['%']) 
-                }));
-
-                // Cities
-                const citiesResponse = await fetch(GITHUB_BASE + 'empire_cities_population.csv');
-                const citiesDataText = await citiesResponse.text();
-                const citiesParsed = Papa.parse(citiesDataText, { header: true, skipEmptyLines: true, dynamicTyping: true });
-
-                citiesData = citiesParsed.data.map(row => ({ 
-                    empire: parseInt(row.Empire), 
-                    rank: parseInt(row.Rank), 
-                    city: row.City, 
-                    country: row.Country, 
-                    population: parseInt(row.Population), 
-                    date: row.Scraped_Date 
-                }));
-
-                initDashboard();
-            } catch (error) {
-                console.error('Error loading data:', error);
-                document.body.innerHTML += `<div style="color: red; text-align: center; padding: 20px;">Error loading data: ${error.message}</div>`;
-            }
-        }
-
-        function createLeaderPanel(containerId, sortedData) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            sortedData.forEach((item, index) => {
-                const wrapper = document.createElement('div');
-                wrapper.className = `empire-wrapper ${index === 0 ? 'gold-bg' : index === 1 ? 'silver-bg' : 'bronze-bg'}`;
-                const rankDiv = document.createElement('div'); 
-                rankDiv.className = 'rank-number'; 
-                rankDiv.textContent = index + 1; 
-                wrapper.appendChild(rankDiv);
-                const img = document.createElement('img'); 
-                img.src = `https://raw.githubusercontent.com/ayeeff/marketcap/refs/heads/main/img/emp${item.empire}.png`; 
-                img.alt = `${empireShortNames[item.empire]}`; 
-                img.className = 'empire-img w-72 h-72 object-contain'; 
-                wrapper.appendChild(img);
-                if (index < sortedData.length - 1) wrapper.style.marginRight = '-20px';
-                container.appendChild(wrapper);
-            });
-        }
-
-        function makeFlagImg(country) {
-            const url = flagUrlForCountry(country);
-            if (!url) return '';
-            return `<img src="${url}" class="flag-img" alt="${country || ''}" onerror="this.style.display='none'"/>`;
-        }
-
-        function populateMarketTable(empireNum) {
-            const tableBody = document.getElementById(`marketEmpire${empireNum}Table`);
-            tableBody.innerHTML = '';
-            const empireCompanies = companies.filter(c => c.empire === empireNum);
-            empireCompanies.forEach((company, index) => {
-                const flag = makeFlagImg(company.country);
-                const row = document.createElement('tr');
-                row.className = 'table-row border-b border-slate-700/50';
-                row.innerHTML = `\n                    <td class="py-1 text-slate-300 text-xs">${index + 1}</td>\n                    <td class="py-1 text-xs break-words max-w-32"><span class=\"name-with-flag\">${flag}${company.name}</span></td>\n                    <td class="py-1 text-right font-mono text-green-400 text-xs">${company.marketCap}</td>\n                `;
-                tableBody.appendChild(row);
-            });
-        }
-
-        function populateResearchTable(empireNum) {
-            const tableBody = document.getElementById(`researchEmpire${empireNum}Table`);
-            tableBody.innerHTML = '';
-            const empireInstitutions = institutions.filter(i => i.empire === empireNum).sort((a, b) => a.globalRank - b.globalRank);
-            empireInstitutions.forEach((inst) => {
-                const flag = makeFlagImg(inst.country);
-                const row = document.createElement('tr');
-                row.className = 'table-row border-b border-slate-700/50';
-                row.innerHTML = `\n                    <td class="py-1 text-slate-300 text-xs">${inst.globalRank || '—'}</td>\n                    <td class="py-1 text-xs break-words max-w-32"><span class=\"name-with-flag\">${flag}${inst.name}</span></td>\n                    <td class="py-1 text-right font-mono text-purple-400 text-xs">${inst.researchShare}</td>\n                `;
-                tableBody.appendChild(row);
-            });
-        }
-
-        function populateCitiesTable(empireNum) {
-            const tableBody = document.getElementById(`citiesEmpire${empireNum}Table`);
-            tableBody.innerHTML = '';
-            const empireCities = citiesData.filter(c => c.empire === empireNum).sort((a,b)=>a.rank-b.rank).slice(0,10);
-            empireCities.forEach((city) => {
-                const flag = makeFlagImg(city.country);
-                const row = document.createElement('tr');
-                row.className = 'table-row border-b border-slate-700/50';
-                row.innerHTML = `\n                    <td class="py-1 text-slate-300 text-xs">${city.rank}</td>\n                    <td class="py-1 text-xs break-words max-w-32"><span class=\"name-with-flag\">${flag}${city.city}</span></td>\n                    <td class="py-1 text-right font-mono text-yellow-400 text-xs">${city.population.toLocaleString()}</td>\n                `;
-                tableBody.appendChild(row);
-            });
-        }
-
-        function createInfoCard(containerId, sectionTitle, data, color, sources = []) {
-            const pieDiv = document.getElementById(containerId);
-            const gridParent = pieDiv.parentElement;
-            
-            // Remove the existing pie chart container from the grid
-            pieDiv.remove();
-            
-            // Create a new container for the info card and pie chart
-            const newContainer = document.createElement('div');
-            newContainer.className = 'grid grid-cols-2 gap-6';
-            
-            // Create info card
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'card-glow rounded-2xl p-6 flex flex-col justify-start';
-            
-            const header = document.createElement('h3');
-            header.className = 'text-slate-300 font-bold mb-4';
-            header.textContent = sectionTitle;
-            infoDiv.appendChild(header);
-
-            const table = document.createElement('table');
-            table.className = 'w-full text-sm text-left text-white';
-            
-            // Create table header
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
-            headerRow.innerHTML = `
-                <th class="text-slate-400 font-semibold pb-2">Empire</th>
-                <th class="text-slate-400 font-semibold pb-2 text-right">Value</th>
-                <th class="text-slate-400 font-semibold pb-2 text-right">Share</th>
-            `;
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
-            
-            // Create table body
-            const tbody = document.createElement('tbody');
-            
-            // Populate table with data
-            data.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = 'border-b border-slate-700/50';
-                tr.innerHTML = `
-                    <td class="py-1">${item.name}</td>
-                    <td class="py-1 text-right text-${color}-400 font-mono">${item.value}</td>
-                    <td class="py-1 text-right text-slate-300">${item.percent}%</td>
-                `;
-                tbody.appendChild(tr);
-            });
-            
-            table.appendChild(tbody);
-            infoDiv.appendChild(table);
-
-            // Add source row after the table
-            if (sources.length > 0) {
-                const sourceDiv = document.createElement('div');
-                sourceDiv.className = 'text-sm text-slate-500 mt-4 pt-3 border-t border-slate-700';
-                let sourceText = '';
-                if (sources.length === 1) {
-                    sourceText = `Source: <a href="${sources[0]}" class="text-blue-400 hover:text-blue-300" target="_blank">${sources[0]}</a>`;
-                } else {
-                    sourceText = sources.map(src => `Source: <a href="${src}" class="text-blue-400 hover:text-blue-300" target="_blank">${src}</a>`).join('<br>');
-                }
-                sourceDiv.innerHTML = sourceText;
-                infoDiv.appendChild(sourceDiv);
-            }
-            
-            // Add info card and pie chart to the new container
-            newContainer.appendChild(infoDiv);
-            newContainer.appendChild(pieDiv);
-            
-            // Replace the original grid parent with our new container
-            gridParent.parentNode.replaceChild(newContainer, gridParent);
-            
-            return newContainer;
-        }
-
-        function initDashboard() {
-            const marketCapRanking = [...marketCapTotals].sort((a,b)=>{
-                const aValue = parseFloat(String(a.total).replace(/[^0-9.-]+/g, '')) || 0;
-                const bValue = parseFloat(String(b.total).replace(/[^0-9.-]+/g, '')) || 0;
-                return bValue - aValue;
-            });
-            const researchRanking = [...rdExpenditures].sort((a,b)=>b.percent - a.percent);
-            const gdpRanking = [...gdpData].sort((a,b)=>b.percent - a.percent);
-
-            createLeaderPanel('marketCapLeaderPanel', marketCapRanking);
-            createLeaderPanel('researchLeaderPanel', researchRanking);
-            createLeaderPanel('gdpLeaderPanel', gdpRanking);
-
-            [1,2,3].forEach(empire=>{ 
-                populateMarketTable(empire); 
-                populateResearchTable(empire); 
-                populateCitiesTable(empire); 
-            });
-
-            // Create info cards with dynamic data
-            const marketCapContainer = createInfoCard('marketCapPie', 'Market Share by Empire', marketCapTotals.map(item => ({
-                name: `Empire ${item.empire}.0`,
-                value: item.total,
-                percent: item.share ? item.share.replace('%', '') : '0.0'
-            })), 'green', ['https://www.marketcapwatch.com/all-countries/']);
-
-            const rdContainer = createInfoCard('rdPie', 'Research Share by Empire', rdExpenditures.map(item => ({
-                name: `Empire ${item.empire}.0`,
-                value: `${item.share?.toLocaleString?.() || item.share} research outputs`,
-                percent: item.percent.toFixed(1)
-            })), 'purple', ['https://www.nature.com/nature-index/research-leaders/2025/institution/all/all/global']);
-
-            const gdpContainer = createInfoCard('gdpPie', 'GDP Share by Empire', gdpData.map(item => ({
-                name: `Empire ${item.empire}.0`,
-                value: `$${item.total?.toLocaleString?.() || item.total} B`,
-                percent: item.percent.toFixed(1)
-            })), 'green', ['https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(PPP)', 'https://worldpopulationreview.com/cities']);
-
-            // Pie charts with updated empireShortNames
-            const marketCapData = [{ 
-                values: marketCapRanking.map(item=>parseFloat(String(item.total).replace(/[^0-9.-]+/g, '')) || 0), 
-                labels: marketCapRanking.map(item=>`${empireShortNames[item.empire]}\n${item.total}`), 
-                type: 'pie', 
-                marker: { 
-                    colors: marketCapRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), 
-                    line: { color: '#1e293b', width: 2 } 
-                }, 
-                textinfo: 'none', 
-                textposition: 'inside', 
-                textfont: { size: 13, color: '#ffffff', family: 'sans-serif' }, 
-                hovertemplate: '<b>%{label}</b><br>%{percent}<extra></extra>' 
-            }];
-            
-            const rdData = [{ 
-                values: researchRanking.map(item=>item.share), 
-                labels: researchRanking.map(item=>`${empireShortNames[item.empire]}\n${item.share?.toLocaleString?.()||item.share} outputs (${item.percent}%)`), 
-                type: 'pie', 
-                marker: { 
-                    colors: researchRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), 
-                    line: { color: '#1e293b', width: 2 } 
-                }, 
-                textinfo: 'none', 
-                textposition: 'inside', 
-                textfont: { size: 12, color: '#ffffff', family: 'sans-serif' }, 
-                hovertemplate: '<b>%{label}</b><extra></extra>' 
-            }];
-            
-            const gdpDataChart = [{ 
-                values: gdpRanking.map(item=>item.total), 
-                labels: gdpRanking.map(item=>`${empireShortNames[item.empire]}\n$${item.total?.toLocaleString?.()||item.total}B (${item.percent}%)`), 
-                type: 'pie', 
-                marker: { 
-                    colors: gdpRanking.map(item=> item.empire===1? '#f59e0b' : item.empire===2? '#3b82f6' : item.empire===3? '#ef4444' : '#6b7280'), 
-                    line: { color: '#1e293b', width: 2 } 
-                }, 
-                textinfo: 'none', 
-                textposition: 'inside', 
-                textfont: { size: 12, color: '#ffffff', family: 'sans-serif' }, 
-                hovertemplate: '<b>%{label}</b><extra></extra>' 
-            }];
-
-            const layout = { 
-                paper_bgcolor: 'rgba(0,0,0,0)', 
-                plot_bgcolor: 'rgba(0,0,0,0)', 
-                showlegend: false, 
-                margin: {t:10,b:10,l:10,r:10}, 
-                height: 280 
-            };
-            const config = { responsive: true, displayModeBar: false };
-            
-            // Plot the charts in their new containers
-            Plotly.newPlot(marketCapContainer.querySelector('#marketCapPie'), marketCapData, layout, config);
-            Plotly.newPlot(rdContainer.querySelector('#rdPie'), rdData, layout, config);
-            Plotly.newPlot(gdpContainer.querySelector('#gdpPie'), gdpDataChart, layout, config);
-        }
-
-        // Rail Tab Switching
+        // Global config
+        const GITHUB_BASE = 'https://raw.githubusercontent.com/ayeeff/marketcap/main/data/'; // Update with your actual GitHub repo path
+        
+        // Tab functionality
         document.addEventListener('DOMContentLoaded', function() {
             const tabButtons = document.querySelectorAll('.tab-button');
             const tabContents = document.querySelectorAll('.tab-content');
-
+            
             tabButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    const targetTab = button.getAttribute('data-tab');
-
+                    const targetTab = button.dataset.tab;
+                    
                     // Update active button
                     tabButtons.forEach(btn => btn.classList.remove('active'));
                     button.classList.add('active');
-
+                    
                     // Update active content
                     tabContents.forEach(content => content.classList.remove('active'));
                     document.getElementById(targetTab).classList.add('active');
                 });
             });
         });
-
-        // HSR Data and Functions
+        
+        // Animation function for numbers
+        function animateNumber(element, target) {
+            const duration = 1500;
+            const start = 0;
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const current = Math.floor(start + (target - start) * progress);
+                element.textContent = current.toLocaleString();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
+        
+        // HSR Data and Functions (Updated with fixes)
         const hsrEmpireInfo = {
-            1: { name: 'Steam & Colonies', color: '#3b82f6', symbol: '🚂' },
-            2: { name: 'Oil & Silicon', color: '#ef4444', symbol: '🛢️' },
-            3: { name: 'Rare Earths, Renewables & Robotics', color: '#10b981', symbol: '🤖' }
+            '1': { name: 'Steam & Colonies', color: '#3b82f6', fullName: 'Empire 1.0: Steam & Colonies', symbol: '🚂' },
+            '2': { name: 'Oil & Silicon', color: '#ef4444', fullName: 'Empire 2.0: Oil & Silicon', symbol: '🛢️' },
+            '3': { name: 'Rare Earths & Robotics', color: '#22c55e', fullName: 'Empire 3.0: Rare Earths, Renewables & Robotics', symbol: '🤖' }
         };
 
         async function loadHSRData() {
             try {
-                const hsrResponse = await fetch(GITHUB_BASE + 'empire_hsr.csv');
-                const hsrText = await hsrResponse.text();
-                const hsrParsed = Papa.parse(hsrText, { header: true, skipEmptyLines: true, dynamicTyping: true });
-                return hsrParsed.data.map(row => ({
-                    empire: parseInt(row.Empire),
-                    country: row.Country,
-                    line: row.Line,
-                    length: parseFloat(row.Length)
-                }));
+                const response = await fetch(GITHUB_BASE + 'empire_hsr.csv');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                const csvText = await response.text();
+                
+                // Use PapaParse for robust, error-handling CSV parsing
+                const parsed = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    dynamicTyping: false,  // Keep strings for safety
+                    comments: false
+                });
+                
+                if (parsed.errors.length > 0) {
+                    console.error('PapaParse HSR errors:', parsed.errors);
+                }
+                
+                const data = parsed.data
+                    .map(row => {
+                        const length = parseFloat(row.Length_km);
+                        if (!row.Empire || isNaN(length)) {
+                            console.warn('Skipping invalid HSR row:', row);
+                            return null;
+                        }
+                        return {
+                            empire: row.Empire.trim(),
+                            country: row.Country.trim(),
+                            line: row.Line.trim(),
+                            length: length
+                        };
+                    })
+                    .filter(Boolean);  // Remove nulls
+                
+                console.log(`Loaded ${data.length} valid HSR lines`);
+                return data;
             } catch (error) {
                 console.error('Error loading HSR data:', error);
                 return [];
@@ -1539,29 +1170,46 @@
         }
 
         function updateHSRSummaryCards(data) {
-            const maxLength = Math.max(...Object.values(hsrEmpireInfo).map(() => 0));
             ['1', '2', '3'].forEach(empire => {
-                const empireData = data.filter(d => d.empire === parseInt(empire));
-                const totalLength = empireData.reduce((sum, d) => sum + d.length, 0);
+                const empireData = data.filter(d => d.empire === empire);
+                // NaN-safe reduce: filter out NaNs and sum
+                const totalLength = empireData
+                    .filter(d => !isNaN(d.length))
+                    .reduce((sum, d) => sum + d.length, 0);
                 const lineCount = empireData.length;
                 const countries = new Set(empireData.map(d => d.country)).size;
                 
-                document.getElementById(`hsr-empire${empire}-total`).textContent = totalLength.toLocaleString();
-                document.getElementById(`hsr-empire${empire}-lines`).textContent = lineCount;
-                document.getElementById(`hsr-empire${empire}-countries`).textContent = countries;
+                const totalEl = document.getElementById(`hsr-empire${empire}-total`);
+                const linesEl = document.getElementById(`hsr-empire${empire}-lines`);
+                const countriesEl = document.getElementById(`hsr-empire${empire}-countries`);
                 
-                const barElement = document.getElementById(`hsr-empire${empire}-bar`);
-                const barWidth = (totalLength / (data.reduce((sum, d) => sum + d.length, 0) || 1)) * 100;
-                setTimeout(() => {
-                    barElement.style.width = barWidth + '%';
-                }, 500);
+                // Animate only if valid numbers
+                if (!isNaN(totalLength)) {
+                    animateNumber(totalEl, Math.round(totalLength));
+                } else {
+                    totalEl.textContent = '0';
+                }
+                animateNumber(linesEl, lineCount);
+                animateNumber(countriesEl, countries);
+                
+                // Update leader text with NaN-safe sort
+                const leaderEl = document.getElementById(`hsr-empire${empire}-leader`);
+                if (leaderEl && empireData.length > 0) {
+                    // Sort by length, fallback to first if all NaN
+                    const validData = empireData.filter(d => !isNaN(d.length));
+                    const topCountryObj = validData.length > 0 
+                        ? validData.sort((a, b) => b.length - a.length)[0]
+                        : empireData[0];  // Fallback to any
+                    leaderEl.textContent = topCountryObj ? topCountryObj.country : 'Unknown';
+                    console.log(`Updated HSR Empire ${empire} leader: ${leaderEl.textContent}`);
+                }
             });
         }
 
         function createHSRTotalLengthChart(data) {
-            const empireData = [1,2,3].map(empire => {
+            const empireData = ['1', '2', '3'].map(empire => {
                 const filtered = data.filter(d => d.empire === empire);
-                const total = filtered.reduce((sum, d) => sum + d.length, 0);
+                const total = filtered.filter(d => !isNaN(d.length)).reduce((sum, d) => sum + d.length, 0);
                 return { empire, total, name: hsrEmpireInfo[empire].name, color: hsrEmpireInfo[empire].color };
             });
 
@@ -1571,11 +1219,11 @@
                 type: 'bar',
                 marker: {
                     color: empireData.map(d => d.color),
-                    line: { color: 'rgba(255,255,255,0.3)', width: 2 }
+                    line: { color: 'rgba(255, 255, 255, 0.3)', width: 2 }
                 },
                 text: empireData.map(d => d.total.toLocaleString() + ' km'),
                 textposition: 'outside',
-                textfont: { color: 'white', size: 16, family: 'Orbitron' }
+                textfont: { color: 'white', size: 14, family: 'Orbitron' }
             };
 
             const layout = {
@@ -1586,7 +1234,7 @@
                 yaxis: { 
                     showgrid: true, 
                     gridcolor: 'rgba(255,255,255,0.05)',
-                    title: { text: 'Total Length (km)', font: { family: 'Orbitron' } }
+                    title: { text: 'Total HSR Length (km)', font: { family: 'Orbitron' } }
                 },
                 margin: { t: 20, r: 20, b: 60, l: 70 },
                 height: 350
@@ -1596,9 +1244,9 @@
         }
 
         function createHSRDistributionChart(data) {
-            const empireData = [1,2,3].map(empire => {
+            const empireData = ['1', '2', '3'].map(empire => {
                 const filtered = data.filter(d => d.empire === empire);
-                const total = filtered.reduce((sum, d) => sum + d.length, 0);
+                const total = filtered.filter(d => !isNaN(d.length)).reduce((sum, d) => sum + d.length, 0);
                 return { empire, total, name: hsrEmpireInfo[empire].name, color: hsrEmpireInfo[empire].color };
             });
 
@@ -1608,7 +1256,7 @@
                 type: 'pie',
                 marker: {
                     colors: empireData.map(d => d.color),
-                    line: { color: '#1e293b', width: 3 }
+                    line: { color: 'rgba(255,255,255,0.3)', width: 3 }
                 },
                 textinfo: 'label+percent',
                 textfont: { color: 'white', size: 13, family: 'Orbitron' },
@@ -1629,11 +1277,12 @@
         }
 
         function createHSRTopLinesChart(data) {
-            const sortedData = [...data].sort((a, b) => b.length - a.length).slice(0, 20);
+            const validData = data.filter(d => !isNaN(d.length));
+            const sortedData = [...validData].sort((a, b) => b.length - a.length).slice(0, 15);
 
             const trace = {
                 x: sortedData.map(d => d.length),
-                y: sortedData.map(d => d.line),
+                y: sortedData.map(d => d.line.substring(0, 50)),
                 type: 'bar',
                 orientation: 'h',
                 marker: {
@@ -1655,8 +1304,8 @@
                     title: { text: 'Length (km)', font: { family: 'Orbitron' } }
                 },
                 yaxis: { showgrid: false, automargin: true },
-                margin: { t: 20, r: 100, b: 60, l: 250 },
-                height: 600
+                margin: { t: 20, r: 100, b: 60, l: 150 },
+                height: 500
             };
 
             Plotly.newPlot('hsr-topLinesChart', [trace], layout, {responsive: true, displayModeBar: false});
@@ -1665,13 +1314,17 @@
         function createHSRCountryChart(data) {
             const countryData = {};
             data.forEach(d => {
-                if (!countryData[d.country]) {
-                    countryData[d.country] = { total: 0, empire: d.empire, country: d.country };
+                if (!isNaN(d.length)) {
+                    if (!countryData[d.country]) {
+                        countryData[d.country] = { total: 0, empire: d.empire, country: d.country };
+                    }
+                    countryData[d.country].total += d.length;
                 }
-                countryData[d.country].total += d.length;
             });
 
-            const sortedCountries = Object.values(countryData).sort((a, b) => b.total - a.total);
+            const sortedCountries = Object.values(countryData)
+                .sort((a, b) => b.total - a.total)
+                .slice(0, 20);
 
             const trace = {
                 x: sortedCountries.map(d => d.country),
@@ -1705,7 +1358,8 @@
 
         function createHSRDataTable(data) {
             const tbody = document.getElementById('hsr-tableBody');
-            const sortedData = [...data].sort((a, b) => b.length - a.length);
+            const validData = data.filter(d => !isNaN(d.length));
+            const sortedData = [...validData].sort((a, b) => b.length - a.length);
             
             sortedData.forEach(row => {
                 const tr = document.createElement('tr');
@@ -1730,11 +1384,11 @@
         function initHSR() {
             loadHSRData().then(data => {
                 if (data.length === 0) {
-                    console.error('No HSR data loaded');
+                    console.error('No HSR data loaded - check GITHUB_BASE or file path');
                     return;
                 }
-
-                console.log(`Loaded ${data.length} HSR lines`);
+                console.log(`HSR init: ${data.length} lines, sample:`, data.slice(0, 3));
+                
                 updateHSRSummaryCards(data);
                 createHSRTotalLengthChart(data);
                 createHSRDistributionChart(data);
@@ -1742,10 +1396,10 @@
                 createHSRCountryChart(data);
                 createHSRDataTable(data);
                 window.hsrDataLoaded = true;
-            });
+            }).catch(err => console.error('HSR init failed:', err));
         }
         
-        // Metro Data and Functions
+        // Metro Data and Functions (Original - working)
         const metroEmpireInfo = {
             '1': { name: 'Steam Era', color: '#3b82f6', fullName: 'Empire 1.0: Steam & Colonies' },
             '2': { name: 'Oil Era', color: '#ef4444', fullName: 'Empire 2.0: Oil & Silicon' },
@@ -1796,25 +1450,6 @@
                 console.error('Error loading metro data:', error);
                 return [];
             }
-        }
-
-        function animateNumber(element, target) {
-            const duration = 1500;
-            const start = 0;
-            const startTime = performance.now();
-            
-            function update(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const current = Math.floor(start + (target - start) * progress);
-                element.textContent = current.toLocaleString();
-                
-                if (progress < 1) {
-                    requestAnimationFrame(update);
-                }
-            }
-            
-            requestAnimationFrame(update);
         }
 
         function updateMetroSummaryCards(data) {
@@ -2030,7 +1665,7 @@
             });
         }
         
-        // Rail Data and Functions
+        // Rail Data and Functions (Original - working)
         const railEmpireInfo = {
             '1': { name: 'Steam & Colonies', color: '#3b82f6', symbol: '🚂' },
             '2': { name: 'Oil & Silicon', color: '#ef4444', symbol: '🛢️' },
@@ -2274,6 +1909,12 @@
                 createRailDataTable(data);
                 window.railDataLoaded = true;
             });
+        }
+
+        // Placeholder for other dashboard sections (Market Cap, R&D, etc.) - implement as needed
+        function loadData() {
+            console.log('Dashboard data loading...');
+            // Add implementations for marketCap, research, gdp, cities data loading here
         }
 
         // Initialize everything on load
