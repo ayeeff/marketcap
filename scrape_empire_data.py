@@ -75,21 +75,48 @@ try:
         'taiwan': 'Taiwan'
     }
 
+    # Empire assignments
+    empire_assignments = {
+        'United States': '2.0',
+        'China': '3.0',
+        'Hong Kong': '3.0',
+        'Taiwan': '3.0'
+    }
+    # All others default to Empire 1.0
+
     gdp_data = {}
+    country_details = []
+    
     for key, full_name in country_map.items():
         # Fuzzy match for robustness
         matches = [(idx, fuzz.ratio(key, country.lower())) for idx, country in enumerate(country_list) if fuzz.ratio(key, country.lower()) > 80]
         if matches:
             best_match = max(matches, key=lambda x: x[1])
             idx = best_match[0]
-            gdp_data[full_name] = imf_df['IMF'].iloc[idx]
-            print(f"  {full_name}: {gdp_data[full_name]:.0f}B (matched: {country_list.iloc[idx]})")
+            gdp_value = imf_df['IMF'].iloc[idx]
+            gdp_data[full_name] = gdp_value
+            
+            # Assign empire
+            empire = empire_assignments.get(full_name, '1.0')
+            country_details.append({
+                'country': full_name,
+                'empire': empire,
+                'gdp_ppp_billions': round(gdp_value, 2)
+            })
+            
+            print(f"  {full_name}: {gdp_value:.0f}B (matched: {country_list.iloc[idx]})")
         else:
             gdp_data[full_name] = 0
+            empire = empire_assignments.get(full_name, '1.0')
+            country_details.append({
+                'country': full_name,
+                'empire': empire,
+                'gdp_ppp_billions': 0
+            })
             print(f"  {full_name}: No data (using 0)")
 
     # Compute empire totals
-    commonwealth_countries = [name for name in country_map.values() if name not in ['China', 'Hong Kong', 'Taiwan']]
+    commonwealth_countries = [name for name in country_map.values() if name not in ['China', 'Hong Kong', 'Taiwan', 'United States']]
     empire1_gdp = sum([gdp_data.get(c, 0) for c in commonwealth_countries])
     empire2_gdp = gdp_data.get('United States', 0)
     empire3_gdp = gdp_data.get('China', 0) + gdp_data.get('Hong Kong', 0) + gdp_data.get('Taiwan', 0)
@@ -102,7 +129,15 @@ try:
     print(f"\nEmpire GDP Totals (Billions Int'l $): 1.0={empire1_gdp:.0f}, 2.0={empire2_gdp:.0f}, 3.0={empire3_gdp:.0f}")
     print(f"Pcts: 1.0={pct1_gdp:.2f}%, 2.0={pct2_gdp:.2f}%, 3.0={pct3_gdp:.2f}%")
 
-    # Save GDP CSV
+    # Save country-level GDP CSV
+    filename_country_gdp = 'data/empire_gdp_ppp_country_2025.csv'
+    country_gdp_df = pd.DataFrame(country_details)
+    country_gdp_df = country_gdp_df.sort_values(['empire', 'gdp_ppp_billions'], ascending=[True, False])
+    country_gdp_df.to_csv(filename_country_gdp, index=False)
+    print(f"\nCountry-level CSV saved: {filename_country_gdp}")
+    print(country_gdp_df.to_string(index=False))
+
+    # Save GDP summary CSV
     filename_gdp = 'data/empire_gdp_ppp_2025.csv'
     gdp_df_data = {
         'empire#': ['1.0', '2.0', '3.0'],
@@ -126,7 +161,30 @@ except Exception as e:
         'Barbados': 7, 'Trinidad and Tobago': 52, 'Fiji': 16, 'Papua New Guinea': 48,
         'China': 40716, 'Hong Kong': 590, 'Taiwan': 1966
     }
-    commonwealth_countries = [k for k in fallback_gdp_data if k not in ['China', 'Hong Kong', 'Taiwan']]
+    
+    # Create country details with fallback data
+    country_details = []
+    for country, gdp_value in fallback_gdp_data.items():
+        if country == 'United States':
+            empire = '2.0'
+        elif country in ['China', 'Hong Kong', 'Taiwan']:
+            empire = '3.0'
+        else:
+            empire = '1.0'
+        country_details.append({
+            'country': country,
+            'empire': empire,
+            'gdp_ppp_billions': round(gdp_value, 2)
+        })
+    
+    # Save country-level CSV
+    filename_country_gdp = 'data/empire_gdp_ppp_country_2025.csv'
+    country_gdp_df = pd.DataFrame(country_details)
+    country_gdp_df = country_gdp_df.sort_values(['empire', 'gdp_ppp_billions'], ascending=[True, False])
+    country_gdp_df.to_csv(filename_country_gdp, index=False)
+    print(f"\nCountry-level CSV saved (fallback): {filename_country_gdp}")
+    
+    commonwealth_countries = [k for k in fallback_gdp_data if k not in ['China', 'Hong Kong', 'Taiwan', 'United States']]
     empire1_gdp = sum(fallback_gdp_data[c] for c in commonwealth_countries)
     empire2_gdp = fallback_gdp_data['United States']
     empire3_gdp = fallback_gdp_data['China'] + fallback_gdp_data['Hong Kong'] + fallback_gdp_data['Taiwan']
