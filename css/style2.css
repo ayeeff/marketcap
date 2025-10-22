@@ -239,9 +239,9 @@ body {
 
 .rank-number {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    font-size: 2rem;
+    top: 8px; /* Slightly adjusted for smaller font */
+    left: 8px;
+    font-size: 1.25rem; /* Smaller than the original 2rem */
     font-weight: medium;
     color: #000;
     z-index: 10;
