@@ -42,6 +42,8 @@ def setup_driver():
     chrome_options.add_argument('--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_experimental_option('useAutomationExtension', False)
+    chrome_options.add_argument('--disable-extensions')
+    chrome_options.add_argument('--disable-plugins-discovery')
 
     print("Setting up ChromeDriver...")
     service = Service(ChromeDriverManager().install())
@@ -49,8 +51,20 @@ def setup_driver():
 
 def scrape_table(driver, wait):
     """Scrape the current page's table."""
-    # Wait for the table to load
-    table = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "table.dataTable")))
+    # Wait for any table to load first
+    print("Waiting for table to appear...")
+    table = wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
+    
+    # Additional wait for data to load (in case of dynamic content)
+    time.sleep(5)
+    
+    # Verify it's the right table by checking headers
+    headers = [th.text.strip() for th in table.find_elements(By.TAG_NAME, "th")]
+    print(f"Found table headers: {headers}")
+    
+    if not any(word in ' '.join(headers).lower() for word in ['year', 'month', 'investor', 'sector', 'country', 'amount', 'type']):
+        print("Warning: Table may not be the investment data table.")
+    
     rows = table.find_elements(By.TAG_NAME, "tr")
 
     data = []
@@ -89,14 +103,17 @@ def main():
 
     # Setup driver
     driver = setup_driver()
-    wait = WebDriverWait(driver, 20)
+    wait = WebDriverWait(driver, 60)  # Increased timeout to 60 seconds
 
     all_data = []
 
     try:
         print(f"Loading page: {URL}")
         driver.get(URL)
-        time.sleep(5)  # Wait for JS to load
+        
+        # Wait for page to fully load
+        wait.until(lambda d: d.execute_script('return document.readyState') == "complete")
+        time.sleep(10)  # Increased wait for JS to initialize table
 
         # Scrape all pages
         page_num = 1
@@ -108,15 +125,16 @@ def main():
 
             # Check for next page button
             try:
-                next_button = driver.find_element(By.CSS_SELECTOR, "a.next")
+                next_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "a.next")))
                 if "disabled" in next_button.get_attribute("class") or not next_button.is_enabled():
                     print("  ✓ No more pages")
                     break
-                next_button.click()
-                time.sleep(3)  # Wait for page load
+                print("  Clicking next page...")
+                driver.execute_script("arguments[0].click();", next_button)  # Use JS click to avoid issues
+                time.sleep(5)  # Wait for page load
                 page_num += 1
-            except Exception:
-                print("  ✓ Reached last page")
+            except Exception as e:
+                print(f"  ✓ Reached last page or error: {e}")
                 break
 
         if not all_data:
@@ -173,6 +191,12 @@ def main():
         print(f"\n❌ Error occurred: {e}")
         import traceback
         traceback.print_exc()
+        # Save screenshot for debugging in CI
+        try:
+            driver.save_screenshot("error_screenshot.png")
+            print("Screenshot saved as error_screenshot.png")
+        except:
+            pass
         raise e
 
     finally:
