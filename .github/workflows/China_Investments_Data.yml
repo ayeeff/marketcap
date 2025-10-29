@@ -26,7 +26,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --upgrade pip
-        pip install selenium pandas PyGithub webdriver-manager undetected-chromedriver
+        pip install selenium pandas PyGithub webdriver-manager selenium-stealth
         
     - name: Set up Chrome
       uses: browser-actions/setup-chrome@latest
