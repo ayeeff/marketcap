@@ -52,9 +52,9 @@ def scrape_locations(base_url, delay=2):
         
         # Wait for page to load and Cloudflare to pass
         print("Waiting for page to load...")
-        time.sleep(delay + 3)  # Extra time for Cloudflare
+        time.sleep(delay + 5)  # Extra time for Cloudflare and page rendering
         
-        # Wait for location links to be present
+        # Wait for links to be present
         WebDriverWait(driver, 20).until(
             EC.presence_of_element_located((By.TAG_NAME, "a"))
         )
@@ -62,29 +62,63 @@ def scrape_locations(base_url, delay=2):
         # Get page source and parse with BeautifulSoup
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         
-        # Find all location links
+        # Save HTML for debugging
+        with open('debug_page.html', 'w', encoding='utf-8') as f:
+            f.write(driver.page_source)
+        print("Saved page HTML to debug_page.html")
+        
+        # Try multiple selectors to find location links
+        location_links = []
+        
+        # Method 1: Links containing '/location/' in href
         location_links = soup.find_all('a', href=lambda x: x and '/location/' in x)
+        print(f"Method 1 (/location/ in href): Found {len(location_links)} links")
+        
+        # Method 2: If method 1 fails, try finding all links and filter
+        if not location_links:
+            all_links = soup.find_all('a', href=True)
+            print(f"Total links on page: {len(all_links)}")
+            
+            # Print first 10 links for debugging
+            print("\nFirst 10 links found:")
+            for i, link in enumerate(all_links[:10]):
+                print(f"  {i+1}. href={link.get('href')}, text={link.get_text(strip=True)[:50]}")
+            
+            location_links = [link for link in all_links if '/location/' in link.get('href', '')]
+            print(f"\nMethod 2 (filtered): Found {len(location_links)} location links")
+        
+        # Method 3: Try specific class names (common patterns)
+        if not location_links:
+            patterns = ['location-link', 'city-link', 'location', 'card']
+            for pattern in patterns:
+                location_links = soup.find_all('a', class_=lambda x: x and pattern in x.lower())
+                if location_links:
+                    print(f"Method 3 (class contains '{pattern}'): Found {len(location_links)} links")
+                    break
         
         # Remove duplicates while preserving order
         seen_urls = set()
         unique_links = []
         for link in location_links:
             url = link.get('href')
-            if url not in seen_urls:
+            if url and url not in seen_urls:
                 seen_urls.add(url)
                 unique_links.append(link)
+        
+        print(f"\nUnique location links: {len(unique_links)}")
         
         for idx, link in enumerate(unique_links, 1):
             city_name = link.get_text(strip=True)
             city_url = urljoin(base_url, link['href'])
             
-            locations.append({
-                'rank': idx,
-                'city': city_name,
-                'url': city_url
-            })
-            
-            print(f"Found: {city_name} - {city_url}")
+            if city_name:  # Only add if there's actual text
+                locations.append({
+                    'rank': idx,
+                    'city': city_name,
+                    'url': city_url
+                })
+                
+                print(f"Found: {city_name} - {city_url}")
         
     finally:
         driver.quit()
