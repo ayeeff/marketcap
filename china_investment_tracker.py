@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
@@ -44,42 +45,81 @@ def setup_driver():
     chrome_options.add_experimental_option('useAutomationExtension', False)
     chrome_options.add_argument('--disable-extensions')
     chrome_options.add_argument('--disable-plugins-discovery')
+    chrome_options.add_argument('--disable-web-security')
+    chrome_options.add_argument('--allow-running-insecure-content')
 
     print("Setting up ChromeDriver...")
     service = Service(ChromeDriverManager().install())
     return webdriver.Chrome(service=service, options=chrome_options)
 
+def handle_cookies(driver, wait):
+    """Handle cookie consent if present."""
+    try:
+        # Common cookie banner selectors
+        cookie_selectors = [
+            "//button[contains(text(), 'Accept')]",
+            "//button[contains(text(), 'Agree')]",
+            "[data-testid='cookie-accept']",
+            ".cookie-accept",
+            "#cookie-accept"
+        ]
+        for selector in cookie_selectors:
+            try:
+                accept_btn = wait.until(EC.element_to_be_clickable((By.XPATH, selector)))
+                accept_btn.click()
+                print("✓ Cookie consent accepted.")
+                time.sleep(2)
+                return
+            except TimeoutException:
+                continue
+    except Exception as e:
+        print(f"⚠️ No cookie banner found or error: {e}")
+
+def wait_for_table(driver, wait, max_attempts=5):
+    """Robust wait for the DataTable to load."""
+    for attempt in range(max_attempts):
+        try:
+            print(f"Attempt {attempt + 1}/{max_attempts} waiting for table...")
+            # Wait for DataTable specific class
+            table = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "table.dataTable")))
+            # Additional wait for rows to populate
+            wait.until(lambda d: len(d.find_elements(By.CSS_SELECTOR, "table.dataTable tbody tr")) > 0)
+            print("✓ Table loaded successfully.")
+            return table
+        except TimeoutException:
+            print(f"⚠️ Attempt {attempt + 1} timed out, retrying...")
+            time.sleep(10)
+            # Refresh page on retry
+            if attempt > 0:
+                driver.refresh()
+                time.sleep(5)
+    raise TimeoutException("Table failed to load after multiple attempts.")
+
 def scrape_table(driver, wait):
     """Scrape the current page's table."""
-    # Wait for any table to load first
-    print("Waiting for table to appear...")
-    table = wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
+    table = wait_for_table(driver, wait)
     
-    # Additional wait for data to load (in case of dynamic content)
-    time.sleep(5)
-    
-    # Verify it's the right table by checking headers
+    # Verify headers
     headers = [th.text.strip() for th in table.find_elements(By.TAG_NAME, "th")]
     print(f"Found table headers: {headers}")
     
-    if not any(word in ' '.join(headers).lower() for word in ['year', 'month', 'investor', 'sector', 'country', 'amount', 'type']):
-        print("Warning: Table may not be the investment data table.")
+    if len(headers) < 7 or not any('year' in h.lower() for h in headers):
+        print("Warning: Unexpected table headers.")
     
     rows = table.find_elements(By.TAG_NAME, "tr")
-
     data = []
-    for row in rows[1:]:  # Skip header
+    
+    for i, row in enumerate(rows[1:], 1):  # Skip header
         cells = row.find_elements(By.TAG_NAME, "td")
-        if len(cells) >= 7:  # Ensure we have enough columns
+        if len(cells) >= 7:
             try:
-                # Extract columns: yr (year), month, investor or builder, sector, country, amount, type
-                year = cells[0].text.strip()  # yr
-                month = cells[1].text.strip()  # month
-                investor = cells[2].text.strip()  # investor or builder
-                sector = cells[3].text.strip()  # sector
-                country = cells[4].text.strip()  # country
-                amount = cells[5].text.strip()  # amount
-                deal_type = cells[6].text.strip()  # type
+                year = cells[0].text.strip()
+                month = cells[1].text.strip()
+                investor = cells[2].text.strip()
+                sector = cells[3].text.strip()
+                country = cells[4].text.strip()
+                amount = cells[5].text.strip()
+                deal_type = cells[6].text.strip()
 
                 data.append({
                     'Year': year,
@@ -91,9 +131,10 @@ def scrape_table(driver, wait):
                     'Type': deal_type
                 })
             except Exception as e:
-                print(f"  ⚠️ Error parsing row: {e}")
+                print(f"  ⚠️ Error parsing row {i}: {e}")
                 continue
 
+    print(f"✓ Extracted {len(data)} rows from current page.")
     return data
 
 def main():
@@ -103,7 +144,7 @@ def main():
 
     # Setup driver
     driver = setup_driver()
-    wait = WebDriverWait(driver, 60)  # Increased timeout to 60 seconds
+    wait = WebDriverWait(driver, 30)  # Reduced per wait, but with retries
 
     all_data = []
 
@@ -113,7 +154,13 @@ def main():
         
         # Wait for page to fully load
         wait.until(lambda d: d.execute_script('return document.readyState') == "complete")
-        time.sleep(10)  # Increased wait for JS to initialize table
+        time.sleep(5)
+        
+        # Handle cookies
+        handle_cookies(driver, wait)
+        
+        # Additional wait for dynamic content
+        time.sleep(10)
 
         # Scrape all pages
         page_num = 1
@@ -121,20 +168,22 @@ def main():
             print(f"\n📄 Scraping page {page_num}...")
             page_data = scrape_table(driver, wait)
             all_data.extend(page_data)
-            print(f"  ✓ Extracted {len(page_data)} rows from page {page_num}")
 
             # Check for next page button
             try:
-                next_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "a.next")))
+                next_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".dataTables_paginate .next")))
                 if "disabled" in next_button.get_attribute("class") or not next_button.is_enabled():
-                    print("  ✓ No more pages")
+                    print("  ✓ No more pages (next disabled).")
                     break
                 print("  Clicking next page...")
-                driver.execute_script("arguments[0].click();", next_button)  # Use JS click to avoid issues
-                time.sleep(5)  # Wait for page load
+                driver.execute_script("arguments[0].click();", next_button)
+                time.sleep(5)
                 page_num += 1
+            except (TimeoutException, NoSuchElementException):
+                print("  ✓ Reached last page (no next button).")
+                break
             except Exception as e:
-                print(f"  ✓ Reached last page or error: {e}")
+                print(f"  ⚠️ Pagination error: {e}")
                 break
 
         if not all_data:
@@ -195,8 +244,12 @@ def main():
         try:
             driver.save_screenshot("error_screenshot.png")
             print("Screenshot saved as error_screenshot.png")
-        except:
-            pass
+            # Also save page source for debugging
+            with open("page_source.html", "w", encoding="utf-8") as f:
+                f.write(driver.page_source)
+            print("Page source saved as page_source.html")
+        except Exception as save_e:
+            print(f"⚠️ Could not save debug files: {save_e}")
         raise e
 
     finally:
