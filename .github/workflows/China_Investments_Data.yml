@@ -48,4 +48,5 @@ jobs:
           *.html
           *.png
           error_screenshot.png
+          page_source.html
           *.csv
