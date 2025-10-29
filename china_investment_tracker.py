@@ -1,11 +1,18 @@
 import os
 import pandas as pd
-import requests
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from github import Github, Auth
-from io import BytesIO
+import time
 
 # Configuration
-XLS_URL = "https://www.aei.org/wp-content/uploads/2020/01/China-Global-Investment-Tracker-2019-Fall-FINAL.xlsx"
+URL = "https://www.aei.org/china-global-investment-tracker/"
 REPO_NAME = "ayeeff/marketcap"  # Adjust if needed for your repo
 FILE_PATH = "data/china_investments.csv"
 
@@ -22,98 +29,118 @@ if not GITHUB_TOKEN and not os.getenv("CI"):
 if GITHUB_TOKEN:
     print("✓ GitHub token loaded successfully.")
 
-def download_and_parse_xls():
-    """Download the XLS file and parse it into a DataFrame."""
-    print(f"Downloading XLS from: {XLS_URL}")
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    }
-    response = requests.get(XLS_URL, headers=headers)
-    response.raise_for_status()
+def setup_driver():
+    """Setup Chrome driver with options."""
+    chrome_options = Options()
+    chrome_options.add_argument('--headless=new')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    chrome_options.add_argument('--disable-gpu')
+    chrome_options.add_argument('--disable-software-rasterizer')
+    chrome_options.add_argument('--remote-debugging-port=9222')
+    chrome_options.add_argument('--window-size=1920,1080')
+    chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+    chrome_options.add_argument('--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option('useAutomationExtension', False)
+    chrome_options.add_argument('--disable-extensions')
+    chrome_options.add_argument('--disable-plugins-discovery')
+    chrome_options.add_argument('--disable-web-security')
+    chrome_options.add_argument('--allow-running-insecure-content')
 
-    # Read Excel from bytes
-    xls_data = BytesIO(response.content)
-    df = pd.read_excel(xls_data, sheet_name="Dataset 1", skiprows=3)  # Skip header rows if needed
+    print("Setting up ChromeDriver...")
+    service = Service(ChromeDriverManager().install())
+    return webdriver.Chrome(service=service, options=chrome_options)
 
-    print(f"✓ Loaded DataFrame with {len(df)} rows and columns: {list(df.columns)}")
+def handle_cookies(driver, wait):
+    """Handle cookie consent if present."""
+    try:
+        # XPATH selectors
+        xpath_selectors = [
+            "//button[contains(text(), 'Accept')]",
+            "//button[contains(text(), 'Agree')]"
+        ]
+        # CSS selectors
+        css_selectors = [
+            "[data-testid='cookie-accept']",
+            ".cookie-accept",
+            "#cookie-accept"
+        ]
+        
+        # Try XPATH first
+        for selector in xpath_selectors:
+            try:
+                accept_btn = wait.until(EC.element_to_be_clickable((By.XPATH, selector)))
+                accept_btn.click()
+                print("✓ Cookie consent accepted (XPath).")
+                time.sleep(2)
+                return
+            except TimeoutException:
+                continue
+        
+        # Try CSS
+        for selector in css_selectors:
+            try:
+                accept_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector)))
+                accept_btn.click()
+                print("✓ Cookie consent accepted (CSS).")
+                time.sleep(2)
+                return
+            except TimeoutException:
+                continue
+    except Exception as e:
+        print(f"⚠️ No cookie banner found or error: {e}")
 
-    # Map to required columns (adjust based on actual column names)
-    # Assuming columns: ['Unnamed: 0', 'Year', 'Month', 'Parent Company', 'Amount', 'Phase', 'Industry', 'Sub-Industry', 'Host Country', 'Region', 'Deal Type']
-    column_mapping = {
-        'Year': 'Year',
-        'Month': 'Month',
-        'Parent Company': 'Investor_Builder',
-        'Industry': 'Sector',
-        'Host Country': 'Country',
-        'Amount': 'Amount',
-        'Deal Type': 'Type'
-    }
-
-    # Select and rename columns
-    available_cols = {k: v for k, v in column_mapping.items() if k in df.columns}
-    df_selected = df[list(available_cols.keys())].rename(columns={k: column_mapping[k] for k in available_cols})
-
-    # Clean data if needed (e.g., extract year from date if full date)
-    if 'Year' in df_selected.columns and df_selected['Year'].dtype == 'object':
-        df_selected['Year'] = df_selected['Year'].astype(str).str[:4]
-
-    print(f"✓ Selected columns: {list(df_selected.columns)}")
-    print(f"Sample data:\n{df_selected.head()}")
-
-    return df_selected
-
-def main():
-    print("=" * 80)
-    print("CHINA GLOBAL INVESTMENT TRACKER DOWNLOADER & PARSER")
-    print("=" * 80)
-    print("Note: Public table not available; using latest available XLS (2019 data). For current data, contact Derek Scissors at AEI.")
-
-    df = download_and_parse_xls()
-
-    if df.empty:
-        raise ValueError("No data extracted from XLS")
-
-    # Create data directory if it doesn't exist
-    os.makedirs('data', exist_ok=True)
-
-    # Save locally
-    local_csv = FILE_PATH
-    df.to_csv(local_csv, index=False)
-    print(f"\n✓ Data saved to {local_csv}")
-
-    # Push to GitHub with proper authentication
-    print("\nConnecting to GitHub...")
-    if GITHUB_TOKEN:
-        auth = Auth.Token(GITHUB_TOKEN)
-        g = Github(auth=auth)
-        repo = g.get_repo(REPO_NAME)
-
-        with open(local_csv, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        timestamp = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M UTC')
-        commit_message = f"Update China investments data (2019 XLS) - {timestamp}"
-
-        # Upload CSV
+def wait_for_table(driver, wait, max_attempts=3):
+    """Robust wait for the DataTable to load."""
+    for attempt in range(max_attempts):
         try:
-            # Update existing file
-            file = repo.get_contents(FILE_PATH)
-            repo.update_file(FILE_PATH, commit_message, content, file.sha)
-            print(f"✓ Updated {FILE_PATH} in GitHub repo.")
-        except Exception as e:
-            if "not found" in str(e).lower() or "404" in str(e):
-                # Create new file
-                repo.create_file(FILE_PATH, commit_message, content)
-                print(f"✓ Created {FILE_PATH} in GitHub repo.")
-            else:
-                raise e
+            print(f"Attempt {attempt + 1}/{max_attempts} waiting for table...")
+            # Try multiple selectors for the table
+            table_selectors = [
+                "table.dataTable",
+                "table.table",
+                ".dataTable",
+                "table"
+            ]
+            table = None
+            for sel in table_selectors:
+                try:
+                    table = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, sel)))
+                    print(f"✓ Table found with selector: {sel}")
+                    break
+                except TimeoutException:
+                    continue
+            
+            if table is None:
+                raise TimeoutException("No table found with any selector.")
+            
+            # Additional wait for rows to populate
+            wait.until(lambda d: len(d.find_elements(By.CSS_SELECTOR, f"{sel} tbody tr")) > 0)
+            print("✓ Table loaded with data.")
+            return table
+        except TimeoutException:
+            print(f"⚠️ Attempt {attempt + 1} timed out, retrying...")
+            time.sleep(15)
+            # Refresh page on retry
+            if attempt > 0:
+                driver.refresh()
+                time.sleep(5)
+                # Scroll to bottom to load dynamic content
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(5)
+    raise TimeoutException("Table failed to load after multiple attempts.")
 
-        # Cleanup
-        os.remove(local_csv)
-    else:
-        print("⚠️ No GitHub token, keeping local file")
-
-    print("\n✅ Script completed successfully!")
-
-if __name__ == "__main__":
-    main()
+def scrape_table(driver, wait, table):
+    """Scrape the current page's table."""
+    # Verify headers
+    headers = [th.text.strip() for th in table.find_elements(By.TAG_NAME, "th")]
+    print(f"Found table headers: {headers}")
+    
+    if len(headers) < 7 or not any(word in h.lower() for h in headers for word in ['year', 'month', 'investor', 'sector', 'country', 'amount', 'type']):
+        print("Warning: Unexpected table headers. Attempting to scrape anyway.")
+    
+    rows = table.find_elements(By.TAG_NAME, "tr")
+    data = []
+    
+    for
