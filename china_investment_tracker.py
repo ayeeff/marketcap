@@ -1,18 +1,11 @@
 import os
 import pandas as pd
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
+import requests
 from github import Github, Auth
-import time
+from io import BytesIO
 
 # Configuration
-URL = "https://www.aei.org/china-global-investment-tracker/"
+XLS_URL = "https://www.aei.org/wp-content/uploads/2020/01/China-Global-Investment-Tracker-2019-Fall-FINAL.xlsx"
 REPO_NAME = "ayeeff/marketcap"  # Adjust if needed for your repo
 FILE_PATH = "data/china_investments.csv"
 
@@ -29,232 +22,98 @@ if not GITHUB_TOKEN and not os.getenv("CI"):
 if GITHUB_TOKEN:
     print("✓ GitHub token loaded successfully.")
 
-def setup_driver():
-    """Setup Chrome driver with options."""
-    chrome_options = Options()
-    chrome_options.add_argument('--headless=new')
-    chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument('--disable-dev-shm-usage')
-    chrome_options.add_argument('--disable-gpu')
-    chrome_options.add_argument('--disable-software-rasterizer')
-    chrome_options.add_argument('--remote-debugging-port=9222')
-    chrome_options.add_argument('--window-size=1920,1080')
-    chrome_options.add_argument('--disable-blink-features=AutomationControlled')
-    chrome_options.add_argument('--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    chrome_options.add_experimental_option('useAutomationExtension', False)
-    chrome_options.add_argument('--disable-extensions')
-    chrome_options.add_argument('--disable-plugins-discovery')
-    chrome_options.add_argument('--disable-web-security')
-    chrome_options.add_argument('--allow-running-insecure-content')
+def download_and_parse_xls():
+    """Download the XLS file and parse it into a DataFrame."""
+    print(f"Downloading XLS from: {XLS_URL}")
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
+    response = requests.get(XLS_URL, headers=headers)
+    response.raise_for_status()
 
-    print("Setting up ChromeDriver...")
-    service = Service(ChromeDriverManager().install())
-    return webdriver.Chrome(service=service, options=chrome_options)
+    # Read Excel from bytes
+    xls_data = BytesIO(response.content)
+    df = pd.read_excel(xls_data, sheet_name="Dataset 1", skiprows=3)  # Skip header rows if needed
 
-def handle_cookies(driver, wait):
-    """Handle cookie consent if present."""
-    try:
-        # Common cookie banner selectors
-        cookie_selectors = [
-            "//button[contains(text(), 'Accept')]",
-            "//button[contains(text(), 'Agree')]",
-            "[data-testid='cookie-accept']",
-            ".cookie-accept",
-            "#cookie-accept"
-        ]
-        for selector in cookie_selectors:
-            try:
-                accept_btn = wait.until(EC.element_to_be_clickable((By.XPATH, selector)))
-                accept_btn.click()
-                print("✓ Cookie consent accepted.")
-                time.sleep(2)
-                return
-            except TimeoutException:
-                continue
-    except Exception as e:
-        print(f"⚠️ No cookie banner found or error: {e}")
+    print(f"✓ Loaded DataFrame with {len(df)} rows and columns: {list(df.columns)}")
 
-def wait_for_table(driver, wait, max_attempts=5):
-    """Robust wait for the DataTable to load."""
-    for attempt in range(max_attempts):
-        try:
-            print(f"Attempt {attempt + 1}/{max_attempts} waiting for table...")
-            # Wait for DataTable specific class
-            table = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "table.dataTable")))
-            # Additional wait for rows to populate
-            wait.until(lambda d: len(d.find_elements(By.CSS_SELECTOR, "table.dataTable tbody tr")) > 0)
-            print("✓ Table loaded successfully.")
-            return table
-        except TimeoutException:
-            print(f"⚠️ Attempt {attempt + 1} timed out, retrying...")
-            time.sleep(10)
-            # Refresh page on retry
-            if attempt > 0:
-                driver.refresh()
-                time.sleep(5)
-    raise TimeoutException("Table failed to load after multiple attempts.")
+    # Map to required columns (adjust based on actual column names)
+    # Assuming columns: ['Unnamed: 0', 'Year', 'Month', 'Parent Company', 'Amount', 'Phase', 'Industry', 'Sub-Industry', 'Host Country', 'Region', 'Deal Type']
+    column_mapping = {
+        'Year': 'Year',
+        'Month': 'Month',
+        'Parent Company': 'Investor_Builder',
+        'Industry': 'Sector',
+        'Host Country': 'Country',
+        'Amount': 'Amount',
+        'Deal Type': 'Type'
+    }
 
-def scrape_table(driver, wait):
-    """Scrape the current page's table."""
-    table = wait_for_table(driver, wait)
-    
-    # Verify headers
-    headers = [th.text.strip() for th in table.find_elements(By.TAG_NAME, "th")]
-    print(f"Found table headers: {headers}")
-    
-    if len(headers) < 7 or not any('year' in h.lower() for h in headers):
-        print("Warning: Unexpected table headers.")
-    
-    rows = table.find_elements(By.TAG_NAME, "tr")
-    data = []
-    
-    for i, row in enumerate(rows[1:], 1):  # Skip header
-        cells = row.find_elements(By.TAG_NAME, "td")
-        if len(cells) >= 7:
-            try:
-                year = cells[0].text.strip()
-                month = cells[1].text.strip()
-                investor = cells[2].text.strip()
-                sector = cells[3].text.strip()
-                country = cells[4].text.strip()
-                amount = cells[5].text.strip()
-                deal_type = cells[6].text.strip()
+    # Select and rename columns
+    available_cols = {k: v for k, v in column_mapping.items() if k in df.columns}
+    df_selected = df[list(available_cols.keys())].rename(columns={k: column_mapping[k] for k in available_cols})
 
-                data.append({
-                    'Year': year,
-                    'Month': month,
-                    'Investor_Builder': investor,
-                    'Sector': sector,
-                    'Country': country,
-                    'Amount': amount,
-                    'Type': deal_type
-                })
-            except Exception as e:
-                print(f"  ⚠️ Error parsing row {i}: {e}")
-                continue
+    # Clean data if needed (e.g., extract year from date if full date)
+    if 'Year' in df_selected.columns and df_selected['Year'].dtype == 'object':
+        df_selected['Year'] = df_selected['Year'].astype(str).str[:4]
 
-    print(f"✓ Extracted {len(data)} rows from current page.")
-    return data
+    print(f"✓ Selected columns: {list(df_selected.columns)}")
+    print(f"Sample data:\n{df_selected.head()}")
+
+    return df_selected
 
 def main():
     print("=" * 80)
-    print("CHINA GLOBAL INVESTMENT TRACKER SCRAPER")
+    print("CHINA GLOBAL INVESTMENT TRACKER DOWNLOADER & PARSER")
     print("=" * 80)
+    print("Note: Public table not available; using latest available XLS (2019 data). For current data, contact Derek Scissors at AEI.")
 
-    # Setup driver
-    driver = setup_driver()
-    wait = WebDriverWait(driver, 30)  # Reduced per wait, but with retries
+    df = download_and_parse_xls()
 
-    all_data = []
+    if df.empty:
+        raise ValueError("No data extracted from XLS")
 
-    try:
-        print(f"Loading page: {URL}")
-        driver.get(URL)
-        
-        # Wait for page to fully load
-        wait.until(lambda d: d.execute_script('return document.readyState') == "complete")
-        time.sleep(5)
-        
-        # Handle cookies
-        handle_cookies(driver, wait)
-        
-        # Additional wait for dynamic content
-        time.sleep(10)
+    # Create data directory if it doesn't exist
+    os.makedirs('data', exist_ok=True)
 
-        # Scrape all pages
-        page_num = 1
-        while True:
-            print(f"\n📄 Scraping page {page_num}...")
-            page_data = scrape_table(driver, wait)
-            all_data.extend(page_data)
+    # Save locally
+    local_csv = FILE_PATH
+    df.to_csv(local_csv, index=False)
+    print(f"\n✓ Data saved to {local_csv}")
 
-            # Check for next page button
-            try:
-                next_button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".dataTables_paginate .next")))
-                if "disabled" in next_button.get_attribute("class") or not next_button.is_enabled():
-                    print("  ✓ No more pages (next disabled).")
-                    break
-                print("  Clicking next page...")
-                driver.execute_script("arguments[0].click();", next_button)
-                time.sleep(5)
-                page_num += 1
-            except (TimeoutException, NoSuchElementException):
-                print("  ✓ Reached last page (no next button).")
-                break
-            except Exception as e:
-                print(f"  ⚠️ Pagination error: {e}")
-                break
+    # Push to GitHub with proper authentication
+    print("\nConnecting to GitHub...")
+    if GITHUB_TOKEN:
+        auth = Auth.Token(GITHUB_TOKEN)
+        g = Github(auth=auth)
+        repo = g.get_repo(REPO_NAME)
 
-        if not all_data:
-            raise ValueError("No data extracted from table")
+        with open(local_csv, "r", encoding="utf-8") as f:
+            content = f.read()
 
-        # Create DataFrame
-        df = pd.DataFrame(all_data)
-        print(f"\n✓ Extracted {len(df)} total rows.")
-        print(f"\nPreview:\n{df.head()}")
+        timestamp = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M UTC')
+        commit_message = f"Update China investments data (2019 XLS) - {timestamp}"
 
-        # Create data directory if it doesn't exist
-        os.makedirs('data', exist_ok=True)
-
-        # Save locally
-        local_csv = FILE_PATH
-        df.to_csv(local_csv, index=False)
-        print(f"\n✓ Data saved to {local_csv}")
-
-        # Push to GitHub with proper authentication
-        print("\nConnecting to GitHub...")
-        if GITHUB_TOKEN:
-            auth = Auth.Token(GITHUB_TOKEN)
-            g = Github(auth=auth)
-            repo = g.get_repo(REPO_NAME)
-
-            with open(local_csv, "r", encoding="utf-8") as f:
-                content = f.read()
-
-            timestamp = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M UTC')
-            commit_message = f"Update China investments data - {timestamp}"
-
-            # Upload CSV
-            try:
-                # Update existing file
-                file = repo.get_contents(FILE_PATH)
-                repo.update_file(FILE_PATH, commit_message, content, file.sha)
-                print(f"✓ Updated {FILE_PATH} in GitHub repo.")
-            except Exception as e:
-                if "not found" in str(e).lower() or "404" in str(e):
-                    # Create new file
-                    repo.create_file(FILE_PATH, commit_message, content)
-                    print(f"✓ Created {FILE_PATH} in GitHub repo.")
-                else:
-                    raise e
-
-            # Cleanup
-            os.remove(local_csv)
-        else:
-            print("⚠️ No GitHub token, keeping local file")
-
-        print("\n✅ Script completed successfully!")
-
-    except Exception as e:
-        print(f"\n❌ Error occurred: {e}")
-        import traceback
-        traceback.print_exc()
-        # Save screenshot for debugging in CI
+        # Upload CSV
         try:
-            driver.save_screenshot("error_screenshot.png")
-            print("Screenshot saved as error_screenshot.png")
-            # Also save page source for debugging
-            with open("page_source.html", "w", encoding="utf-8") as f:
-                f.write(driver.page_source)
-            print("Page source saved as page_source.html")
-        except Exception as save_e:
-            print(f"⚠️ Could not save debug files: {save_e}")
-        raise e
+            # Update existing file
+            file = repo.get_contents(FILE_PATH)
+            repo.update_file(FILE_PATH, commit_message, content, file.sha)
+            print(f"✓ Updated {FILE_PATH} in GitHub repo.")
+        except Exception as e:
+            if "not found" in str(e).lower() or "404" in str(e):
+                # Create new file
+                repo.create_file(FILE_PATH, commit_message, content)
+                print(f"✓ Created {FILE_PATH} in GitHub repo.")
+            else:
+                raise e
 
-    finally:
-        driver.quit()
-        print("✓ Driver closed.")
+        # Cleanup
+        os.remove(local_csv)
+    else:
+        print("⚠️ No GitHub token, keeping local file")
+
+    print("\n✅ Script completed successfully!")
 
 if __name__ == "__main__":
     main()
