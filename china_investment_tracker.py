@@ -8,9 +8,9 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium_stealth import stealth
 from github import Github, Auth
 import time
-import undetected_chromedriver as uc
 
 # Configuration
 URL = "https://www.aei.org/china-global-investment-tracker/"
@@ -26,22 +26,35 @@ if GITHUB_TOKEN:
     print("✓ GitHub token loaded successfully.")
 
 def setup_driver():
-    """Setup undetected Chrome driver to bypass Cloudflare."""
-    print("Setting up undetected ChromeDriver...")
+    """Setup Chrome driver with stealth mode to bypass Cloudflare."""
+    print("Setting up ChromeDriver with anti-detection...")
     
-    options = uc.ChromeOptions()
-    options.add_argument('--headless=new')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('--disable-blink-features=AutomationControlled')
-    options.add_argument('--window-size=1920,1080')
+    chrome_options = Options()
+    chrome_options.add_argument('--headless=new')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+    chrome_options.add_argument('--window-size=1920,1080')
+    chrome_options.add_argument('--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option('useAutomationExtension', False)
     
-    # Use undetected_chromedriver
-    driver = uc.Chrome(options=options, version_main=None)
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    
+    # Apply stealth settings
+    stealth(driver,
+            languages=["en-US", "en"],
+            vendor="Google Inc.",
+            platform="Linux",
+            webgl_vendor="Intel Inc.",
+            renderer="Intel Iris OpenGL Engine",
+            fix_hairline=True,
+    )
     
     return driver
 
-def wait_for_cloudflare(driver, timeout=30):
+def wait_for_cloudflare(driver, timeout=40):
     """Wait for Cloudflare check to complete."""
     print("Checking for Cloudflare protection...")
     start_time = time.time()
@@ -50,8 +63,9 @@ def wait_for_cloudflare(driver, timeout=30):
         title = driver.title.lower()
         
         if "just a moment" in title or "checking your browser" in title:
-            print(f"  ⏳ Cloudflare detected, waiting... ({int(time.time() - start_time)}s)")
-            time.sleep(2)
+            elapsed = int(time.time() - start_time)
+            print(f"  ⏳ Cloudflare detected, waiting... ({elapsed}s)")
+            time.sleep(3)
         else:
             print(f"  ✓ Cloudflare passed! Title: {driver.title}")
             return True
@@ -62,44 +76,48 @@ def wait_for_datatable(driver, timeout=30):
     """Wait for DataTable to initialize and load data."""
     print("Waiting for DataTable to initialize...")
     
-    # Wait for jQuery and DataTable to be loaded
-    try:
-        WebDriverWait(driver, timeout).until(
-            lambda d: d.execute_script("return typeof jQuery !== 'undefined'")
-        )
-        print("  ✓ jQuery loaded")
-    except TimeoutException:
-        print("  ⚠️ jQuery not detected, trying anyway...")
-    
-    # Wait for DataTable library
-    try:
-        WebDriverWait(driver, timeout).until(
-            lambda d: d.execute_script("return jQuery.fn.DataTable !== undefined")
-        )
-        print("  ✓ DataTable library loaded")
-    except TimeoutException:
-        print("  ⚠️ DataTable not detected, trying to find table anyway...")
-    
-    # Wait for table to exist and have data
+    # First, just wait for any table with data
     WebDriverWait(driver, timeout).until(
         lambda d: len(d.find_elements(By.CSS_SELECTOR, "table tbody tr")) > 0
     )
-    print("  ✓ Table has data")
+    print("  ✓ Table with data found")
     
-    # Wait for any processing overlay to disappear
-    time.sleep(2)
+    # Check if jQuery/DataTable exists
+    try:
+        has_jquery = driver.execute_script("return typeof jQuery !== 'undefined'")
+        if has_jquery:
+            print("  ✓ jQuery detected")
+            has_datatable = driver.execute_script("return typeof jQuery.fn.DataTable !== 'undefined'")
+            if has_datatable:
+                print("  ✓ DataTable detected")
+    except:
+        print("  ⚠️ jQuery/DataTable not detected, but table exists")
+    
+    # Extra wait for any loading
+    time.sleep(3)
     print("  ✓ Ready to scrape")
 
 def get_total_entries(driver):
     """Get total number of entries from DataTable info."""
     try:
-        info_text = driver.find_element(By.CSS_SELECTOR, ".dataTables_info").text
-        import re
-        match = re.search(r'of\s+([\d,]+)\s+entries', info_text)
-        if match:
-            total = int(match.group(1).replace(',', ''))
-            print(f"✓ Total entries found: {total}")
-            return total
+        # Try multiple selectors
+        selectors = [".dataTables_info", ".table-info", "[class*='info']"]
+        info_text = None
+        
+        for selector in selectors:
+            try:
+                info_text = driver.find_element(By.CSS_SELECTOR, selector).text
+                break
+            except:
+                continue
+        
+        if info_text:
+            import re
+            match = re.search(r'of\s+([\d,]+)\s+entries', info_text, re.IGNORECASE)
+            if match:
+                total = int(match.group(1).replace(',', ''))
+                print(f"✓ Total entries found: {total}")
+                return total
     except Exception as e:
         print(f"⚠️ Could not get total entries: {e}")
     return None
@@ -143,12 +161,14 @@ def scrape_current_page(driver):
 def click_next_page(driver):
     """Click the next page button. Returns True if successful, False if no more pages."""
     try:
-        # Try multiple selectors
+        # Try multiple selectors for next button
         next_selectors = [
             "#dataTable_next",
             ".dataTables_paginate .next",
             "a.paginate_button.next",
-            ".pagination .next"
+            ".pagination .next",
+            "[aria-label='Next']",
+            "a:contains('Next')"
         ]
         
         next_button = None
@@ -164,14 +184,20 @@ def click_next_page(driver):
         
         # Check if disabled
         classes = next_button.get_attribute("class") or ""
-        if "disabled" in classes:
+        aria_disabled = next_button.get_attribute("aria-disabled") or ""
+        
+        if "disabled" in classes or aria_disabled == "true":
             return False
+        
+        # Scroll to button
+        driver.execute_script("arguments[0].scrollIntoView(true);", next_button)
+        time.sleep(1)
         
         # Click using JavaScript
         driver.execute_script("arguments[0].click();", next_button)
         
         # Wait for page to update
-        time.sleep(3)
+        time.sleep(4)
         
         return True
     except Exception as e:
@@ -199,8 +225,10 @@ def main():
         print(f"✓ Current page title: {driver.title}")
         
         # Scroll to trigger any lazy loading
-        driver.execute_script("window.scrollTo(0, 500);")
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(3)
+        driver.execute_script("window.scrollTo(0, 500);")
+        time.sleep(2)
         
         # Wait for DataTable
         wait_for_datatable(driver)
@@ -212,6 +240,7 @@ def main():
         page_num = 1
         max_pages = 30  # Safety limit
         consecutive_empty = 0
+        last_data_count = 0
         
         while page_num <= max_pages:
             print(f"\n📄 Scraping page {page_num}...")
@@ -229,6 +258,12 @@ def main():
                     consecutive_empty = 0
                     all_data.extend(page_data)
                     print(f"  ✓ Extracted {len(page_data)} rows (Total: {len(all_data)})")
+                    
+                    # Check if we're getting duplicate data (stuck on same page)
+                    if len(all_data) == last_data_count:
+                        print("  ⚠️ No new data added, might be stuck")
+                        break
+                    last_data_count = len(all_data)
                 
                 # Progress indicator
                 if total_entries:
@@ -259,9 +294,16 @@ def main():
 
         # Create DataFrame
         df = pd.DataFrame(all_data)
-        print(f"\n✓ Extracted {len(df)} total rows.")
+        print(f"\n{'='*80}")
+        print(f"✓ SUCCESSFULLY EXTRACTED {len(df)} TOTAL ROWS")
+        print(f"{'='*80}")
         print(f"\nFirst 5 rows:\n{df.head()}")
         print(f"\nLast 5 rows:\n{df.tail()}")
+        
+        # Show unique years to verify data range
+        if 'Year' in df.columns:
+            years = df['Year'].unique()
+            print(f"\nYears in dataset: {sorted(years)}")
 
         # Save locally
         os.makedirs('data', exist_ok=True)
@@ -293,14 +335,15 @@ def main():
                 else:
                     raise e
 
-            if not os.getenv("CI"):  # Keep file locally if not in CI
+            if not os.getenv("CI"):
                 print("✓ Keeping local file (not in CI)")
             else:
                 os.remove(local_csv)
         else:
             print("⚠️ No GitHub token, keeping local file")
 
-        print("\n✅ Script completed successfully!")
+        print("\n✅ SCRIPT COMPLETED SUCCESSFULLY!")
+        print("="*80)
 
     except Exception as e:
         print(f"\n❌ Error occurred: {e}")
