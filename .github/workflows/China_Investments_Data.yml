@@ -5,8 +5,6 @@ on:
     # Run every month on the 1st at 00:00 UTC
     - cron: '0 0 1 * *'
   workflow_dispatch:  # Allows manual trigger from Actions tab
-  push:
-    branches: [ main ]  # Run on push to test
 
 # CRITICAL: Grant write permissions to GITHUB_TOKEN
 permissions:
