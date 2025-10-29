@@ -91,8 +91,8 @@ def handle_cookies(driver, wait):
     except Exception as e:
         print(f"⚠️ No cookie banner found or error: {e}")
 
-def wait_for_table(driver, wait, max_attempts=3):
-    """Robust wait for the DataTable to load."""
+def wait_for_table(driver, wait, max_attempts=1):
+    """Robust wait for the DataTable to load - reduced attempts to avoid hanging."""
     for attempt in range(max_attempts):
         try:
             print(f"Attempt {attempt + 1}/{max_attempts} waiting for table...")
@@ -120,15 +120,15 @@ def wait_for_table(driver, wait, max_attempts=3):
             print("✓ Table loaded with data.")
             return table
         except TimeoutException:
-            print(f"⚠️ Attempt {attempt + 1} timed out, retrying...")
-            time.sleep(15)
+            print(f"⚠️ Attempt {attempt + 1} timed out.")
+            time.sleep(5)  # Short sleep
             # Refresh page on retry
             if attempt > 0:
                 driver.refresh()
-                time.sleep(5)
+                time.sleep(3)
                 # Scroll to bottom to load dynamic content
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(5)
+                time.sleep(3)
     raise TimeoutException("Table failed to load after multiple attempts.")
 
 def scrape_table(driver, wait, table):
@@ -181,7 +181,7 @@ def main():
 
     # Setup driver
     driver = setup_driver()
-    wait = WebDriverWait(driver, 120)  # Increased timeout
+    wait = WebDriverWait(driver, 30)  # Reduced timeout to avoid long hangs
 
     all_data = []
 
@@ -191,14 +191,15 @@ def main():
         
         # Wait for page to fully load
         wait.until(lambda d: d.execute_script('return document.readyState') == "complete")
-        time.sleep(5)
+        print(f"✓ Page loaded. Title: {driver.title}")
+        time.sleep(3)
         
         # Handle cookies
         handle_cookies(driver, wait)
         
         # Scroll to load dynamic content
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(10)
+        time.sleep(5)
 
         # Scrape all pages
         page_num = 1
@@ -228,7 +229,7 @@ def main():
                     break
                 print("  Clicking next page...")
                 driver.execute_script("arguments[0].click();", next_button)
-                time.sleep(5)
+                time.sleep(3)
                 page_num += 1
             except (TimeoutException, NoSuchElementException):
                 print("  ✓ Reached last page (no next button).")
@@ -238,7 +239,7 @@ def main():
                 break
 
         if not all_data:
-            raise ValueError("No data extracted. The dataset may not be publicly available on the page. Contact Derek Scissors at AEI for access: derek.scissors@aei.org")
+            raise ValueError("No data extracted. The dataset may not be publicly available on the page in scrapeable form. Contact Derek Scissors at AEI for access: derek.scissors@aei.org")
 
         # Create DataFrame
         df = pd.DataFrame(all_data)
