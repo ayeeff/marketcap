@@ -10,6 +10,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from github import Github, Auth
 import time
+import undetected_chromedriver as uc
 
 # Configuration
 URL = "https://www.aei.org/china-global-investment-tracker/"
@@ -25,54 +26,74 @@ if GITHUB_TOKEN:
     print("✓ GitHub token loaded successfully.")
 
 def setup_driver():
-    """Setup Chrome driver with options."""
-    chrome_options = Options()
-    chrome_options.add_argument('--headless=new')
-    chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument('--disable-dev-shm-usage')
-    chrome_options.add_argument('--disable-gpu')
-    chrome_options.add_argument('--window-size=1920,1080')
-    chrome_options.add_argument('--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    chrome_options.add_experimental_option('useAutomationExtension', False)
+    """Setup undetected Chrome driver to bypass Cloudflare."""
+    print("Setting up undetected ChromeDriver...")
     
-    print("Setting up ChromeDriver...")
-    service = Service(ChromeDriverManager().install())
-    return webdriver.Chrome(service=service, options=chrome_options)
+    options = uc.ChromeOptions()
+    options.add_argument('--headless=new')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    options.add_argument('--window-size=1920,1080')
+    
+    # Use undetected_chromedriver
+    driver = uc.Chrome(options=options, version_main=None)
+    
+    return driver
 
-def wait_for_datatable(driver, timeout=20):
+def wait_for_cloudflare(driver, timeout=30):
+    """Wait for Cloudflare check to complete."""
+    print("Checking for Cloudflare protection...")
+    start_time = time.time()
+    
+    while time.time() - start_time < timeout:
+        title = driver.title.lower()
+        
+        if "just a moment" in title or "checking your browser" in title:
+            print(f"  ⏳ Cloudflare detected, waiting... ({int(time.time() - start_time)}s)")
+            time.sleep(2)
+        else:
+            print(f"  ✓ Cloudflare passed! Title: {driver.title}")
+            return True
+    
+    raise TimeoutException("Cloudflare check did not complete in time")
+
+def wait_for_datatable(driver, timeout=30):
     """Wait for DataTable to initialize and load data."""
     print("Waiting for DataTable to initialize...")
     
     # Wait for jQuery and DataTable to be loaded
-    WebDriverWait(driver, timeout).until(
-        lambda d: d.execute_script("return typeof jQuery !== 'undefined'")
-    )
-    print("  ✓ jQuery loaded")
+    try:
+        WebDriverWait(driver, timeout).until(
+            lambda d: d.execute_script("return typeof jQuery !== 'undefined'")
+        )
+        print("  ✓ jQuery loaded")
+    except TimeoutException:
+        print("  ⚠️ jQuery not detected, trying anyway...")
     
-    # Wait for DataTable to be initialized
-    WebDriverWait(driver, timeout).until(
-        lambda d: d.execute_script("return jQuery.fn.DataTable !== undefined")
-    )
-    print("  ✓ DataTable library loaded")
+    # Wait for DataTable library
+    try:
+        WebDriverWait(driver, timeout).until(
+            lambda d: d.execute_script("return jQuery.fn.DataTable !== undefined")
+        )
+        print("  ✓ DataTable library loaded")
+    except TimeoutException:
+        print("  ⚠️ DataTable not detected, trying to find table anyway...")
     
     # Wait for table to exist and have data
     WebDriverWait(driver, timeout).until(
-        lambda d: len(d.find_elements(By.CSS_SELECTOR, "table.dataTable tbody tr")) > 0
+        lambda d: len(d.find_elements(By.CSS_SELECTOR, "table tbody tr")) > 0
     )
     print("  ✓ Table has data")
     
-    # Wait for "processing" overlay to disappear
-    WebDriverWait(driver, timeout).until(
-        lambda d: len(d.find_elements(By.CSS_SELECTOR, ".dataTables_processing[style*='display: block']")) == 0
-    )
-    print("  ✓ Processing complete")
+    # Wait for any processing overlay to disappear
+    time.sleep(2)
+    print("  ✓ Ready to scrape")
 
 def get_total_entries(driver):
     """Get total number of entries from DataTable info."""
     try:
         info_text = driver.find_element(By.CSS_SELECTOR, ".dataTables_info").text
-        # Example: "Showing 1 to 100 of 2,451 entries"
         import re
         match = re.search(r'of\s+([\d,]+)\s+entries', info_text)
         if match:
@@ -85,7 +106,18 @@ def get_total_entries(driver):
 
 def scrape_current_page(driver):
     """Scrape data from the current page."""
-    table = driver.find_element(By.CSS_SELECTOR, "table.dataTable")
+    # Try different table selectors
+    table = None
+    for selector in ["table.dataTable", "table.table", "table"]:
+        try:
+            table = driver.find_element(By.CSS_SELECTOR, selector)
+            break
+        except:
+            continue
+    
+    if not table:
+        raise Exception("Could not find table on page")
+    
     rows = table.find_elements(By.CSS_SELECTOR, "tbody tr")
     
     data = []
@@ -111,26 +143,37 @@ def scrape_current_page(driver):
 def click_next_page(driver):
     """Click the next page button. Returns True if successful, False if no more pages."""
     try:
-        # Find the next button
-        next_button = driver.find_element(By.CSS_SELECTOR, "#dataTable_next")
+        # Try multiple selectors
+        next_selectors = [
+            "#dataTable_next",
+            ".dataTables_paginate .next",
+            "a.paginate_button.next",
+            ".pagination .next"
+        ]
         
-        # Check if disabled
-        if "disabled" in next_button.get_attribute("class"):
+        next_button = None
+        for selector in next_selectors:
+            try:
+                next_button = driver.find_element(By.CSS_SELECTOR, selector)
+                break
+            except:
+                continue
+        
+        if not next_button:
             return False
         
-        # Click using JavaScript to avoid interception issues
+        # Check if disabled
+        classes = next_button.get_attribute("class") or ""
+        if "disabled" in classes:
+            return False
+        
+        # Click using JavaScript
         driver.execute_script("arguments[0].click();", next_button)
         
-        # Wait for processing to complete
-        time.sleep(1)
-        WebDriverWait(driver, 10).until(
-            lambda d: len(d.find_elements(By.CSS_SELECTOR, ".dataTables_processing[style*='display: block']")) == 0
-        )
-        time.sleep(1)  # Additional safety wait
+        # Wait for page to update
+        time.sleep(3)
         
         return True
-    except NoSuchElementException:
-        return False
     except Exception as e:
         print(f"  ⚠️ Error clicking next: {e}")
         return False
@@ -147,15 +190,17 @@ def main():
         print(f"\nLoading page: {URL}")
         driver.get(URL)
         
-        # Wait for page load
-        WebDriverWait(driver, 20).until(
-            lambda d: d.execute_script('return document.readyState') == "complete"
-        )
-        print(f"✓ Page loaded. Title: {driver.title}")
+        # Wait for Cloudflare
+        wait_for_cloudflare(driver)
         
-        # Scroll to table area to trigger any lazy loading
+        # Additional wait for page to fully load
+        time.sleep(5)
+        
+        print(f"✓ Current page title: {driver.title}")
+        
+        # Scroll to trigger any lazy loading
         driver.execute_script("window.scrollTo(0, 500);")
-        time.sleep(2)
+        time.sleep(3)
         
         # Wait for DataTable
         wait_for_datatable(driver)
@@ -165,19 +210,38 @@ def main():
         
         # Scrape all pages
         page_num = 1
-        max_pages = 30  # Safety limit (2451 entries / 100 per page = ~25 pages)
+        max_pages = 30  # Safety limit
+        consecutive_empty = 0
         
         while page_num <= max_pages:
             print(f"\n📄 Scraping page {page_num}...")
             
-            page_data = scrape_current_page(driver)
-            all_data.extend(page_data)
-            print(f"  ✓ Extracted {len(page_data)} rows (Total so far: {len(all_data)})")
-            
-            # Check if we should continue
-            if total_entries and len(all_data) >= total_entries:
-                print(f"  ✓ Reached all {total_entries} entries!")
-                break
+            try:
+                page_data = scrape_current_page(driver)
+                
+                if not page_data:
+                    consecutive_empty += 1
+                    print(f"  ⚠️ No data on this page (empty count: {consecutive_empty})")
+                    if consecutive_empty >= 3:
+                        print("  ✓ Multiple empty pages, stopping")
+                        break
+                else:
+                    consecutive_empty = 0
+                    all_data.extend(page_data)
+                    print(f"  ✓ Extracted {len(page_data)} rows (Total: {len(all_data)})")
+                
+                # Progress indicator
+                if total_entries:
+                    progress = (len(all_data) / total_entries) * 100
+                    print(f"  Progress: {progress:.1f}% ({len(all_data)}/{total_entries})")
+                
+                # Check if we have all data
+                if total_entries and len(all_data) >= total_entries:
+                    print(f"  ✓ Reached all {total_entries} entries!")
+                    break
+                
+            except Exception as e:
+                print(f"  ⚠️ Error scraping page {page_num}: {e}")
             
             # Try to go to next page
             if not click_next_page(driver):
@@ -185,21 +249,19 @@ def main():
                 break
             
             page_num += 1
-            
-            # Progress indicator
-            if total_entries:
-                progress = (len(all_data) / total_entries) * 100
-                print(f"  Progress: {progress:.1f}% ({len(all_data)}/{total_entries})")
 
         if not all_data:
-            raise ValueError("No data extracted. The table may not be publicly accessible.")
+            # Save debug info
+            with open("page_source.html", "w", encoding="utf-8") as f:
+                f.write(driver.page_source)
+            driver.save_screenshot("error_screenshot.png")
+            raise ValueError("No data extracted. Check page_source.html and error_screenshot.png for details.")
 
         # Create DataFrame
         df = pd.DataFrame(all_data)
         print(f"\n✓ Extracted {len(df)} total rows.")
-        print(f"\nFirst few rows:\n{df.head()}")
-        print(f"\nLast few rows:\n{df.tail()}")
-        print(f"\nData summary:\n{df.info()}")
+        print(f"\nFirst 5 rows:\n{df.head()}")
+        print(f"\nLast 5 rows:\n{df.tail()}")
 
         # Save locally
         os.makedirs('data', exist_ok=True)
@@ -231,7 +293,10 @@ def main():
                 else:
                     raise e
 
-            os.remove(local_csv)
+            if not os.getenv("CI"):  # Keep file locally if not in CI
+                print("✓ Keeping local file (not in CI)")
+            else:
+                os.remove(local_csv)
         else:
             print("⚠️ No GitHub token, keeping local file")
 
