@@ -8,7 +8,7 @@ import time
 from urllib.parse import urljoin
 from datetime import datetime
 
-def load_config(config_path='config.yml'):
+def load_config(config_path='trueup_locations_scraper.yml'):
     """Load configuration from YAML file."""
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
