@@ -2,16 +2,21 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import os
-import yaml
 from pathlib import Path
 import time
 from urllib.parse import urljoin
 from datetime import datetime
 
-def load_config(config_path='trueup_locations_scraper.yml'):
-    """Load configuration from YAML file."""
-    with open(config_path, 'r') as f:
-        return yaml.safe_load(f)
+def load_config():
+    """Load configuration with hardcoded defaults."""
+    return {
+        'scraper': {
+            'base_url': 'https://www.trueup.io/locations',
+            'output_path': 'data/trueup_locations.csv',
+            'delay': 1,
+            'max_locations': 0
+        }
+    }
 
 def scrape_locations(base_url, delay=1):
     """Scrape location data from TrueUp locations page."""
