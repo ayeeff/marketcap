@@ -10,11 +10,9 @@ Empire,Country,City,Name,Length_km
 3,China,Changsha,Changsha Metro,218.28
 3,China,Changzhou,Changzhou Metro,54.0
 3,China,Chengdu,Chengdu Metro,663.93
-3,China,Chuzhou,Chuzhou Rail Transit,46.2
 3,China,Chongqing,Chongqing Rail Transit,560.04
 3,China,Dalian,Dalian Metro[86],237.7
 3,China,Dongguan,Dongguan Rail Transit,37.7
-3,China,Ezhou,Refer Wuhan Metro,39.0
 3,China,Foshan,Foshan Metro[Nb 23],134.9
 3,China,Fuzhou,Fuzhou Metro,201.4
 3,China,Guangzhou,Guangzhou Metro[Nb 25][Nb 23],768.4
@@ -36,8 +34,7 @@ Empire,Country,City,Name,Length_km
 3,China,Nantong,Nantong Rail Transit,60.0
 3,China,Ningbo,Ningbo Rail Transit[124],262.0
 3,China,Qingdao,Qingdao Metro,352.68
-3,China,Qingyuan,,0.0
-3,China,Shanghai,Shanghai Metro,808.0
+3,China,Shanghai,Shanghai Metro,809.67
 3,China,Shaoxing,Shaoxing Metro,65.2
 3,China,Shenyang,Shenyang Metro,202.7
 3,China,Shenzhen,Shenzhen Metro,609.6
