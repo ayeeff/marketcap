@@ -2,7 +2,7 @@ name: Scrape Empire Rail Data
 
 on:
   schedule:
-    - cron: '0 0 1 */2 *'  # Runs at midnight UTC on the 1st day of every 2nd month
+    - cron: '0 0 1 6 *'  # Runs at midnight UTC on June 1st every year
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
