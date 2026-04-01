@@ -1,90 +1,90 @@
 Rank,Country or region,Total MarketCap,Total Companies,% of Global Market Cap
-1,United States,$71.9 T,"6,868",44.42
-2,China,$22.04 T,"6,788",13.62
-3,Japan,$8.49 T,"4,087",5.25
-4,India,$5.13 T,"5,375",3.17
-5,United Kingdom,$4.8 T,"1,312",2.97
-6,Canada,$4.36 T,"3,109",2.69
-7,Taiwan,$3.97 T,"2,329",2.45
-8,South Korea,$3.83 T,"2,787",2.37
-9,France,$3.51 T,660,2.17
-10,Germany,$3.19 T,685,1.97
-11,Switzerland,$3.02 T,247,1.87
-12,Saudi Arabia,$2.44 T,368,1.51
-13,Australia,$2.22 T,"1,763",1.37
-14,Netherlands,$1.89 T,160,1.17
-15,Sweden,$1.52 T,865,0.94
-16,Spain,$1.36 T,278,0.84
-17,Italy,$1.26 T,436,0.78
-18,Brazil,$1.24 T,357,0.77
-19,Hong Kong,$1.14 T,"1,260",0.7
-20,United Arab Emirates,$1.12 T,152,0.69
-21,Ireland,$1.07 T,80,0.66
-22,Singapore,$975.99 B,637,0.6
-23,Indonesia,$867.05 B,926,0.54
-24,Thailand,$750.57 B,952,0.46
-25,Mexico,$676.4 B,85,0.42
-26,Israel,$673.6 B,606,0.42
-27,Russia,$624.44 B,203,0.39
-28,South Africa,$624.44 B,216,0.39
-29,Denmark,$613.03 B,165,0.38
-30,Malaysia,$530.08 B,"1,089",0.33
-31,Belgium,$481.11 B,134,0.3
-32,Turkey,$470.95 B,598,0.29
-33,Norway,$453.62 B,274,0.28
-34,Finland,$425.64 B,186,0.26
-35,Vietnam,$376.46 B,708,0.23
-36,Poland,$320.78 B,676,0.2
-37,Zimbabwe,$314.66 B,29,0.19
-38,Chile,$277.75 B,158,0.17
-39,Philippines,$245.87 B,272,0.15
-40,Austria,$236.48 B,71,0.15
-41,Luxembourg,$219.77 B,64,0.14
-42,Qatar,$179.97 B,55,0.11
-43,Greece,$172.68 B,169,0.11
-44,Peru,$166.97 B,104,0.1
-45,Kuwait,$162.78 B,138,0.1
-46,Colombia,$143.85 B,61,0.09
-47,New Zealand,$122.99 B,119,0.08
-48,Morocco,$107.57 B,76,0.07
-49,Portugal,$96.21 B,45,0.06
-50,Kazakhstan,$92.37 B,19,0.06
-51,Nigeria,$83.26 B,145,0.05
-52,Romania,$79.57 B,191,0.05
-53,Egypt,$73.86 B,223,0.05
-54,Argentina,$71.43 B,72,0.04
-55,Pakistan,$68.08 B,481,0.04
-56,Hungary,$65.18 B,50,0.04
-57,Czech Republic,$53.79 B,25,0.03
-58,Oman,$45.39 B,104,0.03
-59,Jordan,$38.44 B,155,0.02
-60,Bangladesh,$29.66 B,358,0.02
-61,Sri Lanka,$27.21 B,278,0.02
-62,Ivory Coast,$27 B,45,0.02
-63,Kenya,$26.42 B,58,0.02
-64,Slovenia,$24.09 B,18,0.01
-65,Cyprus,$23.84 B,67,0.01
-66,Bahrain,$20.81 B,33,0.01
-67,Mauritius,$19.46 B,102,0.01
+1,United States,$68.39 T,"6,875",45.38
+2,China,$20.56 T,"6,794",13.64
+3,Japan,$7.56 T,"4,093",5.02
+4,India,$4.47 T,"5,407",2.97
+5,United Kingdom,$4.43 T,"1,314",2.94
+6,Canada,$4.09 T,"3,125",2.71
+7,Taiwan,$3.61 T,"2,330",2.4
+8,France,$3.11 T,661,2.06
+9,South Korea,$3.05 T,"2,794",2.02
+10,Germany,$2.83 T,686,1.88
+11,Switzerland,$2.71 T,248,1.8
+12,Saudi Arabia,$2.64 T,369,1.75
+13,Australia,$2 T,"1,779",1.33
+14,Netherlands,$1.68 T,161,1.11
+15,Sweden,$1.33 T,866,0.88
+16,Spain,$1.25 T,278,0.83
+17,Brazil,$1.2 T,357,0.8
+18,Italy,$1.15 T,437,0.76
+19,Hong Kong,$1.05 T,"1,260",0.7
+20,United Arab Emirates,$1 T,153,0.66
+21,Ireland,$981.22 B,80,0.65
+22,Singapore,$923.27 B,639,0.61
+23,Indonesia,$723.89 B,926,0.48
+24,Thailand,$704.83 B,956,0.47
+25,Israel,$659.03 B,609,0.44
+26,Mexico,$626.97 B,88,0.42
+27,Russia,$602.27 B,203,0.4
+28,Denmark,$583.5 B,166,0.39
+29,South Africa,$546.42 B,216,0.36
+30,Malaysia,$506.89 B,"1,109",0.34
+31,Norway,$493 B,274,0.33
+32,Turkey,$444.26 B,601,0.29
+33,Belgium,$434.14 B,134,0.29
+34,Finland,$396.65 B,187,0.26
+35,Vietnam,$339.22 B,710,0.23
+36,Poland,$301.46 B,682,0.2
+37,Zimbabwe,$285.3 B,30,0.19
+38,Chile,$254.11 B,158,0.17
+39,Austria,$220.9 B,71,0.15
+40,Philippines,$218.47 B,272,0.14
+41,Luxembourg,$202.9 B,64,0.13
+42,Qatar,$164.16 B,55,0.11
+43,Kuwait,$160.16 B,139,0.11
+44,Greece,$158.55 B,170,0.11
+45,Peru,$156.94 B,104,0.1
+46,Colombia,$152.34 B,61,0.1
+47,New Zealand,$111.25 B,120,0.07
+48,Kazakhstan,$102.27 B,20,0.07
+49,Morocco,$100.51 B,76,0.07
+50,Portugal,$93.57 B,45,0.06
+51,Nigeria,$85.82 B,145,0.06
+52,Argentina,$82.31 B,72,0.05
+53,Romania,$78.63 B,231,0.05
+54,Egypt,$67.13 B,224,0.04
+55,Pakistan,$59.74 B,482,0.04
+56,Hungary,$58.88 B,50,0.04
+57,Czech Republic,$51.63 B,25,0.03
+58,Oman,$47.92 B,105,0.03
+59,Jordan,$39.56 B,159,0.03
+60,Bangladesh,$27.19 B,358,0.02
+61,Ivory Coast,$25.55 B,45,0.02
+62,Kenya,$24.81 B,60,0.02
+63,Sri Lanka,$23.83 B,278,0.02
+64,Cyprus,$22.86 B,68,0.02
+65,Slovenia,$22.15 B,19,0.01
+66,Bahrain,$19.56 B,35,0.01
+67,Mauritius,$18.73 B,103,0.01
 68,Lebanon,$18.28 B,5,0.01
-69,Iceland,$17.94 B,28,0.01
-70,Tunisia,$13.84 B,73,0.01
-71,Ghana,$13.67 B,24,0.01
-72,Jamaica,$12.92 B,97,0.01
-73,Malawi,$11.61 B,13,0.01
-74,Bulgaria,$10.91 B,130,0.01
-75,Malta,$10.23 B,42,0.01
-76,Tanzania,$9.37 B,22,0.01
-77,Lithuania,$7.65 B,27,0.0
-78,Ukraine,$7.44 B,9,0.0
-79,Venezuela,$7.43 B,25,0.0
-80,Estonia,$6.67 B,35,0.0
-81,Zambia,$5.1 B,20,0.0
-82,Croatia,$5.07 B,58,0.0
-83,Slovakia,$4.89 B,9,0.0
-84,Uganda,$4.61 B,10,0.0
-85,Palestine,$4.34 B,36,0.0
-86,Serbia,$3.68 B,22,0.0
-87,Botswana,$3.4 B,14,0.0
-88,Namibia,$3.29 B,10,0.0
-89,Latvia,$443.62 M,11,0.0
+69,Iceland,$16.12 B,28,0.01
+70,Malawi,$13.97 B,13,0.01
+71,Tunisia,$13.74 B,73,0.01
+72,Ghana,$13.48 B,26,0.01
+73,Jamaica,$12.71 B,97,0.01
+74,Bulgaria,$10.4 B,131,0.01
+75,Malta,$9.94 B,42,0.01
+76,Tanzania,$8.75 B,22,0.01
+77,Lithuania,$7.34 B,27,0.0
+78,Ukraine,$7.05 B,9,0.0
+79,Venezuela,$6.94 B,25,0.0
+80,Estonia,$6.51 B,35,0.0
+81,Slovakia,$5.77 B,9,0.0
+82,Zambia,$5.26 B,21,0.0
+83,Croatia,$4.98 B,59,0.0
+84,Uganda,$4.52 B,10,0.0
+85,Palestine,$4.37 B,37,0.0
+86,Serbia,$3.61 B,23,0.0
+87,Botswana,$3.34 B,14,0.0
+88,Namibia,$3.22 B,12,0.0
+89,Latvia,$422.67 M,11,0.0
