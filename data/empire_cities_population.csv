@@ -1,31 +1,31 @@
 Empire,Rank,City,Country,Population,Scraped_Date
-1,1,London,United Kingdom,9927020,2026-05-01 03:52:43
-1,2,Kuala Lumpur,Malaysia,9175810,2026-05-01 03:52:43
-1,3,Johannesburg,South Africa,6559190,2026-05-01 03:52:43
-1,4,Toronto,Canada,6551460,2026-05-01 03:52:43
-1,5,Singapore,Singapore,6195860,2026-05-01 03:52:43
-1,6,Nairobi,Kenya,6002290,2026-05-01 03:52:43
-1,7,Melbourne,Australia,5464920,2026-05-01 03:52:43
-1,8,Sydney,Australia,5312640,2026-05-01 03:52:43
-1,9,Cape Town,South Africa,5147500,2026-05-01 03:52:43
-1,10,Kampala,Uganda,4491110,2026-05-01 03:52:43
-2,1,New York,United States,8346955,2026-05-01 03:52:43
-2,2,Los Angeles,United States,3869891,2026-05-01 03:52:43
-2,3,Chicago,United States,2709364,2026-05-01 03:52:43
-2,4,Houston,United States,2435715,2026-05-01 03:52:43
-2,5,Phoenix,United States,1703449,2026-05-01 03:52:43
-2,6,San Antonio,United States,1570314,2026-05-01 03:52:43
-2,7,Philadelphia,United States,1560480,2026-05-01 03:52:43
-2,8,San Diego,United States,1414266,2026-05-01 03:52:43
-2,9,Dallas,United States,1337417,2026-05-01 03:52:43
-2,10,Fort Worth,United States,1050336,2026-05-01 03:52:43
-3,1,Shanghai,China,31049800,2026-05-01 03:52:43
-3,2,Beijing,China,22983400,2026-05-01 03:52:43
-3,3,Chongqing,China,18531600,2026-05-01 03:52:43
-3,4,Guangzhou,China,15147900,2026-05-01 03:52:43
-3,5,Tianjin,China,14933500,2026-05-01 03:52:43
-3,6,Shenzhen,China,13770000,2026-05-01 03:52:43
-3,7,Nanjing,China,10380200,2026-05-01 03:52:43
-3,8,Chengdu,China,10163400,2026-05-01 03:52:43
-3,9,Xi-an,China,9409700,2026-05-01 03:52:43
-3,10,Wuhan,China,9121840,2026-05-01 03:52:43
+1,1,Johannesburg,South Africa,12043175,2026-06-01 04:47:45
+1,2,London,United Kingdom,9188200,2026-06-01 04:47:45
+1,3,Nairobi,Kenya,5603502,2026-06-01 04:47:45
+1,4,Sydney,Australia,4976762,2026-06-01 04:47:45
+1,5,Cape Town,South Africa,4974327,2026-06-01 04:47:45
+1,6,Melbourne,Australia,4928443,2026-06-01 04:47:45
+1,7,Kumasi,Ghana,4529118,2026-06-01 04:47:45
+1,8,Singapore,Singapore,4247430,2026-06-01 04:47:45
+1,9,Toronto,Canada,3358275,2026-06-01 04:47:45
+1,10,Durban,South Africa,3303046,2026-06-01 04:47:45
+2,1,New York,United States,8546038,2026-06-01 04:47:45
+2,2,Los Angeles,United States,3863148,2026-06-01 04:47:45
+2,3,Chicago,United States,2727758,2026-06-01 04:47:45
+2,4,Houston,United States,2419191,2026-06-01 04:47:45
+2,5,Phoenix,United States,1677947,2026-06-01 04:47:45
+2,6,San Antonio,United States,1572360,2026-06-01 04:47:45
+2,7,Philadelphia,United States,1567280,2026-06-01 04:47:45
+2,8,San Diego,United States,1410522,2026-06-01 04:47:45
+2,9,Dallas,United States,1336440,2026-06-01 04:47:45
+2,10,Fort Worth,United States,1049355,2026-06-01 04:47:45
+3,1,Shanghai,China,24722254,2026-06-01 04:47:45
+3,2,Beijing,China,21571693,2026-06-01 04:47:45
+3,3,Shenzhen,China,20622629,2026-06-01 04:47:45
+3,4,Guangzhou,China,18515410,2026-06-01 04:47:45
+3,5,Chengdu,China,15831571,2026-06-01 04:47:45
+3,6,Tianjin,China,12361093,2026-06-01 04:47:45
+3,7,Wuhan,China,11746708,2026-06-01 04:47:45
+3,8,Dongguan,China,11485606,2026-06-01 04:47:45
+3,9,Chongqing,China,10933060,2026-06-01 04:47:45
+3,10,Xi'an,China,10738037,2026-06-01 04:47:45
