@@ -1,8 +1,8 @@
 Empire,Area,Value
-1,Total,510324.56
+1,Total,510329.77
 1,Canada,95948.26
 1,United Kingdom,52076.54
-1,Australia,36347.1
+1,Australia,36349.45
 1,South Africa,31511.48
 1,Malaysia,24213.41
 1,New Zealand,16251.42
@@ -14,7 +14,7 @@ Empire,Area,Value
 1,Ghana,10711.06
 1,Namibia,10239.18
 1,Uganda,10231.06
-1,Sri Lanka,10192.81
+1,Sri Lanka,10195.71
 1,Malawi,10087.47
 1,Eswatini,9976.49
 1,Belize,9625.42
@@ -22,7 +22,7 @@ Empire,Area,Value
 1,Cyprus,8722.36
 1,Trinidad and Tobago,8681.24
 1,Jamaica,8425.17
-1,Malta,8372.04
+1,Malta,8372.0
 1,Saint Vincent and the Grenadines,7958.83
 1,Dominica,7797.15
 1,Barbados,7771.03
@@ -35,6 +35,6 @@ Empire,Area,Value
 1,Botswana,5405.39
 2,United States of America,495824.26
 2,Total,495824.26
-3,Total,668463.72
-3,China,633149.36
-3,Taiwan,35314.36
+3,Total,668456.9299999999
+3,China,633139.45
+3,Taiwan,35317.48
